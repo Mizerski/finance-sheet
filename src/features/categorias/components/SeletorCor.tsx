@@ -1,7 +1,7 @@
 import type { KeyboardEvent } from 'react'
 import { Check } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
-import { CORES_CATEGORIA } from '../cores'
+import { CORES_CATEGORIA, GRUPOS_CORES_CATEGORIA } from '../cores'
 
 interface SeletorCorProps {
   id?: string
@@ -9,7 +9,7 @@ interface SeletorCorProps {
   onChange: (hex: string) => void
 }
 
-/** Paleta de cores de categoria como grupo de rádio (setas mudam a cor). */
+/** Paleta de cores de categoria como um grupo de rádio só, dividido por família (setas percorrem todas). */
 export function SeletorCor({ id, valor, onChange }: SeletorCorProps) {
   const atual = CORES_CATEGORIA.findIndex((c) => c.hex === valor.toLowerCase())
 
@@ -23,29 +23,39 @@ export function SeletorCor({ id, valor, onChange }: SeletorCorProps) {
   }
 
   return (
-    <div id={id} role="radiogroup" aria-label="Cor" onKeyDown={aoTeclar} className="flex flex-wrap gap-2">
-      {CORES_CATEGORIA.map((c, i) => {
-        const ativo = i === atual
-        return (
-          <button
-            key={c.hex}
-            type="button"
-            role="radio"
-            aria-checked={ativo}
-            aria-label={c.nome}
-            title={c.nome}
-            tabIndex={ativo || (atual < 0 && i === 0) ? 0 : -1}
-            onClick={() => onChange(c.hex)}
-            className={cn(
-              'flex size-8 items-center justify-center rounded-full text-primary-foreground ring-offset-2 ring-offset-card transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              ativo && 'ring-2 ring-foreground/30',
-            )}
-            style={{ backgroundColor: c.hex }}
-          >
-            {ativo && <Check className="size-4" />}
-          </button>
-        )
-      })}
+    <div id={id} role="radiogroup" aria-label="Cor" onKeyDown={aoTeclar} className="flex flex-col gap-3">
+      {GRUPOS_CORES_CATEGORIA.map((grupo) => (
+        <div key={grupo.nome} role="group" aria-label={grupo.nome} className="flex flex-col gap-1.5">
+          <span aria-hidden className="text-[0.68rem] tracking-wide text-muted-foreground uppercase">
+            {grupo.nome}
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {grupo.cores.map((c) => {
+              const i = CORES_CATEGORIA.findIndex((x) => x.hex === c.hex)
+              const ativo = i === atual
+              return (
+                <button
+                  key={c.hex}
+                  type="button"
+                  role="radio"
+                  aria-checked={ativo}
+                  aria-label={c.nome}
+                  title={c.nome}
+                  tabIndex={ativo || (atual < 0 && i === 0) ? 0 : -1}
+                  onClick={() => onChange(c.hex)}
+                  className={cn(
+                    'flex size-8 items-center justify-center rounded-full text-primary-foreground ring-offset-2 ring-offset-card transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    ativo && 'ring-2 ring-foreground/30',
+                  )}
+                  style={{ backgroundColor: c.hex }}
+                >
+                  {ativo && <Check className="size-4" />}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
