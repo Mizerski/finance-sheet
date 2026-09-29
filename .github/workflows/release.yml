@@ -1,4 +1,4 @@
-# Gera os instaladores do app desktop e publica numa Release do GitHub.
+# Gera os instaladores do app desktop (por enquanto só Windows) e publica numa Release do GitHub.
 # Dispara ao enviar uma tag de versão: git tag v0.2.0 && git push origin v0.2.0
 # A tag precisa ser igual à versão do package.json (com "v" na frente).
 
@@ -52,11 +52,10 @@ jobs:
               body: [
                 '## Como instalar',
                 '',
-                'Baixe o arquivo do seu sistema em **Assets**, logo abaixo. Não precisa compilar nada.',
+                'Baixe o instalador do Windows em **Assets**, logo abaixo. Não precisa compilar nada.',
                 '',
-                '- **Windows:** o arquivo terminado em `_x64-setup.exe` (ou o `.msi`). Como o instalador não é assinado, o Windows pode mostrar o aviso do SmartScreen: clique em **Mais informações** → **Executar assim mesmo**.',
-                '- **macOS:** o `.dmg` terminado em `_aarch64` (Apple Silicon: M1, M2…) ou `_x64` (Intel). O app não é assinado; se o macOS disser que ele está danificado, rode `xattr -cr "/Applications/Projeção Financeira.app"` no Terminal.',
-                '- **Linux:** o `.AppImage` (qualquer distribuição), o `.deb` (Debian, Ubuntu) ou o `.rpm` (Fedora).',
+                '- **Instalador:** o arquivo terminado em `_x64-setup.exe` (ou o `.msi`, se preferir).',
+                '- **Aviso do SmartScreen:** o instalador não é assinado, então o Windows pode avisar na primeira vez. Clique em **Mais informações** → **Executar assim mesmo**.',
                 '',
                 'No app desktop os dados ficam só no seu computador. Use o botão de **backup** no cabeçalho para exportar uma cópia de vez em quando.',
               ].join('\n'),
@@ -69,19 +68,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Por enquanto só Windows. Para voltar a gerar macOS e Linux, descomente as entradas
+        # abaixo e atualize as instruções de instalação (release e README).
         include:
           - nome: Windows
             sistema: windows-latest
             args: ''
-          - nome: macOS Apple Silicon
-            sistema: macos-latest
-            args: --target aarch64-apple-darwin
-          - nome: macOS Intel
-            sistema: macos-latest
-            args: --target x86_64-apple-darwin
-          - nome: Linux
-            sistema: ubuntu-22.04
-            args: ''
+          # - nome: macOS Apple Silicon
+          #   sistema: macos-latest
+          #   args: --target aarch64-apple-darwin
+          # - nome: macOS Intel
+          #   sistema: macos-latest
+          #   args: --target x86_64-apple-darwin
+          # - nome: Linux
+          #   sistema: ubuntu-22.04
+          #   args: ''
     runs-on: ${{ matrix.sistema }}
     steps:
       - uses: actions/checkout@v5

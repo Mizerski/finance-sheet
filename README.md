@@ -1,26 +1,16 @@
 # Projeção Financeira
 
-> **Versão 0.2** — agora também como app desktop para Windows, macOS e Linux.
+> **Versão 0.2** — agora também como app desktop para Windows.
 
 Controle e projeção financeira dia a dia, no formato de uma planilha: **Dia | Entradas | Saídas fixas | Diário | Saldo**. Você cadastra entradas e saídas (únicas, mensais ou diárias), e o app acumula o saldo dia a dia, mostra quando a conta fica no negativo e resume tudo num dashboard.
 
 ## Baixar
 
-**[⬇ Baixar a última versão](https://github.com/Mizerski/finance-sheet/releases/latest)**. Escolha o instalador do seu sistema em *Assets*; não precisa compilar nada.
-
-| Sistema | Arquivo |
-|---|---|
-| Windows | `…_x64-setup.exe` (ou `.msi`) |
-| macOS Apple Silicon (M1, M2…) | `…_aarch64.dmg` |
-| macOS Intel | `…_x64.dmg` |
-| Linux | `.AppImage`, `.deb` ou `.rpm` |
+**[⬇ Baixar a última versão para Windows](https://github.com/Mizerski/finance-sheet/releases/latest)**. Em *Assets*, baixe o arquivo terminado em `_x64-setup.exe` (ou o `.msi`). Não precisa compilar nada.
 
 No app desktop não há login: os dados ficam só no seu computador e o app funciona sem internet. Use o botão de **backup** no cabeçalho para exportar uma cópia de vez em quando.
 
-Os instaladores não são assinados digitalmente:
-
-- **Windows:** se aparecer o aviso do SmartScreen, clique em **Mais informações** → **Executar assim mesmo**.
-- **macOS:** se o sistema disser que o app está danificado, rode `xattr -cr "/Applications/Projeção Financeira.app"` no Terminal.
+O instalador não é assinado digitalmente. Se aparecer o aviso do SmartScreen, clique em **Mais informações** → **Executar assim mesmo**.
 
 ## Telas
 
@@ -132,7 +122,7 @@ Os instaladores ficam em `src-tauri/target/release/bundle/`: `nsis/*-setup.exe` 
 
 ### Publicar uma versão
 
-A pipeline [`.github/workflows/release.yml`](.github/workflows/release.yml) gera os instaladores de Windows, macOS e Linux e os publica numa Release. Para disparar:
+A pipeline [`.github/workflows/release.yml`](.github/workflows/release.yml) gera os instaladores de Windows e os publica numa Release. macOS e Linux já estão preparados na pipeline, comentados. Para disparar:
 
 1. Atualize `version` no `package.json` (o Tauri lê de lá) e em `src-tauri/Cargo.toml`.
 2. Faça o commit e crie a tag com a mesma versão:
@@ -142,4 +132,4 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-A release só é publicada se todos os instaladores forem gerados; se algum falhar, ela fica como rascunho.
+A release só é publicada se os instaladores forem gerados; se algo falhar, ela fica como rascunho e é reaproveitada quando a tag for enviada de novo.
