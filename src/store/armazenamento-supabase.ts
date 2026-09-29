@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Categoria } from '@/features/categorias/categoria'
+import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from '@/features/lancamentos/lancamento'
 import type { Armazenamento } from './armazenamento'
 import type { AcaoFinancas, DadosFinancas, EstadoFinancas } from './estado'
@@ -26,12 +27,23 @@ interface LinhaLancamento {
   fim: string | null
 }
 
+interface LinhaMeta {
+  id: string
+  nome: string
+  valor_alvo_centavos: number
+  aporte_mensal_centavos: number
+  dia_do_mes: number
+  inicio: string
+  ajustes: Record<string, number>
+}
+
 interface LinhaConfiguracao {
   saldo_inicial_centavos: number
   data_saldo_inicial: string
 }
 
 const COLUNAS_LANCAMENTO = 'id, descricao, tipo, valor_centavos, categoria_id, natureza, recorrencia, inicio, fim'
+const COLUNAS_META = 'id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, ajustes'
 
 /** O PostgREST devolve no máximo 1000 linhas por consulta; busca página por página. */
 const TAMANHO_PAGINA = 1000
@@ -80,11 +92,36 @@ function paraLinhaLancamento(l: Lancamento, idsCategorias: Set<string>): LinhaLa
   }
 }
 
+function deLinhaMeta(m: LinhaMeta): MetaEconomia {
+  return {
+    id: m.id,
+    nome: m.nome,
+    valorAlvoCentavos: m.valor_alvo_centavos,
+    aporteMensalCentavos: m.aporte_mensal_centavos,
+    diaDoMes: m.dia_do_mes,
+    inicio: m.inicio,
+    ajustes: m.ajustes ?? {},
+  }
+}
+
+function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
+  return {
+    id: m.id,
+    nome: m.nome,
+    valor_alvo_centavos: m.valorAlvoCentavos,
+    aporte_mensal_centavos: m.aporteMensalCentavos,
+    dia_do_mes: m.diaDoMes,
+    inicio: m.inicio,
+    ajustes: m.ajustes,
+  }
+}
+
 /** Carrega tudo o que é do usuário logado (o RLS filtra por ele). */
 async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
-  const [categorias, lancamentos, configuracao] = await Promise.all([
+  const [categorias, lancamentos, metas, configuracao] = await Promise.all([
     selecionarTodas<LinhaCategoria>(supabase, 'categorias', 'id, nome, cor, tipo'),
     selecionarTodas<LinhaLancamento>(supabase, 'lancamentos', COLUNAS_LANCAMENTO),
+    selecionarTodas<LinhaMeta>(supabase, 'metas_economia', COLUNAS_META),
     supabase.from('configuracoes').select('saldo_inicial_centavos, data_saldo_inicial').maybeSingle<LinhaConfiguracao>(),
   ])
   if (configuracao.error) throw configuracao.error
@@ -97,6 +134,7 @@ async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
     configDefinida: cfg !== null,
     categorias: categorias.map((c): Categoria => ({ id: c.id, nome: c.nome, cor: c.cor, tipo: c.tipo })),
     lancamentos: lancamentos.map(deLinhaLancamento),
+    metas: metas.map(deLinhaMeta),
   }
 }
 
@@ -140,6 +178,10 @@ function persistir(
     }
     case 'lancamento/excluir':
       return rodar(() => supabase.from('lancamentos').delete().eq('id', acao.id))
+    case 'meta/salvar':
+      return rodar(() => supabase.from('metas_economia').upsert(paraLinhaMeta(acao.meta)))
+    case 'meta/excluir':
+      return rodar(() => supabase.from('metas_economia').delete().eq('id', acao.id))
     case 'dados/importar':
       // Backup só existe no desktop; na web, falha e a tela volta ao que está no banco.
       return async () => {

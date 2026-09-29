@@ -1,6 +1,14 @@
 import { load, type Store } from '@tauri-apps/plugin-store'
 import type { Armazenamento } from './armazenamento'
-import { estadoVazio, financasReducer, VERSAO_DADOS, type DadosFinancas, type EstadoFinancas } from './estado'
+import {
+  atualizarDados,
+  estadoVazio,
+  financasReducer,
+  VERSAO_DADOS,
+  type DadosFinancas,
+  type DadosFinancasV1,
+  type EstadoFinancas,
+} from './estado'
 
 /*
  * Desktop: tudo num arquivo JSON na pasta de dados do app
@@ -9,8 +17,8 @@ import { estadoVazio, financasReducer, VERSAO_DADOS, type DadosFinancas, type Es
 
 export const ARQUIVO_DADOS = 'financas.json'
 
-function soDados({ config, configDefinida, categorias, lancamentos }: EstadoFinancas): DadosFinancas {
-  return { config, configDefinida, categorias, lancamentos }
+function soDados({ config, configDefinida, categorias, lancamentos, metas }: EstadoFinancas): DadosFinancas {
+  return { config, configDefinida, categorias, lancamentos, metas }
 }
 
 export function criarArmazenamentoLocal(): Armazenamento {
@@ -24,7 +32,9 @@ export function criarArmazenamentoLocal(): Armazenamento {
   return {
     async carregar() {
       const store = await abrir()
-      salvo = (await store.get<DadosFinancas>('dados')) ?? soDados(estadoVazio())
+      // Arquivos de versões anteriores são convertidos aqui e regravados no formato atual na próxima ação.
+      const lido = await store.get<DadosFinancas | DadosFinancasV1>('dados')
+      salvo = lido ? atualizarDados(lido) : soDados(estadoVazio())
       return salvo
     },
     gravacao(acao) {
