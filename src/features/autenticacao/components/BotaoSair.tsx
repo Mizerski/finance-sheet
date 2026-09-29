@@ -1,9 +1,13 @@
+import { useContext } from 'react'
 import { LogOut } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
-import { useSessao } from '../sessao-context'
+import { SessaoContext } from '../sessao-context'
 
 export function BotaoSair() {
-  const { usuario, sair } = useSessao()
+  const sessao = useContext(SessaoContext)
+  // Sem sessão (app desktop, que não tem login): não há de onde sair.
+  if (!sessao) return null
+  const { usuario, sair } = sessao
 
   return (
     <Button

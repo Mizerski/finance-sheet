@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from '@/features/lancamentos/lancamento'
+import type { Armazenamento } from './armazenamento'
 import type { AcaoFinancas, DadosFinancas, EstadoFinancas } from './estado'
 import { estadoVazio } from './estado'
 
@@ -80,7 +81,7 @@ function paraLinhaLancamento(l: Lancamento, idsCategorias: Set<string>): LinhaLa
 }
 
 /** Carrega tudo o que é do usuário logado (o RLS filtra por ele). */
-export async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
+async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
   const [categorias, lancamentos, configuracao] = await Promise.all([
     selecionarTodas<LinhaCategoria>(supabase, 'categorias', 'id, nome, cor, tipo'),
     selecionarTodas<LinhaLancamento>(supabase, 'lancamentos', COLUNAS_LANCAMENTO),
@@ -103,7 +104,7 @@ export async function carregarDados(supabase: SupabaseClient): Promise<DadosFina
  * Grava no banco o efeito de uma ação já aplicada na tela.
  * `antes` é o estado anterior à ação. Devolve null para ações que não são salvas.
  */
-export function persistir(
+function persistir(
   supabase: SupabaseClient,
   usuarioId: string,
   acao: AcaoFinancas,
@@ -142,5 +143,13 @@ export function persistir(
     case 'dados/carregar':
     case 'saldos/alternarVisibilidade':
       return null
+  }
+}
+
+/** Web: os dados do usuário logado, no Supabase. */
+export function criarArmazenamentoSupabase(supabase: SupabaseClient, usuarioId: string): Armazenamento {
+  return {
+    carregar: () => carregarDados(supabase),
+    gravacao: (acao, antes) => persistir(supabase, usuarioId, acao, antes),
   }
 }
