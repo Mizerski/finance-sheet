@@ -33,6 +33,16 @@ jobs:
         with:
           script: |
             const tag = context.ref.replace('refs/tags/', '')
+            // Reaproveita o rascunho de uma execução anterior da mesma tag (ex.: depois de uma falha).
+            const releases = await github.paginate(github.rest.repos.listReleases, context.repo)
+            const anterior = releases.find((r) => r.tag_name === tag)
+            if (anterior && !anterior.draft) throw new Error(`A release ${tag} já foi publicada.`)
+            if (anterior) {
+              for (const asset of anterior.assets) {
+                await github.rest.repos.deleteReleaseAsset({ ...context.repo, asset_id: asset.id })
+              }
+              return anterior.id
+            }
             const { data } = await github.rest.repos.createRelease({
               ...context.repo,
               tag_name: tag,
