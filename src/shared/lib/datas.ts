@@ -66,6 +66,13 @@ export function nomeDoMes(mes: number, formato: 'longo' | 'curto' = 'longo'): st
   })
 }
 
+/** "2027-03-05" → "março de 2027" / "mar/2027" */
+export function formatarMesAno(data: DataISO, formato: 'longo' | 'curto' = 'longo'): string {
+  const mes = Number(data.slice(5, 7)) - 1
+  const ano = data.slice(0, 4)
+  return formato === 'longo' ? `${nomeDoMes(mes)} de ${ano}` : `${nomeDoMes(mes, 'curto')}/${ano}`
+}
+
 /** 0 → "domingo" / "dom", 1 → "segunda-feira" / "seg" … */
 export function nomeDoDiaDaSemana(diaDaSemana: number, formato: 'longo' | 'curto' = 'curto'): string {
   // 02/01/2000 foi um domingo.

@@ -18,6 +18,18 @@ import { NavegacaoMeses } from './components/NavegacaoMeses'
 import { PrimeirosPassos } from './components/PrimeirosPassos'
 import { TabelaMes } from './components/TabelaMes'
 
+/** Larguras em que cabem 2 e 3 meses lado a lado; as classes da grade repetem os mesmos breakpoints. */
+const LAYOUT = {
+  doisMeses: '(min-width: 64rem)',
+  tresMeses: '(min-width: 90rem)',
+  grade: 'lg:grid-cols-2 min-[90rem]:grid-cols-3',
+}
+const LAYOUT_COM_ECONOMIA = {
+  doisMeses: '(min-width: 72rem)',
+  tresMeses: '(min-width: 106rem)',
+  grade: 'min-[72rem]:grid-cols-2 min-[106rem]:grid-cols-3',
+}
+
 /** O lançamento continua guardado ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Edicao {
   aberto: boolean
@@ -33,9 +45,11 @@ export function PlanilhaPage() {
   const [edicao, setEdicao] = useState<Edicao>({ aberto: false })
   const [editandoSaldo, setEditandoSaldo] = useState(false)
 
-  // Cada mês precisa de ~430px para os valores caberem com folga.
-  const telaGrande = useMediaQuery('(min-width: 90rem)')
-  const telaMedia = useMediaQuery('(min-width: 64rem)')
+  // Cada mês precisa de ~430px para os valores caberem com folga (~540px com a coluna Economia).
+  const comEconomia = estado.metas.length > 0
+  const layout = comEconomia ? LAYOUT_COM_ECONOMIA : LAYOUT
+  const telaGrande = useMediaQuery(layout.tresMeses)
+  const telaMedia = useMediaQuery(layout.doisMeses)
   const quantidade = telaGrande ? 3 : telaMedia ? 2 : 1
   const [hoje] = useState(() => paraDataISO(new Date()))
   const mesDeHoje = hoje.startsWith(String(ano)) ? Number(hoje.slice(5, 7)) - 1 : 0
@@ -123,7 +137,7 @@ export function PlanilhaPage() {
         onDefinirSaldo={() => setEditandoSaldo(true)}
       />
 
-      <div className="grid items-start gap-4 lg:grid-cols-2 min-[90rem]:grid-cols-3">
+      <div className={cn('grid items-start gap-4', layout.grade)}>
         {visiveis.map(({ projecao, resumo }) => (
           <TabelaMes
             key={`${projecao.ano}-${resumo.mes}`}
@@ -133,6 +147,7 @@ export function PlanilhaPage() {
             hoje={hoje}
             categorias={categorias}
             onEditar={editar}
+            comEconomia={comEconomia}
           />
         ))}
       </div>

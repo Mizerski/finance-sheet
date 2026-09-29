@@ -7,6 +7,7 @@ import {
   retainSearchParams,
 } from '@tanstack/react-router'
 import { CategoriasPage } from '@/features/categorias/CategoriasPage'
+import { EconomiasPage } from '@/features/economias/EconomiasPage'
 import { validarFiltros } from '@/features/lancamentos/filtros'
 import { validarPeriodo } from '@/features/dashboard/periodo'
 import { validarAno } from '@/features/projecao/anos'
@@ -60,6 +61,12 @@ const categoriasRoute = createRoute({
   component: CategoriasPage,
 })
 
+const economiasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/economias',
+  component: EconomiasPage,
+})
+
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
@@ -73,6 +80,7 @@ const routeTree = rootRoute.addChildren([
   planilhaRoute,
   lancamentosRoute,
   categoriasRoute,
+  economiasRoute,
   dashboardRoute,
 ])
 
