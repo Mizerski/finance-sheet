@@ -1,0 +1,274 @@
+import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
+import type { Lancamento, Natureza, TipoMovimento } from '@/features/lancamentos/lancamento'
+import { anoDe, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
+import type { Configuracao } from './configuracao'
+
+export interface Ocorrencia {
+  lancamentoId: string
+  descricao: string
+  tipo: TipoMovimento
+  natureza: Natureza
+  categoriaId: string
+  valorCentavos: number
+}
+
+export interface DiaProjetado {
+  data: DataISO
+  mes: number
+  dia: number
+  /** 0 = domingo … 6 = sábado */
+  diaDaSemana: number
+  /** false para dias antes de dataSaldoInicial, que não entram no cálculo. */
+  noCalculo: boolean
+  ocorrencias: Ocorrencia[]
+  entradasCentavos: number
+  saidasFixasCentavos: number
+  saidasVariaveisCentavos: number
+  /** Saldo acumulado ao fim do dia; null fora do cálculo. */
+  saldoCentavos: number | null
+}
+
+export interface ResumoMes {
+  mes: number
+  entradasCentavos: number
+  saidasFixasCentavos: number
+  saidasVariaveisCentavos: number
+  saidasCentavos: number
+  /** Saldo antes do primeiro dia calculado do mês (= saldo final do mês anterior). */
+  saldoInicialCentavos: number | null
+  /** Saldo ao fim do último dia do mês. */
+  saldoFinalCentavos: number | null
+}
+
+export interface GastoCategoria {
+  categoriaId: string
+  nome: string
+  cor: string
+  totalCentavos: number
+}
+
+export interface ResumoAno {
+  totalEntradasCentavos: number
+  totalSaidasFixasCentavos: number
+  totalSaidasVariaveisCentavos: number
+  totalSaidasCentavos: number
+  /** Saldo antes do primeiro dia calculado do ano: o saldo inicial ou o fim do ano anterior. */
+  saldoInicial: { valorCentavos: number; data: DataISO } | null
+  saldoFinalCentavos: number | null
+  menorSaldo: { valorCentavos: number; data: DataISO } | null
+}
+
+export interface Projecao {
+  ano: number
+  dias: DiaProjetado[]
+  meses: ResumoMes[]
+  resumo: ResumoAno
+}
+
+export function ocorreEm(lancamento: Lancamento, dia: DiaCalendario): boolean {
+  if (lancamento.inicio && dia.data < lancamento.inicio) return false
+  if (lancamento.fim && dia.data > lancamento.fim) return false
+
+  const r = lancamento.recorrencia
+  switch (r.tipo) {
+    case 'unica':
+      return dia.data === r.data
+    case 'mensal':
+      return dia.dia === Math.min(r.diaDoMes, dia.diasNoMes)
+    case 'diaria':
+      return !r.apenasDiasUteis || ehDiaUtil(dia)
+  }
+}
+
+function paraOcorrencia(l: Lancamento): Ocorrencia {
+  return {
+    lancamentoId: l.id,
+    descricao: l.descricao,
+    tipo: l.tipo,
+    natureza: l.natureza,
+    categoriaId: l.categoriaId,
+    valorCentavos: l.valorCentavos,
+  }
+}
+
+function somar(ocorrencias: Ocorrencia[], filtro: (o: Ocorrencia) => boolean): number {
+  return ocorrencias.reduce((total, o) => (filtro(o) ? total + o.valorCentavos : total), 0)
+}
+
+/** Lançamentos únicos por data e recorrentes à parte, para não testar todos a cada dia. */
+interface IndiceLancamentos {
+  unicas: Map<DataISO, Lancamento[]>
+  recorrentes: Lancamento[]
+  /** Posição no cadastro, para as ocorrências do dia saírem na mesma ordem. */
+  posicao: Map<string, number>
+}
+
+function indexar(lancamentos: Lancamento[]): IndiceLancamentos {
+  const unicas = new Map<DataISO, Lancamento[]>()
+  const recorrentes: Lancamento[] = []
+  for (const l of lancamentos) {
+    if (l.recorrencia.tipo !== 'unica') recorrentes.push(l)
+    else unicas.set(l.recorrencia.data, [...(unicas.get(l.recorrencia.data) ?? []), l])
+  }
+  return { unicas, recorrentes, posicao: new Map(lancamentos.map((l, i) => [l.id, i])) }
+}
+
+function lancamentosDoDia(indice: IndiceLancamentos, dia: DiaCalendario): Lancamento[] {
+  const candidatos = [...(indice.unicas.get(dia.data) ?? []), ...indice.recorrentes]
+  return candidatos
+    .filter((l) => ocorreEm(l, dia))
+    .sort((a, b) => indice.posicao.get(a.id)! - indice.posicao.get(b.id)!)
+}
+
+/**
+ * Projeta dia a dia um ano inteiro. `saldoAbertura` é o saldo antes do primeiro dia calculado:
+ * o saldo inicial da configuração, ou o saldo final do ano anterior.
+ */
+function projetarDias(
+  config: Configuracao,
+  indice: IndiceLancamentos,
+  ano: number,
+  saldoAbertura: number,
+): DiaProjetado[] {
+  let saldo = saldoAbertura
+
+  return diasDoAno(ano).map((dia) => {
+    const base = { data: dia.data, mes: dia.mes, dia: dia.dia, diaDaSemana: dia.diaDaSemana }
+
+    if (dia.data < config.dataSaldoInicial) {
+      return {
+        ...base,
+        noCalculo: false,
+        ocorrencias: [],
+        entradasCentavos: 0,
+        saidasFixasCentavos: 0,
+        saidasVariaveisCentavos: 0,
+        saldoCentavos: null,
+      }
+    }
+
+    const ocorrencias = lancamentosDoDia(indice, dia).map(paraOcorrencia)
+    const entradas = somar(ocorrencias, (o) => o.tipo === 'entrada')
+    const fixas = somar(ocorrencias, (o) => o.tipo === 'saida' && o.natureza === 'fixa')
+    const variaveis = somar(ocorrencias, (o) => o.tipo === 'saida' && o.natureza === 'variavel')
+    saldo += entradas - fixas - variaveis
+
+    return {
+      ...base,
+      noCalculo: true,
+      ocorrencias,
+      entradasCentavos: entradas,
+      saidasFixasCentavos: fixas,
+      saidasVariaveisCentavos: variaveis,
+      saldoCentavos: saldo,
+    }
+  })
+}
+
+function saldoAntesDoDia(d: DiaProjetado): number | null {
+  if (d.saldoCentavos === null) return null
+  return d.saldoCentavos - d.entradasCentavos + d.saidasFixasCentavos + d.saidasVariaveisCentavos
+}
+
+export function agregarPorMes(dias: DiaProjetado[]): ResumoMes[] {
+  return Array.from({ length: 12 }, (_, mes) => {
+    const doMes = dias.filter((d) => d.mes === mes)
+    const calculados = doMes.filter((d) => d.noCalculo)
+    const entradas = calculados.reduce((t, d) => t + d.entradasCentavos, 0)
+    const fixas = calculados.reduce((t, d) => t + d.saidasFixasCentavos, 0)
+    const variaveis = calculados.reduce((t, d) => t + d.saidasVariaveisCentavos, 0)
+
+    return {
+      mes,
+      entradasCentavos: entradas,
+      saidasFixasCentavos: fixas,
+      saidasVariaveisCentavos: variaveis,
+      saidasCentavos: fixas + variaveis,
+      saldoInicialCentavos: calculados.length ? saldoAntesDoDia(calculados[0]) : null,
+      saldoFinalCentavos: doMes.at(-1)?.saldoCentavos ?? null,
+    }
+  })
+}
+
+/** Saídas agrupadas por categoria, do maior para o menor. `mes` omitido = ano inteiro. */
+export function gastosPorCategoria(
+  dias: DiaProjetado[],
+  categorias: Categoria[],
+  mes?: number,
+): GastoCategoria[] {
+  const totais = new Map<string, number>()
+  for (const d of dias) {
+    if (mes !== undefined && d.mes !== mes) continue
+    for (const o of d.ocorrencias) {
+      if (o.tipo !== 'saida') continue
+      totais.set(o.categoriaId, (totais.get(o.categoriaId) ?? 0) + o.valorCentavos)
+    }
+  }
+
+  return [...totais]
+    .map(([categoriaId, totalCentavos]) => {
+      const cat = categorias.find((c) => c.id === categoriaId) ?? CATEGORIA_DESCONHECIDA
+      return { categoriaId, nome: cat.nome, cor: cat.cor, totalCentavos }
+    })
+    .sort((a, b) => b.totalCentavos - a.totalCentavos)
+}
+
+/** Total projetado no ano (entradas e saídas) de cada categoria, pelo id. */
+export function totalPorCategoria(dias: DiaProjetado[]): Map<string, number> {
+  const totais = new Map<string, number>()
+  for (const d of dias) {
+    for (const o of d.ocorrencias) {
+      totais.set(o.categoriaId, (totais.get(o.categoriaId) ?? 0) + o.valorCentavos)
+    }
+  }
+  return totais
+}
+
+export function resumirAno(dias: DiaProjetado[]): ResumoAno {
+  let totalEntradas = 0
+  let totalFixas = 0
+  let totalVariaveis = 0
+  let saldoInicial: ResumoAno['saldoInicial'] = null
+  let menorSaldo: ResumoAno['menorSaldo'] = null
+  let saldoFinal: number | null = null
+
+  for (const d of dias) {
+    totalEntradas += d.entradasCentavos
+    totalFixas += d.saidasFixasCentavos
+    totalVariaveis += d.saidasVariaveisCentavos
+    if (d.saldoCentavos === null) continue
+    saldoInicial ??= { valorCentavos: saldoAntesDoDia(d)!, data: d.data }
+    saldoFinal = d.saldoCentavos
+    // Estritamente menor: em caso de empate, fica a primeira data.
+    if (!menorSaldo || d.saldoCentavos < menorSaldo.valorCentavos) {
+      menorSaldo = { valorCentavos: d.saldoCentavos, data: d.data }
+    }
+  }
+
+  return {
+    totalEntradasCentavos: totalEntradas,
+    totalSaidasFixasCentavos: totalFixas,
+    totalSaidasVariaveisCentavos: totalVariaveis,
+    totalSaidasCentavos: totalFixas + totalVariaveis,
+    saldoInicial,
+    saldoFinalCentavos: saldoFinal,
+    menorSaldo,
+  }
+}
+
+/**
+ * Projeta os anos de `de` a `ate`, um resultado por ano.
+ * O saldo é encadeado desde o ano de dataSaldoInicial: o fim de um ano é a abertura do seguinte.
+ */
+export function projetarAnos(config: Configuracao, lancamentos: Lancamento[], de: number, ate: number): Projecao[] {
+  const indice = indexar(lancamentos)
+  const projecoes: Projecao[] = []
+  let saldo = config.saldoInicialCentavos
+
+  for (let ano = Math.min(de, anoDe(config.dataSaldoInicial)); ano <= ate; ano++) {
+    const dias = projetarDias(config, indice, ano, saldo)
+    saldo = dias.at(-1)?.saldoCentavos ?? config.saldoInicialCentavos
+    if (ano >= de) projecoes.push({ ano, dias, meses: agregarPorMes(dias), resumo: resumirAno(dias) })
+  }
+  return projecoes
+}
