@@ -2,7 +2,10 @@ import type { Categoria } from '@/features/categorias/categoria'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import type { Configuracao } from '@/features/projecao/configuracao'
 
-/** O que fica salvo no banco (Supabase). */
+/** Formato de DadosFinancas no arquivo local e no backup; aumente e converta os dados antigos se o formato mudar. */
+export const VERSAO_DADOS = 1
+
+/** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {
   config: Configuracao
   /** false enquanto o usuário não salvou um saldo inicial (vale o padrão: R$ 0 em 1º de janeiro). */
@@ -18,6 +21,8 @@ export interface EstadoFinancas extends DadosFinancas {
 
 export type AcaoFinancas =
   | { tipo: 'dados/carregar'; dados: DadosFinancas }
+  /** Troca tudo pelo conteúdo de um backup (só no desktop). Ao contrário de carregar, é salvo. */
+  | { tipo: 'dados/importar'; dados: DadosFinancas }
   | { tipo: 'config/atualizar'; config: Partial<Configuracao> }
   | { tipo: 'categoria/salvar'; categoria: Categoria }
   | { tipo: 'categoria/excluir'; id: string }
@@ -35,6 +40,7 @@ function salvar<T extends { id: string }>(lista: T[], item: T): T[] {
 export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): EstadoFinancas {
   switch (acao.tipo) {
     case 'dados/carregar':
+    case 'dados/importar':
       return { ...estado, ...acao.dados }
     case 'config/atualizar':
       return { ...estado, config: { ...estado.config, ...acao.config }, configDefinida: true }

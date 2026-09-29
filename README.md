@@ -1,8 +1,16 @@
 # Projeção Financeira
 
-> **Versão 0.1 beta**
+> **Versão 0.2** — agora também como app desktop para Windows.
 
 Controle e projeção financeira dia a dia, no formato de uma planilha: **Dia | Entradas | Saídas fixas | Diário | Saldo**. Você cadastra entradas e saídas (únicas, mensais ou diárias), e o app acumula o saldo dia a dia, mostra quando a conta fica no negativo e resume tudo num dashboard.
+
+## Baixar
+
+**[⬇ Baixar a última versão para Windows](https://github.com/Mizerski/finance-sheet/releases/latest)**. Em *Assets*, baixe o arquivo terminado em `_x64-setup.exe` (ou o `.msi`). Não precisa compilar nada.
+
+No app desktop não há login: os dados ficam só no seu computador e o app funciona sem internet. Use o botão de **backup** no cabeçalho para exportar uma cópia de vez em quando.
+
+O instalador não é assinado digitalmente. Se aparecer o aviso do SmartScreen, clique em **Mais informações** → **Executar assim mesmo**.
 
 ## Telas
 
@@ -43,7 +51,8 @@ Cada pessoa tem a sua conta. Os dados ficam no Supabase, protegidos por RLS: nin
 - **TanStack Router**: rotas com parâmetros de busca validados
 - **Recharts**, pelo componente Chart do shadcn
 - **date-fns**, com locale pt-BR
-- **Supabase**: Postgres, autenticação por e-mail e senha, e RLS
+- **Supabase**: Postgres, autenticação por e-mail e senha, e RLS (versão web)
+- **Tauri 2**: app desktop, com os dados num arquivo local
 
 Valores são guardados em centavos (inteiros) e a lógica de projeção fica em funções puras (`src/features/projecao/projecao.ts`). O código segue *package by feature* (`src/features/<feature>`), com o que é compartilhado em `src/shared`.
 
@@ -90,3 +99,37 @@ npm run dev      # servidor de desenvolvimento
 npm run build    # typecheck + build de produção
 npm run lint     # oxlint
 ```
+
+## App desktop
+
+A mesma interface, empacotada com [Tauri](https://tauri.app). No desktop **não há login nem Supabase**: os dados ficam num arquivo no seu computador (no Windows, `%APPDATA%\io.github.mizerski.projecaofinanceira\financas.json`), e o app funciona sem internet. O botão de backup exporta e importa esses dados num arquivo `.json`.
+
+### Compilar no Windows
+
+Pré-requisitos, além do Node.js:
+
+- [Rust](https://rustup.rs) (toolchain `stable-x86_64-pc-windows-msvc`)
+- Microsoft C++ Build Tools, com a carga de trabalho "Desenvolvimento para desktop com C++"
+- WebView2 (já vem no Windows 10 e 11 atualizados)
+
+```bash
+npm install
+npm run desktop         # abre o app em modo de desenvolvimento
+npm run desktop:build   # gera os instaladores
+```
+
+Os instaladores ficam em `src-tauri/target/release/bundle/`: `nsis/*-setup.exe` e `msi/*.msi`.
+
+### Publicar uma versão
+
+A pipeline [`.github/workflows/release.yml`](.github/workflows/release.yml) gera os instaladores de Windows e os publica numa Release. macOS e Linux já estão preparados na pipeline, comentados. Para disparar:
+
+1. Atualize `version` no `package.json` (o Tauri lê de lá) e em `src-tauri/Cargo.toml`.
+2. Faça o commit e crie a tag com a mesma versão:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+A release só é publicada se os instaladores forem gerados; se algo falhar, ela fica como rascunho e é reaproveitada quando a tag for enviada de novo.

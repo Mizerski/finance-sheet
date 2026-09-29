@@ -1,7 +1,9 @@
 import { Link, Outlet } from '@tanstack/react-router'
 import { ArrowLeftRight, LayoutDashboard, Sheet, Tags, type LucideIcon } from 'lucide-react'
 import { BotaoSair } from '@/features/autenticacao/components/BotaoSair'
+import { BotaoBackup } from '@/features/backup/components/BotaoBackup'
 import { SaldoProjetado } from '@/features/projecao/components/SaldoProjetado'
+import { EH_DESKTOP } from '@/shared/lib/plataforma'
 import { useMemoriaNavegacao } from '../navegacao/memoria-context'
 import { MemoriaNavegacaoProvider } from '../navegacao/MemoriaNavegacaoProvider'
 
@@ -27,6 +29,7 @@ export function AppLayout() {
             </div>
             <div className="flex min-w-0 items-center gap-1">
               <Menu />
+              {EH_DESKTOP && <BotaoBackup />}
               <BotaoSair />
             </div>
           </div>
