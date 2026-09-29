@@ -1,0 +1,120 @@
+# Gera os instaladores do app desktop e publica numa Release do GitHub.
+# Dispara ao enviar uma tag de versão: git tag v0.2.0 && git push origin v0.2.0
+# A tag precisa ser igual à versão do package.json (com "v" na frente).
+
+name: Release desktop
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  criar-release:
+    name: Criar rascunho da release
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.criar.outputs.result }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Conferir tag e versão
+        run: |
+          versao="v$(node -p "require('./package.json').version")"
+          if [ "$versao" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::A tag $GITHUB_REF_NAME não bate com a versão do package.json ($versao)."
+            exit 1
+          fi
+
+      - id: criar
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '')
+            const { data } = await github.rest.repos.createRelease({
+              ...context.repo,
+              tag_name: tag,
+              name: `Projeção Financeira ${tag}`,
+              draft: true,
+              generate_release_notes: true,
+              body: [
+                '## Como instalar',
+                '',
+                'Baixe o arquivo do seu sistema em **Assets**, logo abaixo. Não precisa compilar nada.',
+                '',
+                '- **Windows:** o arquivo terminado em `_x64-setup.exe` (ou o `.msi`). Como o instalador não é assinado, o Windows pode mostrar o aviso do SmartScreen: clique em **Mais informações** → **Executar assim mesmo**.',
+                '- **macOS:** o `.dmg` terminado em `_aarch64` (Apple Silicon: M1, M2…) ou `_x64` (Intel). O app não é assinado; se o macOS disser que ele está danificado, rode `xattr -cr "/Applications/Projeção Financeira.app"` no Terminal.',
+                '- **Linux:** o `.AppImage` (qualquer distribuição), o `.deb` (Debian, Ubuntu) ou o `.rpm` (Fedora).',
+                '',
+                'No app desktop os dados ficam só no seu computador. Use o botão de **backup** no cabeçalho para exportar uma cópia de vez em quando.',
+              ].join('\n'),
+            })
+            return data.id
+
+  instaladores:
+    name: Instaladores (${{ matrix.nome }})
+    needs: criar-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nome: Windows
+            sistema: windows-latest
+            args: ''
+          - nome: macOS Apple Silicon
+            sistema: macos-latest
+            args: --target aarch64-apple-darwin
+          - nome: macOS Intel
+            sistema: macos-latest
+            args: --target x86_64-apple-darwin
+          - nome: Linux
+            sistema: ubuntu-22.04
+            args: ''
+    runs-on: ${{ matrix.sistema }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Dependências do Linux
+        if: matrix.sistema == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.sistema == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ needs.criar-release.outputs.id }}
+          args: ${{ matrix.args }}
+
+  publicar:
+    name: Publicar release
+    needs: [criar-release, instaladores]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              ...context.repo,
+              release_id: Number('${{ needs.criar-release.outputs.id }}'),
+              draft: false,
+              make_latest: 'true',
+            })
