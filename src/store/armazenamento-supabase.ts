@@ -140,6 +140,11 @@ function persistir(
     }
     case 'lancamento/excluir':
       return rodar(() => supabase.from('lancamentos').delete().eq('id', acao.id))
+    case 'dados/importar':
+      // Backup só existe no desktop; na web, falha e a tela volta ao que está no banco.
+      return async () => {
+        throw new Error('Importar backup só está disponível no app desktop.')
+      }
     case 'dados/carregar':
     case 'saldos/alternarVisibilidade':
       return null

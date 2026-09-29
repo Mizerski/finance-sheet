@@ -7,6 +7,10 @@
   ],
   "permissions": [
     "core:default",
-    "store:default"
+    "store:default",
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file"
   ]
 }
