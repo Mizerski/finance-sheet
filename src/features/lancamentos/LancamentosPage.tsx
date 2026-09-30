@@ -107,8 +107,8 @@ export function LancamentosPage() {
           />
         ) : filtrando ? (
           <EstadoVazio
-            titulo="Nenhum lançamento com esses filtros"
-            descricao="Tente outra combinação ou limpe os filtros."
+            titulo={filtros.q?.trim() ? `Nada encontrado para "${filtros.q.trim()}"` : 'Nenhum lançamento com esses filtros'}
+            descricao="Tente outra busca ou combinação, ou limpe os filtros."
             acao={
               <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={() => alterarFiltros({})}>
                 Limpar filtros

@@ -13,7 +13,7 @@ Branch `feature/melhorias-usabilidade`. Vem da revisão de design (nota 3/4). Ca
 - [x] **3. Cabeçalho: saldo claro e sem rolagem horizontal**
   - Mostrar o saldo de hoje e o do fim do ano com rótulos explícitos, também no celular.
   - Corrigir o menu que empurra o botão de backup para fora da tela entre 640px e ~910px.
-- [ ] **4. Busca e filtros compactos em Lançamentos**
+- [x] **4. Busca e filtros compactos em Lançamentos**
   - Campo de busca pela descrição, guardado em `?q=`.
   - No celular, os quatro filtros viram um botão "Filtros (n)".
   - A tabela precisa de ~824px e rola dentro do card entre ~770px e ~860px; ajustar colunas para caber.
