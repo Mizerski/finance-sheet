@@ -11,7 +11,7 @@ import { Input } from '@/shared/ui/input'
 import { useFinancas } from '@/store/financas-context'
 import { aporteParaOPrazo, resumirMeta } from '../aportes'
 import type { MetaEconomia } from '../meta'
-import { useCapacidade } from '../useCapacidade'
+import { useAvaliacaoMeta } from '../useAvaliacaoMeta'
 import { DiagnosticoMeta } from './DiagnosticoMeta'
 
 interface FormularioMetaProps {
@@ -35,8 +35,6 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
 
   const diaDoMes = Number(dia)
   const diaValido = Number.isInteger(diaDoMes) && diaDoMes >= 1 && diaDoMes <= 31
-  // O espaço que esta meta tem no fluxo: a capacidade sem ela.
-  const capacidade = useCapacidade(hoje, meta?.id)
 
   // A meta como está no formulário, para a prévia do término e o diagnóstico (o nome não muda a conta).
   const rascunho: MetaEconomia | null =
@@ -53,6 +51,9 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
           ajustes: meta?.ajustes ?? {},
         }
       : null
+
+  // A meta simulada no fluxo projetado, sobre as outras metas.
+  const avaliacao = useAvaliacaoMeta(rascunho, hoje)
 
   function validar(): Erros {
     const erros: Erros = {}
@@ -159,7 +160,7 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
       </div>
 
       {rascunho && (
-        <DiagnosticoMeta rascunho={rascunho} capacidade={capacidade} hoje={hoje} onUsarAporte={setAporte} />
+        <DiagnosticoMeta rascunho={rascunho} avaliacao={avaliacao} hoje={hoje} onUsarAporte={setAporte} />
       )}
 
       <FieldDescription>
