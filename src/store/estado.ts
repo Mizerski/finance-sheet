@@ -2,9 +2,11 @@ import type { Categoria } from '@/features/categorias/categoria'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import type { Configuracao } from '@/features/projecao/configuracao'
+import type { Pasta } from '@/features/pastas/pasta'
+import type { Tag } from '@/features/tags/tag'
 
 /** Formato de DadosFinancas no arquivo local e no backup; aumente e converta os dados antigos se o formato mudar. */
-export const VERSAO_DADOS = 2
+export const VERSAO_DADOS = 3
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {
@@ -15,14 +17,26 @@ export interface DadosFinancas {
   lancamentos: Lancamento[]
   /** Metas de economia (a partir da versão 2 dos dados). */
   metas: MetaEconomia[]
+  /** Tags das saídas (a partir da versão 3 dos dados). */
+  tags: Tag[]
+  /** Pastas da tela de lançamentos (a partir da versão 3 dos dados). */
+  pastas: Pasta[]
 }
 
+/** Dados da versão 2, antes das tags e das pastas. */
+export type DadosFinancasV2 = Omit<DadosFinancas, 'tags' | 'pastas'>
+
 /** Dados da versão 1, antes das metas de economia. */
-export type DadosFinancasV1 = Omit<DadosFinancas, 'metas'>
+export type DadosFinancasV1 = Omit<DadosFinancasV2, 'metas'>
 
 /** Converte dados salvos em versões anteriores para o formato atual. */
-export function atualizarDados(dados: DadosFinancas | DadosFinancasV1): DadosFinancas {
-  return { ...dados, metas: 'metas' in dados && Array.isArray(dados.metas) ? dados.metas : [] }
+export function atualizarDados(dados: DadosFinancas | DadosFinancasV2 | DadosFinancasV1): DadosFinancas {
+  return {
+    ...dados,
+    metas: 'metas' in dados && Array.isArray(dados.metas) ? dados.metas : [],
+    tags: 'tags' in dados && Array.isArray(dados.tags) ? dados.tags : [],
+    pastas: 'pastas' in dados && Array.isArray(dados.pastas) ? dados.pastas : [],
+  }
 }
 
 export interface EstadoFinancas extends DadosFinancas {
@@ -41,6 +55,10 @@ export type AcaoFinancas =
   | { tipo: 'lancamento/excluir'; id: string }
   | { tipo: 'meta/salvar'; meta: MetaEconomia }
   | { tipo: 'meta/excluir'; id: string }
+  | { tipo: 'tag/salvar'; tag: Tag }
+  | { tipo: 'tag/excluir'; id: string }
+  | { tipo: 'pasta/salvar'; pasta: Pasta }
+  | { tipo: 'pasta/excluir'; id: string }
   | { tipo: 'saldos/alternarVisibilidade' }
 
 /** Substitui o item com o mesmo id ou adiciona no fim. */
@@ -74,6 +92,32 @@ export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): Est
       return { ...estado, metas: salvar(estado.metas, acao.meta) }
     case 'meta/excluir':
       return { ...estado, metas: estado.metas.filter((m) => m.id !== acao.id) }
+    case 'tag/salvar':
+      return { ...estado, tags: salvar(estado.tags, acao.tag) }
+    case 'tag/excluir':
+      // Como no banco (on delete set null): os lançamentos ficam, sem tag.
+      return {
+        ...estado,
+        tags: estado.tags.filter((t) => t.id !== acao.id),
+        lancamentos: estado.lancamentos.map((l) => {
+          if (l.tagId !== acao.id) return l
+          const { tagId: _, ...semTag } = l
+          return semTag
+        }),
+      }
+    case 'pasta/salvar':
+      return { ...estado, pastas: salvar(estado.pastas, acao.pasta) }
+    case 'pasta/excluir':
+      // Como no banco (on delete set null): os lançamentos ficam, sem pasta.
+      return {
+        ...estado,
+        pastas: estado.pastas.filter((p) => p.id !== acao.id),
+        lancamentos: estado.lancamentos.map((l) => {
+          if (l.pastaId !== acao.id) return l
+          const { pastaId: _, ...semPasta } = l
+          return semPasta
+        }),
+      }
     case 'saldos/alternarVisibilidade':
       return { ...estado, saldosOcultos: !estado.saldosOcultos }
   }
@@ -87,6 +131,8 @@ export function estadoVazio(): EstadoFinancas {
     categorias: [],
     lancamentos: [],
     metas: [],
+    tags: [],
+    pastas: [],
     saldosOcultos: false,
   }
 }

@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from '@/features/lancamentos/lancamento'
+import type { Pasta } from '@/features/pastas/pasta'
+import type { Tag } from '@/features/tags/tag'
 import type { Armazenamento } from './armazenamento'
 import type { AcaoFinancas, DadosFinancas, EstadoFinancas } from './estado'
 import { estadoVazio } from './estado'
@@ -21,6 +23,8 @@ interface LinhaLancamento {
   tipo: TipoMovimento
   valor_centavos: number
   categoria_id: string | null
+  tag_id: string | null
+  pasta_id: string | null
   natureza: Natureza
   recorrencia: Recorrencia
   inicio: string | null
@@ -42,7 +46,7 @@ interface LinhaConfiguracao {
   data_saldo_inicial: string
 }
 
-const COLUNAS_LANCAMENTO = 'id, descricao, tipo, valor_centavos, categoria_id, natureza, recorrencia, inicio, fim'
+const COLUNAS_LANCAMENTO = 'id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
 const COLUNAS_META = 'id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, ajustes'
 
 /** O PostgREST devolve no máximo 1000 linhas por consulta; busca página por página. */
@@ -70,6 +74,8 @@ function deLinhaLancamento(l: LinhaLancamento): Lancamento {
     tipo: l.tipo,
     valorCentavos: l.valor_centavos,
     categoriaId: l.categoria_id ?? '',
+    ...(l.tag_id && { tagId: l.tag_id }),
+    ...(l.pasta_id && { pastaId: l.pasta_id }),
     natureza: l.natureza,
     recorrencia: l.recorrencia,
     ...(l.inicio && { inicio: l.inicio }),
@@ -77,14 +83,22 @@ function deLinhaLancamento(l: LinhaLancamento): Lancamento {
   }
 }
 
-function paraLinhaLancamento(l: Lancamento, idsCategorias: Set<string>): LinhaLancamento {
+/** Ids que existem no banco: um id vazio ou já excluído vira null (a chave estrangeira não aceita id inexistente). */
+interface IdsValidos {
+  categorias: Set<string>
+  tags: Set<string>
+  pastas: Set<string>
+}
+
+function paraLinhaLancamento(l: Lancamento, ids: IdsValidos): LinhaLancamento {
   return {
     id: l.id,
     descricao: l.descricao,
     tipo: l.tipo,
     valor_centavos: l.valorCentavos,
-    // Categoria vazia ou já excluída vira null (a chave estrangeira não aceita id inexistente).
-    categoria_id: idsCategorias.has(l.categoriaId) ? l.categoriaId : null,
+    categoria_id: ids.categorias.has(l.categoriaId) ? l.categoriaId : null,
+    tag_id: l.tagId && ids.tags.has(l.tagId) ? l.tagId : null,
+    pasta_id: l.pastaId && ids.pastas.has(l.pastaId) ? l.pastaId : null,
     natureza: l.natureza,
     recorrencia: l.recorrencia,
     inicio: l.inicio ?? null,
@@ -118,8 +132,10 @@ function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
 
 /** Carrega tudo o que é do usuário logado (o RLS filtra por ele). */
 async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
-  const [categorias, lancamentos, metas, configuracao] = await Promise.all([
+  const [categorias, tags, pastas, lancamentos, metas, configuracao] = await Promise.all([
     selecionarTodas<LinhaCategoria>(supabase, 'categorias', 'id, nome, cor, tipo'),
+    selecionarTodas<Tag>(supabase, 'tags', 'id, nome, cor, evitavel'),
+    selecionarTodas<Pasta>(supabase, 'pastas', 'id, nome, cor'),
     selecionarTodas<LinhaLancamento>(supabase, 'lancamentos', COLUNAS_LANCAMENTO),
     selecionarTodas<LinhaMeta>(supabase, 'metas_economia', COLUNAS_META),
     supabase.from('configuracoes').select('saldo_inicial_centavos, data_saldo_inicial').maybeSingle<LinhaConfiguracao>(),
@@ -135,6 +151,8 @@ async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
     categorias: categorias.map((c): Categoria => ({ id: c.id, nome: c.nome, cor: c.cor, tipo: c.tipo })),
     lancamentos: lancamentos.map(deLinhaLancamento),
     metas: metas.map(deLinhaMeta),
+    tags: tags.map(({ id, nome, cor, evitavel }) => ({ id, nome, cor, evitavel })),
+    pastas: pastas.map(({ id, nome, cor }) => ({ id, nome, cor })),
   }
 }
 
@@ -173,7 +191,11 @@ function persistir(
     case 'categoria/excluir':
       return rodar(() => supabase.from('categorias').delete().eq('id', acao.id))
     case 'lancamento/salvar': {
-      const linha = paraLinhaLancamento(acao.lancamento, new Set(antes.categorias.map((c) => c.id)))
+      const linha = paraLinhaLancamento(acao.lancamento, {
+        categorias: new Set(antes.categorias.map((c) => c.id)),
+        tags: new Set(antes.tags.map((t) => t.id)),
+        pastas: new Set(antes.pastas.map((p) => p.id)),
+      })
       return rodar(() => supabase.from('lancamentos').upsert(linha))
     }
     case 'lancamento/excluir':
@@ -182,6 +204,18 @@ function persistir(
       return rodar(() => supabase.from('metas_economia').upsert(paraLinhaMeta(acao.meta)))
     case 'meta/excluir':
       return rodar(() => supabase.from('metas_economia').delete().eq('id', acao.id))
+    case 'tag/salvar': {
+      const { id, nome, cor, evitavel } = acao.tag
+      return rodar(() => supabase.from('tags').upsert({ id, nome, cor, evitavel }))
+    }
+    case 'tag/excluir':
+      return rodar(() => supabase.from('tags').delete().eq('id', acao.id))
+    case 'pasta/salvar': {
+      const { id, nome, cor } = acao.pasta
+      return rodar(() => supabase.from('pastas').upsert({ id, nome, cor }))
+    }
+    case 'pasta/excluir':
+      return rodar(() => supabase.from('pastas').delete().eq('id', acao.id))
     case 'dados/importar':
       // Backup só existe no desktop; na web, falha e a tela volta ao que está no banco.
       return async () => {

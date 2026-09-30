@@ -10,6 +10,10 @@ export interface RascunhoLancamento {
   tipo: TipoMovimento
   valorCentavos: number
   categoriaId: string
+  /** '' = sem tag. Só vale para saídas. */
+  tagId: string
+  /** '' = sem pasta. */
+  pastaId: string
   natureza: Natureza
   recorrencia: Recorrencia['tipo']
   data: DataISO | undefined
@@ -28,6 +32,8 @@ export function rascunhoVazio(data: DataISO): RascunhoLancamento {
     tipo: 'saida',
     valorCentavos: 0,
     categoriaId: '',
+    tagId: '',
+    pastaId: '',
     natureza: 'variavel',
     recorrencia: 'unica',
     data,
@@ -46,6 +52,8 @@ export function rascunhoDe(l: Lancamento, hoje: DataISO): RascunhoLancamento {
     tipo: l.tipo,
     valorCentavos: l.valorCentavos,
     categoriaId: l.categoriaId,
+    tagId: l.tagId ?? '',
+    pastaId: l.pastaId ?? '',
     natureza: l.natureza,
     recorrencia: r.tipo,
     data: r.tipo === 'unica' ? r.data : hoje,
@@ -93,6 +101,8 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
     tipo: r.tipo,
     valorCentavos: r.valorCentavos,
     categoriaId: r.categoriaId,
+    ...(r.tipo === 'saida' && r.tagId && { tagId: r.tagId }),
+    ...(r.pastaId && { pastaId: r.pastaId }),
     natureza: r.natureza,
     recorrencia,
     ...limites,

@@ -13,11 +13,12 @@ interface CartaoIndicadorProps {
   negativo?: boolean
   /** O valor é um saldo e some quando os saldos estão ocultos. */
   saldo?: boolean
+  className?: string
 }
 
-export function CartaoIndicador({ rotulo, valor, detalhe, corMarca, negativo, saldo }: CartaoIndicadorProps) {
+export function CartaoIndicador({ rotulo, valor, detalhe, corMarca, negativo, saldo, className }: CartaoIndicadorProps) {
   return (
-    <Card className={cn(CARD, 'gap-2 p-4 sm:p-5')}>
+    <Card className={cn(CARD, 'gap-2 p-4 sm:p-5', className)}>
       <p className="flex items-center gap-2 text-[0.7rem] tracking-wide text-muted-foreground uppercase">
         {corMarca && <span aria-hidden className="size-2.5 rounded-[3px]" style={{ backgroundColor: corMarca }} />}
         {rotulo}

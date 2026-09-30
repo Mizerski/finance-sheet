@@ -16,6 +16,10 @@ export interface Lancamento {
   /** Sempre inteiro, em centavos. */
   valorCentavos: number
   categoriaId: string
+  /** Só em saídas: necessário, superficial, emergência… (ausente = sem tag). */
+  tagId?: string
+  /** Pasta em que aparece na tela de lançamentos (ausente = sem pasta). */
+  pastaId?: string
   natureza: Natureza
   recorrencia: Recorrencia
   /** Limites opcionais (inclusivos) da recorrência. */

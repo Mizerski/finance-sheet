@@ -4,14 +4,16 @@ import {
   createRouter,
   lazyRouteComponent,
   Link,
+  redirect,
   retainSearchParams,
 } from '@tanstack/react-router'
-import { CategoriasPage } from '@/features/categorias/CategoriasPage'
 import { EconomiasPage } from '@/features/economias/EconomiasPage'
-import { validarFiltros } from '@/features/lancamentos/filtros'
+import { validarBusca } from '@/features/lancamentos/filtros'
 import { validarPeriodo } from '@/features/dashboard/periodo'
 import { validarAno } from '@/features/projecao/anos'
 import { LancamentosPage } from '@/features/lancamentos/LancamentosPage'
+import { validarAba } from '@/features/organizacao/aba'
+import { OrganizacaoPage } from '@/features/organizacao/OrganizacaoPage'
 import { PlanilhaPage } from '@/features/planilha/PlanilhaPage'
 import { AppLayout } from './layout/AppLayout'
 
@@ -51,14 +53,26 @@ const planilhaRoute = createRoute({
 const lancamentosRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/lancamentos',
-  validateSearch: validarFiltros,
+  // Filtros e pastas fechadas na lista.
+  validateSearch: validarBusca,
   component: LancamentosPage,
 })
 
+const organizacaoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/organizacao',
+  // Aba aberta (?aba=tags ou ?aba=pastas); sem ela, categorias.
+  validateSearch: validarAba,
+  component: OrganizacaoPage,
+})
+
+// Endereço antigo da tela de categorias, que virou uma aba de Organização.
 const categoriasRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/categorias',
-  component: CategoriasPage,
+  beforeLoad: () => {
+    throw redirect({ to: '/organizacao', replace: true })
+  },
 })
 
 const economiasRoute = createRoute({
@@ -79,6 +93,7 @@ const dashboardRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   planilhaRoute,
   lancamentosRoute,
+  organizacaoRoute,
   categoriasRoute,
   economiasRoute,
   dashboardRoute,

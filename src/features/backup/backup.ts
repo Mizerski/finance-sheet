@@ -1,8 +1,16 @@
 import type { Categoria } from '@/features/categorias/categoria'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
+import type { Pasta } from '@/features/pastas/pasta'
+import type { Tag } from '@/features/tags/tag'
 import { paraDataISO, type DataISO } from '@/shared/lib/datas'
-import { atualizarDados, VERSAO_DADOS, type DadosFinancas, type DadosFinancasV1 } from '@/store/estado'
+import {
+  atualizarDados,
+  VERSAO_DADOS,
+  type DadosFinancas,
+  type DadosFinancasV1,
+  type DadosFinancasV2,
+} from '@/store/estado'
 
 /* Arquivo de backup do app desktop: os mesmos dados do arquivo local, com a identificação do app. */
 
@@ -18,8 +26,11 @@ export function nomeDoBackup(hoje: Date): string {
   return `${APP}-backup-${paraDataISO(hoje)}.json`
 }
 
-export function gerarBackup({ config, configDefinida, categorias, lancamentos, metas }: DadosFinancas, agora: Date): string {
-  const dados: DadosFinancas = { config, configDefinida, categorias, lancamentos, metas }
+export function gerarBackup(
+  { config, configDefinida, categorias, lancamentos, metas, tags, pastas }: DadosFinancas,
+  agora: Date,
+): string {
+  const dados: DadosFinancas = { config, configDefinida, categorias, lancamentos, metas, tags, pastas }
   return JSON.stringify({ app: APP, versao: VERSAO_DADOS, exportadoEm: paraDataISO(agora), dados }, null, 2)
 }
 
@@ -49,6 +60,14 @@ function ehCategoria(c: unknown): c is Categoria {
   return ehObjeto(c) && ehTexto(c.id) && ehTexto(c.nome) && ehTexto(c.cor) && /^#[0-9a-f]{6}$/i.test(c.cor) && ehTipo(c.tipo)
 }
 
+function ehTag(t: unknown): t is Tag {
+  return ehObjeto(t) && ehTexto(t.id) && ehTexto(t.nome) && ehTexto(t.cor) && /^#[0-9a-f]{6}$/i.test(t.cor) && typeof t.evitavel === 'boolean'
+}
+
+function ehPasta(p: unknown): p is Pasta {
+  return ehObjeto(p) && ehTexto(p.id) && ehTexto(p.nome) && ehTexto(p.cor) && /^#[0-9a-f]{6}$/i.test(p.cor)
+}
+
 function ehLancamento(l: unknown): l is Lancamento {
   return (
     ehObjeto(l) &&
@@ -58,6 +77,8 @@ function ehLancamento(l: unknown): l is Lancamento {
     ehCentavos(l.valorCentavos) &&
     l.valorCentavos >= 0 &&
     ehTexto(l.categoriaId) &&
+    (l.tagId === undefined || ehTexto(l.tagId)) &&
+    (l.pastaId === undefined || ehTexto(l.pastaId)) &&
     (l.natureza === 'fixa' || l.natureza === 'variavel') &&
     ehRecorrencia(l.recorrencia) &&
     (l.inicio === undefined || ehData(l.inicio)) &&
@@ -83,8 +104,8 @@ function ehMeta(m: unknown): m is MetaEconomia {
   )
 }
 
-/** Dados da versão 1 (sem metas) ou da atual. */
-function ehDados(d: unknown, versao: number): d is DadosFinancas | DadosFinancasV1 {
+/** Dados da versão 1 (sem metas), da 2 (sem tags e pastas) ou da atual. */
+function ehDados(d: unknown, versao: number): d is DadosFinancas | DadosFinancasV2 | DadosFinancasV1 {
   return (
     ehObjeto(d) &&
     ehObjeto(d.config) &&
@@ -95,7 +116,9 @@ function ehDados(d: unknown, versao: number): d is DadosFinancas | DadosFinancas
     d.categorias.every(ehCategoria) &&
     Array.isArray(d.lancamentos) &&
     d.lancamentos.every(ehLancamento) &&
-    (versao < 2 || (Array.isArray(d.metas) && d.metas.every(ehMeta)))
+    (versao < 2 || (Array.isArray(d.metas) && d.metas.every(ehMeta))) &&
+    (versao < 3 ||
+      (Array.isArray(d.tags) && d.tags.every(ehTag) && Array.isArray(d.pastas) && d.pastas.every(ehPasta)))
   )
 }
 
@@ -144,6 +167,8 @@ export function lerBackup(texto: string): Backup {
         inicio,
         ajustes: { ...ajustes },
       })),
+      tags: atual.tags.map(({ id, nome, cor, evitavel }) => ({ id, nome, cor, evitavel })),
+      pastas: atual.pastas.map(({ id, nome, cor }) => ({ id, nome, cor })),
     },
   }
 }

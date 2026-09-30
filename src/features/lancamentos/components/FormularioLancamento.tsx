@@ -38,6 +38,9 @@ const OPCOES_RECORRENCIA = [
   { valor: 'mensal' as const, rotulo: 'Mensal' },
   { valor: 'diaria' as const, rotulo: 'Diária' },
 ]
+/** O Select do Radix não aceita valor vazio, então "sem tag" e "sem pasta" usam um valor sentinela. */
+const NENHUMA = '__nenhuma__'
+
 const OPCOES_DIAS = [
   { valor: 'todos' as const, rotulo: 'Todos os dias' },
   { valor: 'uteis' as const, rotulo: 'Dias úteis' },
@@ -51,6 +54,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   })
   const [tentouSalvar, setTentouSalvar] = useState(false)
 
+  const saida = rascunho.tipo === 'saida'
   const categoriasDoTipo = estado.categorias.filter((c) => c.tipo === rascunho.tipo)
   const idsValidos = new Set(categoriasDoTipo.map((c) => c.id))
   const erros = tentouSalvar ? validarLancamento(rascunho, idsValidos) : {}
@@ -128,7 +132,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           {categoriasDoTipo.length === 0 ? (
             <FieldDescription>
               Nenhuma categoria de {ROTULO_TIPO[rascunho.tipo].toLowerCase()}.{' '}
-              <Link to="/categorias">Criar categoria</Link>
+              <Link to="/organizacao">Criar categoria</Link>
             </FieldDescription>
           ) : (
             <FieldError>{erros.categoriaId}</FieldError>
@@ -136,15 +140,87 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
         </Field>
       </div>
 
+      <div className={cn('grid gap-4', saida && 'sm:grid-cols-2')}>
+        <Field>
+          <FieldLabel htmlFor="lanc-natureza">Natureza</FieldLabel>
+          <ControleSegmentado
+            id="lanc-natureza"
+            rotulo="Natureza"
+            valor={rascunho.natureza}
+            opcoes={OPCOES_NATUREZA}
+            onChange={(v) => alterar('natureza', v)}
+          />
+        </Field>
+
+        {/* Tag só existe em saídas: diz se o gasto era necessário ou evitável. */}
+        {saida && (
+          <Field>
+            <FieldLabel htmlFor="lanc-tag">
+              Tag <span className="font-normal text-muted-foreground">(opcional)</span>
+            </FieldLabel>
+            <Select
+              value={rascunho.tagId || NENHUMA}
+              onValueChange={(v) => alterar('tagId', v === NENHUMA ? '' : v)}
+            >
+              <SelectTrigger id="lanc-tag" className={CAMPO_SELECT}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent position="popper" className="rounded-2xl">
+                <SelectItem value={NENHUMA} className="rounded-full">
+                  Sem tag
+                </SelectItem>
+                {estado.tags.map((t) => (
+                  <SelectItem key={t.id} value={t.id} className="rounded-full">
+                    <PontoCor cor={t.cor} />
+                    {t.nome}
+                    {t.evitavel && <span className="text-muted-foreground">· evitável</span>}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {estado.tags.length === 0 && (
+              <FieldDescription>
+                Nenhuma tag ainda.{' '}
+                <Link to="/organizacao" search={{ aba: 'tags' }}>
+                  Criar tags
+                </Link>
+              </FieldDescription>
+            )}
+          </Field>
+        )}
+      </div>
+
       <Field>
-        <FieldLabel htmlFor="lanc-natureza">Natureza</FieldLabel>
-        <ControleSegmentado
-          id="lanc-natureza"
-          rotulo="Natureza"
-          valor={rascunho.natureza}
-          opcoes={OPCOES_NATUREZA}
-          onChange={(v) => alterar('natureza', v)}
-        />
+        <FieldLabel htmlFor="lanc-pasta">
+          Pasta <span className="font-normal text-muted-foreground">(opcional)</span>
+        </FieldLabel>
+        <Select
+          value={rascunho.pastaId || NENHUMA}
+          onValueChange={(v) => alterar('pastaId', v === NENHUMA ? '' : v)}
+        >
+          <SelectTrigger id="lanc-pasta" className={CAMPO_SELECT}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" className="rounded-2xl">
+            <SelectItem value={NENHUMA} className="rounded-full">
+              Sem pasta
+            </SelectItem>
+            {estado.pastas.map((p) => (
+              <SelectItem key={p.id} value={p.id} className="rounded-full">
+                <PontoCor cor={p.cor} />
+                {p.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {estado.pastas.length === 0 && (
+          <FieldDescription>
+            Pastas agrupam a lista de lançamentos.{' '}
+            <Link to="/organizacao" search={{ aba: 'pastas' }}>
+              Criar pastas
+            </Link>
+          </FieldDescription>
+        )}
       </Field>
 
       <Field>

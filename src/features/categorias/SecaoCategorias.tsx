@@ -2,9 +2,8 @@ import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { TipoMovimento } from '@/features/lancamentos/lancamento'
 import { totalPorCategoria } from '@/features/projecao/projecao'
-import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useProjecao } from '@/features/projecao/useProjecao'
-import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { CabecalhoOrganizacao } from '@/features/organizacao/components/CabecalhoOrganizacao'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
@@ -20,7 +19,8 @@ interface Selecao {
   tipoInicial?: TipoMovimento
 }
 
-export function CategoriasPage() {
+/** Aba Categorias da tela Organização. */
+export function SecaoCategorias() {
   const { estado, dispatch } = useFinancas()
   const { ano, dias } = useProjecao()
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
@@ -48,17 +48,13 @@ export function CategoriasPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <CabecalhoPagina
-        titulo="Categorias"
-        descricao={`Agrupam os lançamentos na planilha e nos gráficos · totais projetados para ${ano}`}
-        acoes={
-          <div className="flex flex-wrap items-center gap-2">
-            <SeletorAno />
-            <Button className={BOTAO} onClick={() => setEdicao({ aberto: true })}>
-              <Plus />
-              Nova categoria
-            </Button>
-          </div>
+      <CabecalhoOrganizacao
+        descricao={`Categorias agrupam os lançamentos na planilha e nos gráficos · totais projetados para ${ano}`}
+        acao={
+          <Button className={BOTAO} onClick={() => setEdicao({ aberto: true })}>
+            <Plus />
+            Nova categoria
+          </Button>
         }
       />
 

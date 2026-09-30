@@ -8,13 +8,13 @@ import { useMemoriaNavegacao } from '../navegacao/memoria-context'
 import { MemoriaNavegacaoProvider } from '../navegacao/MemoriaNavegacaoProvider'
 
 const ITENS: {
-  to: '/' | '/lancamentos' | '/categorias' | '/economias' | '/dashboard'
+  to: '/' | '/lancamentos' | '/organizacao' | '/economias' | '/dashboard'
   rotulo: string
   icone: LucideIcon
 }[] = [
   { to: '/', rotulo: 'Planilha', icone: Sheet },
   { to: '/lancamentos', rotulo: 'Lançamentos', icone: ArrowLeftRight },
-  { to: '/categorias', rotulo: 'Categorias', icone: Tags },
+  { to: '/organizacao', rotulo: 'Organização', icone: Tags },
   { to: '/economias', rotulo: 'Economias', icone: PiggyBank },
   { to: '/dashboard', rotulo: 'Dashboard', icone: LayoutDashboard },
 ]
