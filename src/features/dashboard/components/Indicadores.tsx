@@ -10,7 +10,8 @@ export function Indicadores({ resumo, periodo }: { resumo: ResumoAno; periodo: P
   const noPeriodo = NO_PERIODO[tipoDoPeriodo(periodo)]
   const fixas = resumo.totalSaidasFixasCentavos
   const variaveis = resumo.totalSaidasVariaveisCentavos
-  const resultado = resumo.totalEntradasCentavos - resumo.totalSaidasCentavos
+  const economia = resumo.totalEconomiaCentavos
+  const sobra = resumo.totalEntradasCentavos - resumo.totalSaidasCentavos - economia
   const menor = resumo.menorSaldo
 
   return (
@@ -19,13 +20,15 @@ export function Indicadores({ resumo, periodo }: { resumo: ResumoAno; periodo: P
         rotulo={`Entradas ${noPeriodo}`}
         corMarca={SERIES.entradas.color}
         valor={formatarBRL(resumo.totalEntradasCentavos)}
-        detalhe={`Resultado ${noPeriodo}: ${formatarBRL(resultado)}`}
+        detalhe={`Sobra ${noPeriodo}: ${formatarBRL(sobra)}`}
       />
       <CartaoIndicador
         rotulo={`Saídas ${noPeriodo}`}
         corMarca={SERIES.saidas.color}
         valor={formatarBRL(resumo.totalSaidasCentavos)}
-        detalhe={`${formatarBRL(fixas)} fixas · ${formatarBRL(variaveis)} variáveis`}
+        detalhe={`${formatarBRL(fixas)} fixas · ${formatarBRL(variaveis)} variáveis${
+          economia > 0 ? ` · ${formatarBRL(economia)} guardados nas metas` : ''
+        }`}
       />
       <CartaoIndicador
         rotulo="Saldo final projetado"

@@ -1,7 +1,8 @@
 import type { Categoria } from '@/features/categorias/categoria'
+import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { paraDataISO, type DataISO } from '@/shared/lib/datas'
-import { VERSAO_DADOS, type DadosFinancas } from '@/store/estado'
+import { atualizarDados, VERSAO_DADOS, type DadosFinancas, type DadosFinancasV1 } from '@/store/estado'
 
 /* Arquivo de backup do app desktop: os mesmos dados do arquivo local, com a identificação do app. */
 
@@ -17,8 +18,8 @@ export function nomeDoBackup(hoje: Date): string {
   return `${APP}-backup-${paraDataISO(hoje)}.json`
 }
 
-export function gerarBackup({ config, configDefinida, categorias, lancamentos }: DadosFinancas, agora: Date): string {
-  const dados: DadosFinancas = { config, configDefinida, categorias, lancamentos }
+export function gerarBackup({ config, configDefinida, categorias, lancamentos, metas }: DadosFinancas, agora: Date): string {
+  const dados: DadosFinancas = { config, configDefinida, categorias, lancamentos, metas }
   return JSON.stringify({ app: APP, versao: VERSAO_DADOS, exportadoEm: paraDataISO(agora), dados }, null, 2)
 }
 
@@ -64,7 +65,26 @@ function ehLancamento(l: unknown): l is Lancamento {
   )
 }
 
-function ehDados(d: unknown): d is DadosFinancas {
+function ehMeta(m: unknown): m is MetaEconomia {
+  return (
+    ehObjeto(m) &&
+    ehTexto(m.id) &&
+    ehTexto(m.nome) &&
+    ehCentavos(m.valorAlvoCentavos) &&
+    m.valorAlvoCentavos > 0 &&
+    ehCentavos(m.aporteMensalCentavos) &&
+    m.aporteMensalCentavos >= 0 &&
+    Number.isInteger(m.diaDoMes) &&
+    (m.diaDoMes as number) >= 1 &&
+    (m.diaDoMes as number) <= 31 &&
+    ehData(m.inicio) &&
+    ehObjeto(m.ajustes) &&
+    Object.entries(m.ajustes).every(([mes, v]) => /^\d{4}-\d{2}$/.test(mes) && ehCentavos(v) && v >= 0)
+  )
+}
+
+/** Dados da versão 1 (sem metas) ou da atual. */
+function ehDados(d: unknown, versao: number): d is DadosFinancas | DadosFinancasV1 {
   return (
     ehObjeto(d) &&
     ehObjeto(d.config) &&
@@ -74,7 +94,8 @@ function ehDados(d: unknown): d is DadosFinancas {
     Array.isArray(d.categorias) &&
     d.categorias.every(ehCategoria) &&
     Array.isArray(d.lancamentos) &&
-    d.lancamentos.every(ehLancamento)
+    d.lancamentos.every(ehLancamento) &&
+    (versao < 2 || (Array.isArray(d.metas) && d.metas.every(ehMeta)))
   )
 }
 
@@ -93,11 +114,20 @@ export function lerBackup(texto: string): Backup {
     throw new Error('Este backup foi feito numa versão mais nova do app. Atualize o app para importá-lo.')
   }
 
+  // Backups de versões anteriores continuam valendo e são convertidos para o formato atual.
+  const versao = arquivo.versao
   const d = arquivo.dados
-  if (arquivo.versao !== VERSAO_DADOS || !ehData(arquivo.exportadoEm) || !ehDados(d)) {
+  if (
+    typeof versao !== 'number' ||
+    !Number.isInteger(versao) ||
+    versao < 1 ||
+    !ehData(arquivo.exportadoEm) ||
+    !ehDados(d, versao)
+  ) {
     throw new Error('O backup está incompleto ou foi alterado e não pode ser importado.')
   }
 
+  const atual = atualizarDados(d)
   return {
     exportadoEm: arquivo.exportadoEm,
     dados: {
@@ -105,6 +135,15 @@ export function lerBackup(texto: string): Backup {
       configDefinida: d.configDefinida,
       categorias: d.categorias.map(({ id, nome, cor, tipo }) => ({ id, nome, cor, tipo })),
       lancamentos: d.lancamentos,
+      metas: atual.metas.map(({ id, nome, valorAlvoCentavos, aporteMensalCentavos, diaDoMes, inicio, ajustes }) => ({
+        id,
+        nome,
+        valorAlvoCentavos,
+        aporteMensalCentavos,
+        diaDoMes,
+        inicio,
+        ajustes: { ...ajustes },
+      })),
     },
   }
 }

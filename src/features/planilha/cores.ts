@@ -3,6 +3,7 @@ export const COR_COLUNA = {
   dia: 'text-muted-foreground',
   entrada: 'bg-entrada-suave text-entrada',
   saida: 'bg-saida-suave text-saida',
+  economia: 'bg-economia-suave text-economia',
   saldo: 'bg-saldo-suave text-saldo',
   saldoNegativo: 'bg-negativo-suave text-negativo font-medium',
   foraDoCalculo: 'bg-muted/60',

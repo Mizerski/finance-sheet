@@ -15,6 +15,7 @@ interface LinhaDiaProps {
   categorias: Map<string, Categoria>
   onEditar: (lancamentoId: string) => void
   onAdicionar: (data: DataISO) => void
+  comEconomia: boolean
 }
 
 /** Véu sobre o fundo de cada célula, para destacar a linha sem perder a cor da coluna. */
@@ -24,7 +25,7 @@ const VEU = {
   hoje: 'font-medium [&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-primary)_12%,transparent)]',
 }
 
-export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar }: LinhaDiaProps) {
+export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
   const linhaRef = useRef<HTMLTableRowElement>(null)
   const fimDeSemana = dia.diaDaSemana === 0 || dia.diaDaSemana === 6
@@ -70,10 +71,11 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar }: Lin
               </span>
             </button>
           </TableCell>
-          <CelulaValor centavos={dia.entradasCentavos} className={COR_COLUNA.entrada} />
-          <CelulaValor centavos={dia.saidasFixasCentavos} className={COR_COLUNA.saida} />
-          <CelulaValor centavos={dia.saidasVariaveisCentavos} className={COR_COLUNA.saida} />
-          <CelulaSaldo centavos={dia.saldoCentavos} />
+          <CelulaValor centavos={dia.entradasCentavos} className={COR_COLUNA.entrada} compacta={comEconomia} />
+          <CelulaValor centavos={dia.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+          <CelulaValor centavos={dia.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+          {comEconomia && <CelulaValor centavos={dia.economiaCentavos} className={COR_COLUNA.economia} compacta />}
+          <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} />
         </TableRow>
       </PopoverAnchor>
 

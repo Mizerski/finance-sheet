@@ -65,17 +65,18 @@ export function agrupar(dias: DiaProjetado[], unidade: Unidade): DadoPeriodo[] {
   const variosAnos = dias.length > 0 && anoDe(dias[0].data) !== anoDe(dias[dias.length - 1].data)
 
   return [...grupos].map(([chave, doGrupo]) => {
-    const soma = (campo: 'entradasCentavos' | 'saidasFixasCentavos' | 'saidasVariaveisCentavos') =>
+    const soma = (campo: 'entradasCentavos' | 'saidasFixasCentavos' | 'saidasVariaveisCentavos' | 'economiaCentavos') =>
       doGrupo.reduce((t, d) => t + d[campo], 0)
-    const fixas = soma('saidasFixasCentavos')
-    const variaveis = soma('saidasVariaveisCentavos')
+    const entradas = soma('entradasCentavos')
+    const saidas = soma('saidasFixasCentavos') + soma('saidasVariaveisCentavos')
+    const economia = soma('economiaCentavos')
     return {
       chave,
       ...rotulos(unidade, doGrupo[0], doGrupo[doGrupo.length - 1], variosAnos),
-      entradas: soma('entradasCentavos'),
-      saidas: fixas + variaveis,
-      fixas,
-      variaveis,
+      entradas,
+      saidas,
+      economia,
+      sobra: entradas - saidas - economia,
       saldo: doGrupo[doGrupo.length - 1].saldoCentavos,
     }
   })

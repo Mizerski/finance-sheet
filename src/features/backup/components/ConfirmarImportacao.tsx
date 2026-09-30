@@ -45,6 +45,7 @@ export function ConfirmarImportacao({ backup, atual, onCancelar, onConfirmar }: 
             <span className={cn(ROTULO, 'text-right')}>Backup</span>
             <Linha rotulo="Lançamentos" atual={atual.lancamentos.length} novo={backup.dados.lancamentos.length} />
             <Linha rotulo="Categorias" atual={atual.categorias.length} novo={backup.dados.categorias.length} />
+            <Linha rotulo="Metas de economia" atual={atual.metas.length} novo={backup.dados.metas.length} />
             <span className="text-muted-foreground">Saldo inicial</span>
             <Saldo centavos={atual.config.saldoInicialCentavos} />
             <Saldo centavos={backup.dados.config.saldoInicialCentavos} />
