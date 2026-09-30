@@ -7,6 +7,7 @@ import {
   redirect,
   retainSearchParams,
 } from '@tanstack/react-router'
+import { validarBuscaEconomias } from '@/features/economias/busca'
 import { EconomiasPage } from '@/features/economias/EconomiasPage'
 import { validarBusca } from '@/features/lancamentos/filtros'
 import { validarBuscaDashboard } from '@/features/dashboard/periodo'
@@ -78,6 +79,8 @@ const categoriasRoute = createRoute({
 const economiasRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/economias',
+  // Meses da reserva de emergência (?reserva=3, 6 ou 12).
+  validateSearch: validarBuscaEconomias,
   component: EconomiasPage,
 })
 
