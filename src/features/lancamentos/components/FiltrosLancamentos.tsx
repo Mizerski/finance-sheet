@@ -1,13 +1,17 @@
-import { X } from 'lucide-react'
+import { useState } from 'react'
+import { Search, SlidersHorizontal, X } from 'lucide-react'
 import type { Categoria } from '@/features/categorias/categoria'
 import { SEM_TAG, type Tag } from '@/features/tags/tag'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
-import { CAMPO_SELECT } from '@/shared/lib/estilos'
+import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
+import { BOTAO, CAMADA, CAMPO, CAMPO_SELECT } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
+import { Input } from '@/shared/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { FILTRO_SEM_TAG, temFiltro, type FiltrosLancamento } from '../filtros'
+import { contarFiltros, FILTRO_SEM_TAG, ID_BUSCA, temFiltro, type FiltrosLancamento } from '../filtros'
 
 interface FiltrosLancamentosProps {
   filtros: FiltrosLancamento
@@ -30,12 +34,103 @@ const OPCOES_NATUREZA = [
   { valor: 'variavel' as const, rotulo: 'Variáveis' },
 ]
 
-export function FiltrosLancamentos({ filtros, categorias, tags, onChange }: FiltrosLancamentosProps) {
+/** Busca sempre à vista; os outros filtros ficam na linha a partir de sm e num popover no celular. */
+export function FiltrosLancamentos(props: FiltrosLancamentosProps) {
+  const { filtros, onChange } = props
+  const telaLarga = useMediaQuery('(min-width: 40rem)')
+  const busca = <CampoBusca valor={filtros.q ?? ''} onChange={(q) => onChange({ ...filtros, q: q || undefined })} />
+
+  if (telaLarga) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        {busca}
+        <Controles {...props} />
+        {temFiltro(filtros) && <BotaoLimpar onClick={() => onChange({})} />}
+      </div>
+    )
+  }
+
+  const quantidade = contarFiltros(filtros)
+  return (
+    <div className="flex items-center gap-2">
+      {busca}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className={cn(BOTAO, 'shrink-0 bg-card')}>
+            <SlidersHorizontal />
+            Filtros
+            {quantidade > 0 && <span className="text-muted-foreground tabular-nums">({quantidade})</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className={cn(CAMADA, 'flex w-[calc(100vw-2rem)] flex-col gap-3')}>
+          <Controles {...props} />
+          {quantidade > 0 && (
+            <div className="border-t pt-3">
+              <BotaoLimpar onClick={() => onChange({ q: filtros.q })} />
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
+}
+
+/**
+ * O texto fica num estado local para não perder letras enquanto a URL atualiza.
+ * Quando a busca é limpa por fora (ex.: "Limpar filtros"), o campo esvazia junto.
+ */
+function CampoBusca({ valor, onChange }: { valor: string; onChange: (q: string) => void }) {
+  const [texto, setTexto] = useState(valor)
+  const [anterior, setAnterior] = useState(valor)
+  if (valor !== anterior) {
+    setAnterior(valor)
+    if (!valor) setTexto('')
+  }
+
+  const alterar = (q: string) => {
+    setTexto(q)
+    onChange(q)
+  }
+
+  return (
+    <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
+      <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        id={ID_BUSCA}
+        type="search"
+        aria-label="Buscar lançamento pela descrição"
+        placeholder="Buscar lançamento"
+        value={texto}
+        onChange={(e) => alterar(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && texto) {
+            e.preventDefault()
+            alterar('')
+          }
+        }}
+        className={cn(CAMPO, 'pl-10 [&::-webkit-search-cancel-button]:hidden', texto && 'pr-10')}
+      />
+      {texto && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-1/2 right-1 size-8 -translate-y-1/2 rounded-full text-muted-foreground"
+          aria-label="Limpar busca"
+          onClick={() => alterar('')}
+        >
+          <X />
+        </Button>
+      )}
+    </div>
+  )
+}
+
+function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosProps) {
   // Com um tipo escolhido, só faz sentido listar categorias desse tipo.
   const categoriasVisiveis = filtros.tipo ? categorias.filter((c) => c.tipo === filtros.tipo) : categorias
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <>
       <ControleSegmentado
         rotulo="Filtrar por tipo"
         valor={filtros.tipo ?? 'todos'}
@@ -107,13 +202,15 @@ export function FiltrosLancamentos({ filtros, categorias, tags, onChange }: Filt
           </SelectContent>
         </Select>
       )}
+    </>
+  )
+}
 
-      {temFiltro(filtros) && (
-        <Button variant="ghost" className="h-10 rounded-full px-4 text-muted-foreground" onClick={() => onChange({})}>
-          <X />
-          Limpar filtros
-        </Button>
-      )}
-    </div>
+function BotaoLimpar({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="ghost" className="h-10 rounded-full px-4 text-muted-foreground" onClick={onClick}>
+      <X />
+      Limpar filtros
+    </Button>
   )
 }

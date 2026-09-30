@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
+import { Landmark } from 'lucide-react'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useAno } from '@/features/projecao/useAno'
@@ -7,6 +8,7 @@ import { DialogLancamento } from '@/features/lancamentos/components/DialogLancam
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { useProjecoes } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { useAtalhos } from '@/shared/hooks/useAtalhos'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
 import { formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -14,6 +16,7 @@ import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { useFinancas } from '@/store/financas-context'
+import { DialogConferirSaldo } from './components/DialogConferirSaldo'
 import { NavegacaoMeses } from './components/NavegacaoMeses'
 import { PrimeirosPassos } from './components/PrimeirosPassos'
 import { TabelaMes } from './components/TabelaMes'
@@ -48,6 +51,7 @@ export function PlanilhaPage() {
   const navigate = useNavigate({ from: '/' })
   const [edicao, setEdicao] = useState<Edicao>({ aberto: false })
   const [editandoSaldo, setEditandoSaldo] = useState(false)
+  const [conferindo, setConferindo] = useState(false)
 
   // Cada mês precisa de ~430px para os valores caberem com folga (~540px com a coluna Economia).
   const comEconomia = estado.metas.length > 0
@@ -90,6 +94,19 @@ export function PlanilhaPage() {
     })
   }
 
+  const irParaHoje = () => navigate({ search: { ano: undefined }, replace: true })
+
+  // A planilha continua na tela enquanto outra página carrega; aí as setas já não são dela.
+  const naPlanilha = useRouterState({ select: (s) => s.location.pathname === '/' })
+  useAtalhos(
+    {
+      ArrowLeft: () => inicio > primeiro && irPara(inicio - 1),
+      ArrowRight: () => inicio < ultimo && irPara(inicio + 1),
+      t: irParaHoje,
+    },
+    naPlanilha,
+  )
+
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina
@@ -128,9 +145,15 @@ export function PlanilhaPage() {
             <Button
               variant="outline"
               className={cn(BOTAO, 'ml-auto bg-card md:ml-0')}
-              onClick={() => navigate({ search: { ano: undefined }, replace: true })}
+              title="Voltar para hoje (atalho T)"
+              onClick={irParaHoje}
             >
               Hoje
+            </Button>
+            <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={() => setConferindo(true)}>
+              <Landmark aria-hidden />
+              <span className="sm:hidden">Conferir</span>
+              <span className="hidden sm:inline">Conferir saldo</span>
             </Button>
           </div>
         }
@@ -167,6 +190,8 @@ export function PlanilhaPage() {
       />
 
       <DialogSaldoInicial aberto={editandoSaldo} onOpenChange={setEditandoSaldo} />
+
+      <DialogConferirSaldo aberto={conferindo} onOpenChange={setConferindo} />
     </div>
   )
 }

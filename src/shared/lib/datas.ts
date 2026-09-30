@@ -1,4 +1,4 @@
-import { eachDayOfInterval, format, getDaysInMonth, parseISO } from 'date-fns'
+import { addDays, eachDayOfInterval, format, getDaysInMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 /**
@@ -30,6 +30,11 @@ export function deDataISO(data: DataISO): Date {
 /** Formata para exibição: dd/MM/yyyy */
 export function formatarData(data: DataISO): string {
   return format(parseISO(data), 'dd/MM/yyyy')
+}
+
+/** "2026-09-30", -1 → "2026-09-29" */
+export function somarDias(data: DataISO, dias: number): DataISO {
+  return paraDataISO(addDays(parseISO(data), dias))
 }
 
 /** "2026-09-28" → 2026 */

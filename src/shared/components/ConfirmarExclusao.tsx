@@ -18,12 +18,21 @@ interface ConfirmarExclusaoProps {
   titulo: string
   descricao: ReactNode
   onConfirmar: () => void
+  /** Saída mais branda que excluir (ex.: encerrar e manter o histórico), mostrada como ação principal. */
+  alternativa?: { rotulo: string; onClick: () => void }
 }
 
-export function ConfirmarExclusao({ aberto, onOpenChange, titulo, descricao, onConfirmar }: ConfirmarExclusaoProps) {
+export function ConfirmarExclusao({
+  aberto,
+  onOpenChange,
+  titulo,
+  descricao,
+  onConfirmar,
+  alternativa,
+}: ConfirmarExclusaoProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'sm:max-w-sm')}>
+      <DialogContent showCloseButton={false} className={cn(CAMADA, alternativa ? 'sm:max-w-md' : 'sm:max-w-sm')}>
         <DialogHeader>
           <DialogTitle className="font-medium">{titulo}</DialogTitle>
           <DialogDescription>{descricao}</DialogDescription>
@@ -42,8 +51,19 @@ export function ConfirmarExclusao({ aberto, onOpenChange, titulo, descricao, onC
               onOpenChange(false)
             }}
           >
-            Excluir
+            {alternativa ? 'Excluir de vez' : 'Excluir'}
           </Button>
+          {alternativa && (
+            <Button
+              className={BOTAO}
+              onClick={() => {
+                alternativa.onClick()
+                onOpenChange(false)
+              }}
+            >
+              {alternativa.rotulo}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

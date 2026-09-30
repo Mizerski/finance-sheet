@@ -78,10 +78,10 @@ export function TabelaLancamentos({
       <TableHeader>
         <TableRow className={TABELA.linhaCabecalho}>
           <TableHead className={cn(TABELA.cabecalho, TABELA.primeira)}>Descrição</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden md:table-cell')}>Categoria</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden md:table-cell')}>Tag</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden md:table-cell')}>Natureza</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden md:table-cell')}>Recorrência</TableHead>
+          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Categoria</TableHead>
+          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Tag</TableHead>
+          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Natureza</TableHead>
+          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Recorrência</TableHead>
           <TableHead className={cn(TABELA.cabecalho, 'text-right')}>Valor</TableHead>
           <TableHead className={cn(TABELA.cabecalho, TABELA.ultima, 'w-0')}>
             <span className="sr-only">Ações</span>
@@ -132,7 +132,7 @@ function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExc
         <div className="flex flex-col gap-1">
           <span>{l.descricao}</span>
           {/* No celular, categoria, tag, natureza e recorrência vêm empilhadas sob a descrição. */}
-          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground md:hidden">
+          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground lg:hidden">
             <PontoCor cor={categoria.cor} />
             {categoria.nome}
             {tag && (
@@ -147,19 +147,19 @@ function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExc
           </span>
         </div>
       </TableCell>
-      <TableCell className={cn(TABELA.celula, 'hidden md:table-cell')}>
+      <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
         <span className="flex items-center gap-1.5">
           <PontoCor cor={categoria.cor} />
           {categoria.nome}
         </span>
       </TableCell>
-      <TableCell className={cn(TABELA.celula, 'hidden md:table-cell')}>{tag && <PilulaTag tag={tag} />}</TableCell>
-      <TableCell className={cn(TABELA.celula, 'hidden md:table-cell')}>
+      <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>{tag && <PilulaTag tag={tag} />}</TableCell>
+      <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
         <Badge variant="outline" className="rounded-full font-normal text-muted-foreground">
           {ROTULO_NATUREZA[l.natureza]}
         </Badge>
       </TableCell>
-      <TableCell className={cn(TABELA.celula, 'hidden md:table-cell')}>
+      <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
         <div className="flex flex-col gap-0.5">
           <span className="tabular-nums">{recorrencia}</span>
           {periodo && <span className="text-[0.7rem] text-muted-foreground tabular-nums">{periodo}</span>}
