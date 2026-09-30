@@ -5,6 +5,8 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
+        // Lembrete diário de registrar os gastos.
+        .plugin(tauri_plugin_notification::init())
         // Dados do app num arquivo JSON na pasta de dados do usuário.
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {

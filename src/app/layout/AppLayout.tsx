@@ -1,6 +1,7 @@
 import { Link, Outlet } from '@tanstack/react-router'
 import { BotaoSair } from '@/features/autenticacao/components/BotaoSair'
 import { BotaoBackup } from '@/features/backup/components/BotaoBackup'
+import { BotaoLembrete } from '@/features/lembrete/components/BotaoLembrete'
 import { SaldoProjetado } from '@/features/projecao/components/SaldoProjetado'
 import { Forma } from '@/shared/components/Forma'
 import { Marca } from '@/shared/components/Marca'
@@ -23,6 +24,7 @@ export function AppLayout() {
             </div>
             <div className="flex min-w-0 items-center gap-1">
               <Menu />
+              {EH_DESKTOP && <BotaoLembrete />}
               {EH_DESKTOP && <BotaoBackup />}
               <BotaoSair />
             </div>
