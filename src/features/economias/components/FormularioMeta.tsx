@@ -9,8 +9,10 @@ import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { useFinancas } from '@/store/financas-context'
-import { resumirMeta } from '../aportes'
+import { aporteParaOPrazo, resumirMeta } from '../aportes'
 import type { MetaEconomia } from '../meta'
+import { useCapacidade } from '../useCapacidade'
+import { DiagnosticoMeta } from './DiagnosticoMeta'
 
 interface FormularioMetaProps {
   /** Ausente = nova meta. */
@@ -18,7 +20,7 @@ interface FormularioMetaProps {
   onConcluir: () => void
 }
 
-type Erros = Partial<Record<'nome' | 'alvo' | 'aporte' | 'dia' | 'inicio', string>>
+type Erros = Partial<Record<'nome' | 'alvo' | 'aporte' | 'dia' | 'inicio' | 'prazo', string>>
 
 export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
   const { dispatch } = useFinancas()
@@ -28,52 +30,50 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
   const [aporte, setAporte] = useState(meta?.aporteMensalCentavos ?? 0)
   const [dia, setDia] = useState(String(meta?.diaDoMes ?? Number(hoje.slice(8, 10))))
   const [inicio, setInicio] = useState<DataISO | undefined>(meta?.inicio ?? hoje)
+  const [prazo, setPrazo] = useState<DataISO | undefined>(meta?.prazo)
   const [tentouSalvar, setTentouSalvar] = useState(false)
 
   const diaDoMes = Number(dia)
+  const diaValido = Number.isInteger(diaDoMes) && diaDoMes >= 1 && diaDoMes <= 31
+  // O espaço que esta meta tem no fluxo: a capacidade sem ela.
+  const capacidade = useCapacidade(hoje, meta?.id)
+
+  // A meta como está no formulário, para a prévia do término e o diagnóstico (o nome não muda a conta).
+  const rascunho: MetaEconomia | null =
+    alvo > 0 && diaValido && inicio
+      ? {
+          id: meta?.id ?? '',
+          nome: '',
+          valorAlvoCentavos: alvo,
+          aporteMensalCentavos: aporte,
+          diaDoMes,
+          inicio,
+          ...(prazo && { prazo }),
+          // Os valores reais já informados continuam valendo.
+          ajustes: meta?.ajustes ?? {},
+        }
+      : null
 
   function validar(): Erros {
     const erros: Erros = {}
     if (!nome.trim()) erros.nome = 'Informe um nome.'
     if (alvo <= 0) erros.alvo = 'Informe quanto quer juntar.'
     if (aporte <= 0) erros.aporte = 'Informe quanto guardar por mês.'
-    if (!Number.isInteger(diaDoMes) || diaDoMes < 1 || diaDoMes > 31) erros.dia = 'Use um dia de 1 a 31.'
+    if (!diaValido) erros.dia = 'Use um dia de 1 a 31.'
     if (!inicio) erros.inicio = 'Escolha a data do primeiro aporte.'
+    if (prazo && inicio && prazo < inicio) erros.prazo = 'O prazo precisa ser depois do início.'
+    else if (rascunho?.prazo && aporteParaOPrazo(rascunho) === null) erros.prazo = 'Não há dia de aporte até essa data.'
     return erros
   }
   const erros = tentouSalvar ? validar() : {}
 
   function montar(): MetaEconomia | null {
-    if (Object.keys(validar()).length) return null
-    return {
-      id: meta?.id ?? crypto.randomUUID(),
-      nome: nome.trim(),
-      valorAlvoCentavos: alvo,
-      aporteMensalCentavos: aporte,
-      diaDoMes,
-      inicio: inicio!,
-      // Os valores reais já informados continuam valendo.
-      ajustes: meta?.ajustes ?? {},
-    }
+    if (Object.keys(validar()).length || !rascunho) return null
+    return { ...rascunho, id: meta?.id ?? crypto.randomUUID(), nome: nome.trim() }
   }
 
-  // Prévia do término enquanto o formulário é preenchido (o nome não muda a conta).
-  const diaValido = Number.isInteger(diaDoMes) && diaDoMes >= 1 && diaDoMes <= 31
-  const conclusao =
-    alvo > 0 && aporte > 0 && diaValido && inicio
-      ? resumirMeta(
-          {
-            id: '',
-            nome: '',
-            valorAlvoCentavos: alvo,
-            aporteMensalCentavos: aporte,
-            diaDoMes,
-            inicio,
-            ajustes: meta?.ajustes ?? {},
-          },
-          hoje,
-        ).conclusaoNoPlano
-      : null
+  // Prévia do término enquanto o formulário é preenchido.
+  const conclusao = rascunho && aporte > 0 ? resumirMeta(rascunho, hoje).conclusaoNoPlano : null
 
   function salvar(e: FormEvent) {
     e.preventDefault()
@@ -108,6 +108,24 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
           <CampoDinheiro id="meta-alvo" centavos={alvo} onChange={setAlvo} aria-invalid={!!erros.alvo || undefined} />
           <FieldError>{erros.alvo}</FieldError>
         </Field>
+        <Field data-invalid={!!erros.prazo || undefined}>
+          <FieldLabel htmlFor="meta-prazo">
+            Até quando <span className="font-normal text-muted-foreground">(opcional)</span>
+          </FieldLabel>
+          <SeletorData
+            id="meta-prazo"
+            valor={prazo}
+            onChange={setPrazo}
+            placeholder="Sem prazo"
+            opcional
+            mesInicial={inicio}
+            invalido={!!erros.prazo}
+          />
+          <FieldError>{erros.prazo}</FieldError>
+        </Field>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
         <Field data-invalid={!!erros.aporte || undefined}>
           <FieldLabel htmlFor="meta-aporte">Guardar por mês</FieldLabel>
           <CampoDinheiro
@@ -118,9 +136,6 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
           />
           <FieldError>{erros.aporte}</FieldError>
         </Field>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
         <Field data-invalid={!!erros.dia || undefined}>
           <FieldLabel htmlFor="meta-dia">Dia do aporte</FieldLabel>
           <Input
@@ -142,6 +157,10 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
           <FieldError>{erros.inicio}</FieldError>
         </Field>
       </div>
+
+      {rascunho && (
+        <DiagnosticoMeta rascunho={rascunho} capacidade={capacidade} hoje={hoje} onUsarAporte={setAporte} />
+      )}
 
       <FieldDescription>
         O aporte sai do saldo todo mês, na coluna Economia da planilha, e para quando a meta é atingida. Se o mês não

@@ -37,6 +37,7 @@ export function CardMeta({ meta, resumo, hoje, onEditar, onAjustar, onExcluir }:
             <p className="text-sm text-muted-foreground">
               <span className="tabular-nums">{formatarBRL(meta.aporteMensalCentavos)}</span> todo dia {meta.diaDoMes} ·
               desde {formatarData(meta.inicio)}
+              {meta.prazo && <> · até {formatarMesAno(meta.prazo, 'curto')}</>}
             </p>
           </div>
           <div className="flex shrink-0">
@@ -86,6 +87,12 @@ export function CardMeta({ meta, resumo, hoje, onEditar, onAjustar, onExcluir }:
       <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
         <p className="text-sm text-muted-foreground">
           <Previsao resumo={resumo} />
+          {meta.prazo && !resumo.concluida && (
+            <>
+              {' '}
+              <SituacaoPrazo prazo={meta.prazo} resumo={resumo} hoje={hoje} />
+            </>
+          )}
         </p>
 
         <Button variant="outline" className={cn(BOTAO, 'self-start')} onClick={onAjustar}>
@@ -123,6 +130,29 @@ function Previsao({ resumo }: { resumo: ResumoMeta }) {
   return (
     <>
       Completa em <span className="font-semibold text-foreground">{formatarMesAno(conclusaoPrevista)}</span> {base}.{plano}
+    </>
+  )
+}
+
+/** Se o plano cumpre o prazo e, se não cumpre, de quanto precisa ser o aporte para cumprir. */
+function SituacaoPrazo({ prazo, resumo, hoje }: { prazo: DataISO; resumo: ResumoMeta; hoje: DataISO }) {
+  const quando = <span className="font-semibold text-foreground">{formatarMesAno(prazo)}</span>
+
+  if (resumo.noPrazo) return <>Dentro do prazo de {quando}.</>
+  if (prazo < hoje) {
+    return (
+      <>
+        O prazo de {quando} passou e faltam{' '}
+        <span className="font-semibold text-foreground tabular-nums">{formatarBRL(resumo.faltaCentavos)}</span>.
+      </>
+    )
+  }
+  if (resumo.aporteParaOPrazoCentavos === null) return <>Não há mais dias de aporte até o prazo de {quando}.</>
+  return (
+    <>
+      Para chegar até {quando}, o aporte precisa ser de{' '}
+      <span className="font-semibold text-economia tabular-nums">{formatarBRL(resumo.aporteParaOPrazoCentavos)}</span>{' '}
+      por mês.
     </>
   )
 }

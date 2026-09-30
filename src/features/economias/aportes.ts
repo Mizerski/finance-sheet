@@ -32,6 +32,10 @@ export interface ResumoMeta {
   conclusaoPrevista: DataISO | null
   /** Data do aporte que completa a meta seguindo o plano (aporte mensal + ajustes). */
   conclusaoNoPlano: DataISO | null
+  /** Pelo plano, a meta completa até o prazo; null se ela não tiver prazo. */
+  noPrazo: boolean | null
+  /** Aporte mensal que completa a meta até o prazo (ver `aporteParaOPrazo`). */
+  aporteParaOPrazoCentavos: number | null
 }
 
 /** Horizonte de busca quando a meta não tem fim natural (ex.: aporte zero): 100 anos. */
@@ -94,6 +98,26 @@ function aportesEntre(meta: MetaEconomia, depoisDe: DataISO, ate: DataISO): numb
   return n
 }
 
+/**
+ * Menor aporte mensal que completa a meta até o prazo, arredondado para cima em reais.
+ * Como o aporte mensal vale para todo mês sem ajuste (inclusive os que já passaram), a conta mantém os ajustes
+ * e divide o que falta pelos outros meses até o prazo. null sem prazo ou sem mês livre até ele.
+ */
+export function aporteParaOPrazo(meta: MetaEconomia): number | null {
+  if (!meta.prazo) return null
+  let fixo = 0
+  let livres = 0
+  for (const data of datasDeAporte(meta)) {
+    if (data > meta.prazo) break
+    const mes = data.slice(0, 7)
+    if (mes in meta.ajustes) fixo += meta.ajustes[mes]
+    else livres++
+  }
+  const falta = meta.valorAlvoCentavos - fixo
+  if (falta <= 0) return 0
+  return livres ? Math.ceil(falta / livres / 100) * 100 : null
+}
+
 /** Situação da meta em `hoje`: quanto foi guardado, a média real e as previsões no ritmo atual. */
 export function resumirMeta(meta: MetaEconomia, hoje: DataISO): ResumoMeta {
   const alvo = meta.valorAlvoCentavos
@@ -130,6 +154,8 @@ export function resumirMeta(meta: MetaEconomia, hoje: DataISO): ResumoMeta {
     previstoFimDoAnoCentavos: previstoFimDoAno,
     conclusaoPrevista,
     conclusaoNoPlano,
+    noPrazo: meta.prazo ? conclusaoNoPlano !== null && conclusaoNoPlano <= meta.prazo : null,
+    aporteParaOPrazoCentavos: aporteParaOPrazo(meta),
   }
 }
 
