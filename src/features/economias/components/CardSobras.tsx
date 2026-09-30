@@ -2,14 +2,14 @@ import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import type { ResumoMes } from '@/features/projecao/projecao'
 import { nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { CARD, TABELA } from '@/shared/lib/estilos'
+import { CARD, TABELA, TITULO_CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { sobraDoMes } from '../sobras'
 
 /** Colunas mais justas no celular, para as cinco caberem em 343px. */
-const CELULA = 'px-1.5 py-2.5 sm:px-3'
+const CELULA = 'px-1 py-2.5 sm:px-3'
 
 const COLUNAS = [
   { rotulo: 'Entradas', cor: 'text-entrada' },
@@ -34,7 +34,7 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
     <Card className={cn(CARD, 'overflow-hidden')}>
       <header className="flex flex-wrap items-start justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className="text-lg leading-none font-medium tracking-tight">
+          <h2 className={TITULO_CARD}>
             Sobras <span className="font-normal text-muted-foreground">{ano}</span>
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -44,7 +44,8 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
         <SeletorAno />
       </header>
 
-      <Table className={TABELA.tabela}>
+      {/* No celular, letra menor e mais junta para as cinco colunas caberem em 343px. */}
+      <Table className={cn(TABELA.tabela, 'text-[0.7rem] tracking-tight sm:tracking-normal')}>
         <TableHeader>
           <TableRow className={TABELA.linhaCabecalho}>
             <TableHead className={cn(TABELA.cabecalho, CELULA, TABELA.primeira)}>Mês</TableHead>

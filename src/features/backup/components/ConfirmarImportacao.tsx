@@ -1,6 +1,6 @@
 import { formatarData } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CAMADA, RODAPE_DIALOG, VALOR_SALDO } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import {
@@ -31,7 +31,7 @@ export function ConfirmarImportacao({ backup, atual, onCancelar, onConfirmar }: 
     <Dialog open={backup !== null} onOpenChange={(aberto) => !aberto && onCancelar()}>
       <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-sm')}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">Importar backup?</DialogTitle>
+          <DialogTitle className={TITULO_DIALOG}>Importar backup?</DialogTitle>
           <DialogDescription>
             Os dados deste computador serão substituídos pelos do backup
             {backup && ` de ${formatarData(backup.exportadoEm)}`}. Para guardar os atuais, exporte um backup antes.

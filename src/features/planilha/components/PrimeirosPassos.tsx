@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Check } from 'lucide-react'
-import { CARD } from '@/shared/lib/estilos'
+import { CARD, TITULO_CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 
@@ -21,7 +21,7 @@ export function PrimeirosPassos({ saldoDefinido, temCategorias, temLancamentos, 
   return (
     <Card className={cn(CARD, 'gap-3 p-4 sm:p-5')}>
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg leading-none font-medium tracking-tight">Primeiros passos</h2>
+        <h2 className={TITULO_CARD}>Primeiros passos</h2>
         <p className="text-sm text-muted-foreground">Três passos para a planilha começar a projetar o seu saldo.</p>
       </div>
       <ol className="flex flex-col gap-2.5 text-sm">

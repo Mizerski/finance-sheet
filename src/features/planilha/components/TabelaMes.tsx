@@ -3,7 +3,7 @@ import type { DiaProjetado, ResumoMes } from '@/features/projecao/projecao'
 import type { DataISO } from '@/shared/lib/datas'
 import { nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { VALOR_SALDO } from '@/shared/lib/estilos'
+import { TITULO_CARD, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 import {
@@ -69,7 +69,7 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdi
   return (
     <Card className="gap-0 rounded-3xl py-0 shadow-none ring-border">
       <header className="flex items-end justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <h2 className="text-lg leading-none font-medium tracking-tight">
+        <h2 className={TITULO_CARD}>
           <span className="capitalize">{nomeDoMes(resumo.mes)}</span>{' '}
           <span className="font-normal text-muted-foreground">{ano}</span>
         </h2>

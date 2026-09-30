@@ -1,5 +1,5 @@
 import type { DataISO } from '@/shared/lib/datas'
-import { CAMADA } from '@/shared/lib/estilos'
+import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import type { Lancamento } from '../lancamento'
@@ -22,7 +22,7 @@ export function DialogLancamento({ aberto, onOpenChange, lancamento, dataInicial
         className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-lg')}
       >
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">
+          <DialogTitle className={TITULO_DIALOG}>
             {lancamento ? 'Editar lançamento' : 'Novo lançamento'}
           </DialogTitle>
           <DialogDescription>

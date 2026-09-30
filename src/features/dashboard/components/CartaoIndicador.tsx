@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CARD, VALOR_SALDO } from '@/shared/lib/estilos'
+import { CARD, VALOR_DESTAQUE, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 
@@ -23,8 +23,8 @@ export function CartaoIndicador({ rotulo, valor, detalhe, corMarca, negativo, sa
         {corMarca && <span aria-hidden className="size-2.5 rounded-[3px]" style={{ backgroundColor: corMarca }} />}
         {rotulo}
       </p>
-      {/* Números grandes com algarismos proporcionais (sem tabular-nums). */}
-      <p className={cn('text-2xl leading-none font-medium tracking-tight', saldo && VALOR_SALDO, negativo && 'text-negativo')}>{valor}</p>
+      {/* Números grandes na serifada, com algarismos proporcionais (sem tabular-nums). */}
+      <p className={cn('text-[1.75rem]', VALOR_DESTAQUE, saldo && VALOR_SALDO, negativo && 'text-negativo')}>{valor}</p>
       {detalhe && <p className="text-xs text-muted-foreground">{detalhe}</p>}
     </Card>
   )

@@ -2,7 +2,9 @@ import { Pie, PieChart } from 'recharts'
 import { CATEGORIA_DESCONHECIDA } from '@/features/categorias/categoria'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
+import { VALOR_DESTAQUE } from '@/shared/lib/estilos'
 import { formatarPercentual } from '@/shared/lib/percentual'
+import { cn } from '@/shared/lib/utils'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
 import { TooltipGrafico } from './TooltipGrafico'
 
@@ -83,7 +85,7 @@ export function RoscaGastos({ itens, rotuloValor }: RoscaGastosProps) {
         {/* Total no centro da rosca; não intercepta o hover das fatias. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           <span className="text-[0.7rem] tracking-wide text-muted-foreground uppercase">Total</span>
-          <span className="text-lg font-medium tracking-tight">{formatarBRL(total)}</span>
+          <span className={cn('text-xl', VALOR_DESTAQUE)}>{formatarBRL(total)}</span>
         </div>
       </div>
 

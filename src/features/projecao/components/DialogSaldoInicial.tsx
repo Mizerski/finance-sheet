@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
-import { BOTAO, CAMADA, RODAPE_DIALOG } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import {
@@ -27,7 +27,7 @@ export function DialogSaldoInicial({ aberto, onOpenChange }: DialogSaldoInicialP
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">Saldo inicial</DialogTitle>
+          <DialogTitle className={TITULO_DIALOG}>Saldo inicial</DialogTitle>
           <DialogDescription>
             Quanto havia na conta no começo de um dia. A projeção parte daí; os dias anteriores ficam fora do cálculo.
           </DialogDescription>

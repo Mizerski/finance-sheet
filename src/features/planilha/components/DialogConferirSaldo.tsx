@@ -6,7 +6,7 @@ import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
 import { formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CAMADA, RODAPE_DIALOG, VALOR_SALDO } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import {
@@ -32,7 +32,7 @@ export function DialogConferirSaldo({ aberto, onOpenChange }: DialogConferirSald
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">Conferir saldo</DialogTitle>
+          <DialogTitle className={TITULO_DIALOG}>Conferir saldo</DialogTitle>
           <DialogDescription>
             Informe quanto o banco mostra. Se a planilha estiver diferente, a diferença vira um lançamento de ajuste.
           </DialogDescription>

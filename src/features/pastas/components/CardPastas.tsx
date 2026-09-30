@@ -2,7 +2,7 @@ import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CARD, TABELA } from '@/shared/lib/estilos'
+import { BOTAO, CARD, TABELA, TITULO_CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
@@ -26,7 +26,7 @@ export function CardPastas({ pastas, grupos, onNova, onEditar, onExcluir }: Card
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
       <header className="flex items-end justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <h2 className="text-lg leading-none font-medium tracking-tight">
+        <h2 className={TITULO_CARD}>
           Pastas <span className="font-normal text-muted-foreground">{pastas.length}</span>
         </h2>
         <div className="flex flex-col items-end gap-1 text-right">

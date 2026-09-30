@@ -5,7 +5,7 @@ import type { GastoTag } from '@/features/projecao/projecao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CARD, TABELA } from '@/shared/lib/estilos'
+import { BOTAO, CARD, TABELA, TITULO_CARD } from '@/shared/lib/estilos'
 import { formatarPercentual } from '@/shared/lib/percentual'
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
@@ -39,7 +39,7 @@ export function CardTags({ tags, usos, gastos, onNova, onUsarSugeridas, onEditar
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
       <header className="flex items-end justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <h2 className="text-lg leading-none font-medium tracking-tight">
+        <h2 className={TITULO_CARD}>
           Tags <span className="font-normal text-muted-foreground">{tags.length}</span>
         </h2>
         <div className="flex flex-col items-end gap-1 text-right">

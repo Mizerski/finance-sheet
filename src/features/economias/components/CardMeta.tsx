@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { CalendarCheck, Pencil, Trash2 } from 'lucide-react'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CARD } from '@/shared/lib/estilos'
+import { BOTAO, CARD, TITULO_CARD, VALOR_DESTAQUE } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
@@ -27,7 +27,7 @@ export function CardMeta({ meta, resumo, hoje, onEditar, onAjustar, onExcluir }:
     <Card className={cn(CARD, 'overflow-hidden')}>
       <header className="flex items-start justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className="truncate text-lg leading-none font-medium tracking-tight">{meta.nome}</h2>
+          <h2 className={cn('truncate', TITULO_CARD)}>{meta.nome}</h2>
           <p className="text-sm text-muted-foreground">
             <span className="tabular-nums">{formatarBRL(meta.aporteMensalCentavos)}</span> todo dia {meta.diaDoMes} ·
             desde {formatarData(meta.inicio)}
@@ -59,8 +59,8 @@ export function CardMeta({ meta, resumo, hoje, onEditar, onAjustar, onExcluir }:
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <p className="flex items-baseline gap-1.5">
-              {/* Número grande com algarismos proporcionais. */}
-              <span className="text-2xl leading-none font-medium tracking-tight">{percentual}%</span>
+              {/* Número grande na serifada, com algarismos proporcionais. */}
+              <span className={cn('text-[1.75rem]', VALOR_DESTAQUE)}>{percentual}%</span>
               <span className="text-sm text-muted-foreground">{resumo.concluida ? 'meta atingida' : 'guardado'}</span>
             </p>
             <p className="text-sm text-muted-foreground tabular-nums">

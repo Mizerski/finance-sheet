@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { ChartColumn, Table2 } from 'lucide-react'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
-import { CARD } from '@/shared/lib/estilos'
+import { CARD, TITULO_CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 
@@ -46,7 +46,7 @@ export function CardGrafico({ titulo, descricao, acoes, tabela, className, child
     <Card className={cn(CARD, 'overflow-hidden', className)}>
       <header className="flex flex-wrap items-start justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className="text-lg leading-none font-medium tracking-tight">{titulo}</h2>
+          <h2 className={TITULO_CARD}>{titulo}</h2>
           {descricao && <p className="text-sm text-muted-foreground">{descricao}</p>}
         </div>
         <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { CAMADA } from '@/shared/lib/estilos'
+import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { ITENS_MENU } from '../layout/itens-menu'
@@ -36,7 +36,7 @@ export function DialogAtalhos({ aberto, onOpenChange }: DialogAtalhosProps) {
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-md')}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">Atalhos de teclado</DialogTitle>
+          <DialogTitle className={TITULO_DIALOG}>Atalhos de teclado</DialogTitle>
           <DialogDescription>Funcionam fora de campos de texto.</DialogDescription>
         </DialogHeader>
         {GRUPOS.map((g) => (

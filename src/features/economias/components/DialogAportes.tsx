@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CAMADA, RODAPE_DIALOG } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import {
@@ -34,7 +34,7 @@ export function DialogAportes({ aberto, onOpenChange, meta, hoje }: DialogAporte
         className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-md')}
       >
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">Quanto guardei em cada mês</DialogTitle>
+          <DialogTitle className={TITULO_DIALOG}>Quanto guardei em cada mês</DialogTitle>
           <DialogDescription>
             Corrija o mês em que guardou mais ou menos do que o planejado. A média real desses meses é o que define a
             previsão da meta.

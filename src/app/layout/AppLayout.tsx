@@ -2,6 +2,7 @@ import { Link, Outlet } from '@tanstack/react-router'
 import { BotaoSair } from '@/features/autenticacao/components/BotaoSair'
 import { BotaoBackup } from '@/features/backup/components/BotaoBackup'
 import { SaldoProjetado } from '@/features/projecao/components/SaldoProjetado'
+import { Marca } from '@/shared/components/Marca'
 import { EH_DESKTOP } from '@/shared/lib/plataforma'
 import { AtalhosGlobais } from '../atalhos/AtalhosGlobais'
 import { useMemoriaNavegacao } from '../navegacao/memoria-context'
@@ -15,11 +16,8 @@ export function AppLayout() {
         <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md">
           {/* Abaixo de 69rem, o menu desce para uma linha própria: marca, saldos e menu não cabem juntos. */}
           <div className="flex flex-col gap-3 p-4 min-[69rem]:flex-row min-[69rem]:items-center min-[69rem]:justify-between">
-            <div className="flex items-center justify-between gap-4 min-[69rem]:justify-start">
-              <span className="flex items-center gap-2 text-[0.95rem] font-medium tracking-tight">
-                <span aria-hidden className="size-5 rounded-full bg-primary" />
-                Projeção Financeira
-              </span>
+            <div className="flex items-center justify-between gap-3 sm:gap-4 min-[69rem]:justify-start">
+              <Marca />
               <SaldoProjetado />
             </div>
             <div className="flex min-w-0 items-center gap-1">

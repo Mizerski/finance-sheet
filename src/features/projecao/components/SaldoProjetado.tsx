@@ -30,7 +30,7 @@ export function SaldoProjetado() {
   }, [ocultos])
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       <Saldo rotulo="Hoje" titulo={`Saldo no fim de hoje, ${formatarData(hoje)}`} centavos={saldoHoje} />
       <Saldo
         rotulo={`Fim de ${ano}`}
@@ -65,7 +65,7 @@ function Saldo({ rotulo, titulo, centavos }: SaldoProps) {
       </span>
       <span
         className={cn(
-          'text-[0.8125rem] leading-tight font-medium whitespace-nowrap tabular-nums',
+          'text-xs leading-tight font-medium tracking-tight whitespace-nowrap tabular-nums sm:text-[0.8125rem] sm:tracking-normal',
           VALOR_SALDO,
           centavos !== null && centavos < 0 && 'text-negativo',
         )}

@@ -32,3 +32,15 @@ export const TABELA = {
 
 /** Marca um saldo para ser borrado quando os saldos estão ocultos (regra em index.css). */
 export const VALOR_SALDO = 'valor-saldo'
+
+/** Tipografia: títulos e números de destaque na serifada (`font-heading`), em peso normal. */
+export const TITULO_PAGINA = 'font-heading text-[1.75rem] leading-tight font-normal tracking-[-0.015em] sm:text-3xl'
+
+/** Título de card e de tela avulsa (login). */
+export const TITULO_CARD = 'font-heading text-xl leading-none font-normal tracking-[-0.01em]'
+
+/** Título de Dialog. */
+export const TITULO_DIALOG = 'font-heading text-xl leading-tight font-normal tracking-[-0.01em]'
+
+/** Número grande de card (KPI, percentual de meta): serifada, com algarismos proporcionais e na altura das maiúsculas. */
+export const VALOR_DESTAQUE = 'font-heading leading-none font-normal tracking-[-0.01em] proportional-nums lining-nums'

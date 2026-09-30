@@ -6,7 +6,7 @@ Guia visual do app. Toda tela nova (Lançamentos, Categorias, Dashboard…) deve
 
 1. **Terroso e calmo.** Tons de linho, areia, terracota, oliva e musgo. Nada de cores saturadas nem preto ou branco puros.
 2. **Arredondado e macio**, no estilo do [Mobbin](https://mobbin.com): cards grandes com raio amplo, controles em formato de pílula, bordas finas em vez de sombras pesadas.
-3. **Tipografia minimalista.** Uma família só (Geist), pesos leves, hierarquia por tamanho e cor, não por negrito.
+3. **Tipografia editorial e calma.** Duas famílias: uma serifada (Newsreader) nos títulos e números de destaque e uma sem serifa (Inter) no resto. Pesos leves, hierarquia por tamanho, cor e família, não por negrito.
 4. **Arejado, mas enxuto.** Linhas de tabela confortáveis e margens curtas (16px). O conteúdo usa a largura da tela.
 5. **Limpar sem cortar.** Ao reduzir a poluição visual, reorganize, abrevie ou suavize, mas **nunca remova informação** que já aparece na tela.
 6. **Sempre tokens.** Cores vêm dos tokens de `src/index.css` via classes do Tailwind. Nunca use a paleta padrão do Tailwind (`emerald-*`, `red-*`, `slate-*`…) nem hex solto no JSX. A única exceção é a cor de uma categoria, que é dado do usuário.
@@ -74,16 +74,21 @@ A faixa vermelha já está cheia (terracota, argila, vinho e framboesa): um cora
 
 ## Tipografia
 
-- **Família:** Geist Variable (`font-sans`, já aplicada no `html`). Não adicione outras fontes.
+- **Famílias:** só estas duas, instaladas pelo Fontsource (funcionam offline no desktop). Não adicione outras fontes.
+  - **Inter Variable** (`font-sans`, já aplicada no `html`): textos, controles, rótulos, tabelas e gráficos.
+  - **Newsreader Variable** (`font-heading`): títulos de página, card e dialog, a marca e números grandes de card. Sempre em `font-normal`, nunca em texto corrido, célula de tabela nem rótulo.
+- **Constantes:** use `TITULO_PAGINA`, `TITULO_CARD`, `TITULO_DIALOG` e `VALOR_DESTAQUE` (`src/shared/lib/estilos.ts`) em vez de repetir as classes. A marca é o componente `Marca`.
 - **Pesos:** `font-normal` e `font-medium`. Evite `font-semibold` e `font-bold`: a hierarquia vem de tamanho e cor.
-- **Números:** todo valor numérico em tabela, card ou lista usa `tabular-nums`.
+- **Números:** todo valor numérico em tabela, card ou lista usa `tabular-nums`. A exceção são os números grandes de card (`VALOR_DESTAQUE`), com algarismos proporcionais.
 - **Formatação:** dinheiro sempre com `formatarBRL` (`src/shared/lib/dinheiro.ts`), datas com `formatarData` (`dd/MM/yyyy`) e nomes de mês e dia com `nomeDoMes` e `nomeDoDiaDaSemana` (`src/shared/lib/datas.ts`).
 
 | Papel | Classes |
 |---|---|
-| Título da página | `text-2xl font-medium tracking-tight` — use `CabecalhoPagina` |
+| Título da página | `TITULO_PAGINA` (serifada, `text-3xl`) — use `CabecalhoPagina` |
 | Parte secundária do título (ano, contexto) | `<span className="text-muted-foreground">` dentro do título |
-| Título de card | `text-lg leading-none font-medium tracking-tight` |
+| Título de card | `TITULO_CARD` (serifada, `text-xl`) |
+| Título de dialog | `TITULO_DIALOG` (serifada, `text-xl`) |
+| Número grande de card (KPI, % da meta) | `text-[1.75rem]` + `VALOR_DESTAQUE` (serifada) |
 | Texto corrido e descrições | `text-sm`, secundário com `text-muted-foreground` |
 | Rótulo, sobretítulo, cabeçalho de coluna | `text-[0.68rem]`–`text-[0.7rem] tracking-wide uppercase text-muted-foreground` |
 | Célula de tabela | `text-[0.7rem] sm:text-[0.8125rem]` |
@@ -163,7 +168,7 @@ A faixa vermelha já está cheia (terracota, argila, vinho e framboesa): um cora
 ## Checklist antes de entregar uma tela
 
 - [ ] Só tokens de cor. Nenhum `emerald`, `red`, `slate` ou hex solto (fora a cor de categoria).
-- [ ] Pesos `normal` e `medium` apenas. Números com `tabular-nums`, dinheiro com `formatarBRL`.
+- [ ] Pesos `normal` e `medium` apenas. Títulos com as constantes serifadas. Números com `tabular-nums`, dinheiro com `formatarBRL`.
 - [ ] Margem de 16px e `gap-4`, sem `max-w` no container.
 - [ ] Cards `rounded-3xl`, controles `rounded-full`, popovers e dialogs `rounded-2xl`.
 - [ ] Tabelas com colunas alinhadas, alturas iguais e linhas com `py-2`.
