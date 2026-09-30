@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CAMADA, RODAPE_DIALOG } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import {
@@ -34,7 +34,7 @@ export function DialogAportes({ aberto, onOpenChange, meta, hoje }: DialogAporte
         className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-md')}
       >
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">Quanto guardei em cada mês</DialogTitle>
+          <DialogTitle className={TITULO_DIALOG}>Quanto guardei em cada mês</DialogTitle>
           <DialogDescription>
             Corrija o mês em que guardou mais ou menos do que o planejado. A média real desses meses é o que define a
             previsão da meta.
@@ -78,11 +78,11 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
           {formatarData(aportesDaMeta(meta, '9999-12-31')[0]?.data ?? meta.inicio)}.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col">
           {aportes.map((a) => (
-            <li key={a.mes} className="flex items-center justify-between gap-3">
+            <li key={a.mes} className="flex items-center justify-between gap-3 border-b border-border py-2 last:border-b-0">
               <label htmlFor={`aporte-${a.mes}`} className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-sm first-letter:uppercase">{formatarMesAno(a.data)}</span>
+                <span className="text-sm font-medium first-letter:uppercase">{formatarMesAno(a.data)}</span>
                 <span className="text-xs text-muted-foreground tabular-nums">
                   dia {formatarData(a.data)} · plano {formatarBRL(meta.aporteMensalCentavos)}
                 </span>
@@ -98,16 +98,16 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
         </ul>
       )}
 
-      <div className="flex justify-between border-t pt-3 text-sm">
+      <div className="flex justify-between border-t-2 border-foreground pt-3 text-sm">
         <span className="text-muted-foreground">Guardado até hoje</span>
-        <span className="font-medium tabular-nums">
+        <span className="font-semibold tabular-nums">
           {formatarBRL(guardado)} <span className="font-normal text-muted-foreground">de {formatarBRL(meta.valorAlvoCentavos)}</span>
         </span>
       </div>
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>
-          <Button type="button" variant="outline" className={cn(BOTAO, 'bg-card')}>
+          <Button type="button" variant="outline" className={BOTAO}>
             Cancelar
           </Button>
         </DialogClose>

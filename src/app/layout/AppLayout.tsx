@@ -2,6 +2,8 @@ import { Link, Outlet } from '@tanstack/react-router'
 import { BotaoSair } from '@/features/autenticacao/components/BotaoSair'
 import { BotaoBackup } from '@/features/backup/components/BotaoBackup'
 import { SaldoProjetado } from '@/features/projecao/components/SaldoProjetado'
+import { Forma } from '@/shared/components/Forma'
+import { Marca } from '@/shared/components/Marca'
 import { EH_DESKTOP } from '@/shared/lib/plataforma'
 import { AtalhosGlobais } from '../atalhos/AtalhosGlobais'
 import { useMemoriaNavegacao } from '../navegacao/memoria-context'
@@ -12,14 +14,11 @@ export function AppLayout() {
   return (
     <MemoriaNavegacaoProvider>
       <div className="min-h-svh bg-background">
-        <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md">
-          {/* Abaixo de 69rem, o menu desce para uma linha própria: marca, saldos e menu não cabem juntos. */}
-          <div className="flex flex-col gap-3 p-4 min-[69rem]:flex-row min-[69rem]:items-center min-[69rem]:justify-between">
-            <div className="flex items-center justify-between gap-4 min-[69rem]:justify-start">
-              <span className="flex items-center gap-2 text-[0.95rem] font-medium tracking-tight">
-                <span aria-hidden className="size-5 rounded-full bg-primary" />
-                Projeção Financeira
-              </span>
+        <header className="sticky top-0 z-40 border-b-2 border-foreground bg-background">
+          {/* Abaixo de 76rem, o menu desce para uma linha própria: marca, saldos e menu não cabem juntos. */}
+          <div className="flex flex-col gap-3 px-4 py-3 min-[76rem]:flex-row min-[76rem]:items-center min-[76rem]:justify-between">
+            <div className="flex items-center justify-between gap-3 sm:gap-6 min-[76rem]:justify-start">
+              <Marca />
               <SaldoProjetado />
             </div>
             <div className="flex min-w-0 items-center gap-1">
@@ -30,7 +29,7 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className="px-4 pb-4">
+        <main className="px-4 pt-5 pb-8">
           <Outlet />
         </main>
 
@@ -40,23 +39,23 @@ export function AppLayout() {
   )
 }
 
-/** Cada aba abre a tela como o usuário a deixou (filtros, mês, período). */
+/** Faixa de abas com contorno preto; a ativa vira bloco preto. Cada aba abre a tela como o usuário a deixou. */
 function Menu() {
   const { buscaPara } = useMemoriaNavegacao()
 
   return (
-    <nav className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full bg-muted p-1 min-[69rem]:flex-initial">
-      {ITENS_MENU.map(({ to, rotulo, icone: Icone }, i) => (
+    <nav className="flex min-w-0 flex-1 overflow-x-auto border-2 border-foreground bg-card [scrollbar-width:none] min-[76rem]:flex-initial">
+      {ITENS_MENU.map(({ to, rotulo, forma }, i) => (
         <Link
           key={to}
           to={to}
           title={`${rotulo} (atalho ${i + 1})`}
           search={buscaPara(to)}
           activeOptions={{ exact: true, includeSearch: false }}
-          className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.8125rem] text-muted-foreground transition-colors hover:text-foreground"
-          activeProps={{ className: 'bg-card text-foreground shadow-sm' }}
+          className="flex h-9 shrink-0 grow items-center justify-center gap-2 border-l-2 border-foreground px-3 text-xs font-semibold tracking-[0.06em] uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo focus-visible:bg-amarelo min-[76rem]:grow-0"
+          activeProps={{ className: 'bg-foreground text-background hover:bg-foreground focus-visible:bg-foreground' }}
         >
-          <Icone className="size-3.5" />
+          <Forma {...forma} className="size-3" />
           {rotulo}
         </Link>
       ))}

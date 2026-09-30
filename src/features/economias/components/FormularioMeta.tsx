@@ -156,7 +156,7 @@ export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>
-          <Button type="button" variant="outline" className={cn(BOTAO, 'bg-card')}>
+          <Button type="button" variant="outline" className={BOTAO}>
             Cancelar
           </Button>
         </DialogClose>

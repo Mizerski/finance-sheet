@@ -1,4 +1,4 @@
-import { CAMADA } from '@/shared/lib/estilos'
+import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import type { MetaEconomia } from '../meta'
@@ -19,7 +19,7 @@ export function DialogMeta({ aberto, onOpenChange, meta }: DialogMetaProps) {
         className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-lg')}
       >
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">
+          <DialogTitle className={TITULO_DIALOG}>
             {meta ? 'Editar meta' : 'Nova meta de economia'}
           </DialogTitle>
           <DialogDescription>Quanto você quer juntar e quanto separar do saldo a cada mês.</DialogDescription>

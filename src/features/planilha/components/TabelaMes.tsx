@@ -3,7 +3,7 @@ import type { DiaProjetado, ResumoMes } from '@/features/projecao/projecao'
 import type { DataISO } from '@/shared/lib/datas'
 import { nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { VALOR_SALDO } from '@/shared/lib/estilos'
+import { CARD, ROTULO, TITULO_CARD, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 import {
@@ -67,17 +67,25 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdi
   const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
 
   return (
-    <Card className="gap-0 rounded-3xl py-0 shadow-none ring-border">
-      <header className="flex items-end justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <h2 className="text-lg leading-none font-medium tracking-tight">
-          <span className="capitalize">{nomeDoMes(resumo.mes)}</span>{' '}
-          <span className="font-normal text-muted-foreground">{ano}</span>
-        </h2>
-        <div className="flex flex-col items-end gap-1 text-right">
-          <span className="text-[0.7rem] tracking-wide text-muted-foreground uppercase">Saldo inicial</span>
+    <Card className={CARD}>
+      <header className="flex items-stretch justify-between gap-3 border-b-2 border-foreground">
+        <div className="flex items-stretch">
+          {/* Número do mês em bloco preto, como a numeração de um cartaz. */}
+          <span
+            aria-hidden
+            className="flex w-12 items-center justify-center bg-foreground font-heading text-xl font-bold text-background tabular-nums sm:w-14 sm:text-2xl"
+          >
+            {String(resumo.mes + 1).padStart(2, '0')}
+          </span>
+          <h2 className={cn(TITULO_CARD, 'self-center px-3 text-xl sm:px-4 sm:text-2xl')}>
+            {nomeDoMes(resumo.mes)} <span className="font-light">{ano}</span>
+          </h2>
+        </div>
+        <div className="flex flex-col items-end justify-center gap-1 py-2.5 pr-3 text-right sm:pr-4">
+          <span className={cn(ROTULO, 'text-muted-foreground')}>Saldo inicial</span>
           <span
             className={cn(
-              'text-sm leading-none font-medium tabular-nums',
+              'text-sm leading-none font-semibold tabular-nums',
               VALOR_SALDO,
               saldoInicial !== null && saldoInicial < 0 && 'text-negativo',
             )}
@@ -87,15 +95,16 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdi
         </div>
       </header>
 
-      <Table className="text-[0.7rem] sm:text-[0.8125rem] lg:table-fixed">
+      <Table className="text-[0.7rem] tracking-tight sm:text-[0.8125rem] sm:tracking-normal lg:table-fixed">
         <TableHeader>
-          <TableRow className="border-b-border/70 hover:bg-transparent">
+          <TableRow className="border-b-2 border-b-foreground hover:bg-transparent">
             {colunas.map((c) => (
               <TableHead
                 key={c.rotulo}
                 className={cn(
                   c.rotulo === 'Dia' ? CELULA_DIA : CELULA,
-                  'h-auto text-right text-[0.68rem] font-medium tracking-wide uppercase',
+                  // No celular, sem o espaçamento entre letras: os rótulos em caixa alta não podem alargar as colunas.
+                  'h-auto text-right text-[0.6rem] font-semibold uppercase sm:text-[0.65rem] sm:tracking-[0.06em]',
                   c.largura,
                   c.className,
                 )}
@@ -130,9 +139,9 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdi
           ))}
         </TableBody>
 
-        <TableFooter className="border-t-border/70 bg-transparent font-medium">
+        <TableFooter className="border-t-2 border-foreground bg-transparent font-semibold">
           <TableRow className="hover:bg-transparent">
-            <TableCell className={cn(CELULA_DIA, 'text-[0.68rem] tracking-wide text-muted-foreground uppercase')}>
+            <TableCell className={cn(CELULA_DIA, ROTULO, 'font-semibold')}>
               Total
             </TableCell>
             <CelulaValor centavos={resumo.entradasCentavos} className={COR_COLUNA.entrada} compacta={comEconomia} />

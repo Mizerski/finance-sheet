@@ -5,6 +5,7 @@ import { agruparPorPasta } from '@/features/pastas/grupos'
 import { totalPorLancamento } from '@/features/projecao/projecao'
 import { useProjecao } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { formatarData, paraDataISO, somarDias } from '@/shared/lib/datas'
@@ -70,6 +71,7 @@ export function LancamentosPage() {
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina
+        forma={FORMA_PAGINA.lancamentos}
         titulo="Lançamentos"
         descricao={
           filtrando
@@ -110,7 +112,7 @@ export function LancamentosPage() {
             titulo={filtros.q?.trim() ? `Nada encontrado para "${filtros.q.trim()}"` : 'Nenhum lançamento com esses filtros'}
             descricao="Tente outra busca ou combinação, ou limpe os filtros."
             acao={
-              <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={() => alterarFiltros({})}>
+              <Button variant="outline" className={BOTAO} onClick={() => alterarFiltros({})}>
                 Limpar filtros
               </Button>
             }

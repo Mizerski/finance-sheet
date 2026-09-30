@@ -1,4 +1,4 @@
-import { CAMADA } from '@/shared/lib/estilos'
+import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import type { Pasta } from '../pasta'
@@ -16,7 +16,7 @@ export function DialogPasta({ aberto, onOpenChange, pasta }: DialogPastaProps) {
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">
+          <DialogTitle className={TITULO_DIALOG}>
             {pasta ? 'Editar pasta' : 'Nova pasta'}
           </DialogTitle>
           <DialogDescription>A pasta agrupa lançamentos na lista, sem mudar a projeção.</DialogDescription>

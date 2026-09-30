@@ -3,6 +3,7 @@ import { Pencil, PiggyBank, Plus } from 'lucide-react'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import type { Aporte } from '@/features/economias/aportes'
 import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
+import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
@@ -51,7 +52,7 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar }: DetalheDi
       )}
 
       {dia.saldoCentavos !== null && (
-        <div className="flex justify-between border-t pt-3 font-medium">
+        <div className="flex justify-between border-t-2 border-foreground pt-3 font-semibold">
           <span>Saldo do dia</span>
           <span className={cn('tabular-nums', VALOR_SALDO, dia.saldoCentavos < 0 && 'text-negativo')}>
             {formatarBRL(dia.saldoCentavos)}
@@ -60,7 +61,7 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar }: DetalheDi
       )}
 
       {dia.noCalculo && (
-        <Button variant="outline" className={cn(BOTAO, 'mt-1 w-full bg-card')} onClick={onAdicionar}>
+        <Button variant="outline" className={cn(BOTAO, 'mt-1 w-full')} onClick={onAdicionar}>
           <Plus aria-hidden className="size-4" />
           Adicionar lançamento
         </Button>
@@ -75,10 +76,10 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
     <li>
       <Link
         to="/economias"
-        className="group/item flex w-full items-start justify-between gap-3 rounded-xl px-2 py-1.5 text-left transition-colors outline-none hover:bg-foreground/4 focus-visible:ring-2 focus-visible:ring-ring"
+        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-amarelo/40 focus-visible:outline-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-col gap-1">
-          <span className="truncate font-medium">{aporte.nome}</span>
+          <span className="truncate font-semibold">{aporte.nome}</span>
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <PiggyBank aria-hidden className="size-3.5 text-economia" />
             Meta de economia{aporte.ajustado && ' · valor ajustado'}
@@ -112,18 +113,18 @@ function ItemOcorrencia({
       <button
         type="button"
         onClick={onEditar}
-        className="group/item flex w-full items-start justify-between gap-3 rounded-xl px-2 py-1.5 text-left transition-colors outline-none hover:bg-foreground/4 focus-visible:ring-2 focus-visible:ring-ring"
+        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-amarelo/40 focus-visible:outline-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-col gap-1">
-          <span className="truncate font-medium">
+          <span className="truncate font-semibold">
             <span className="sr-only">Editar </span>
             {ocorrencia.descricao}
           </span>
           <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="size-2 rounded-full" style={{ backgroundColor: categoria.cor }} />
+            <PontoCor cor={categoria.cor} />
             {categoria.nome}
             {!entrada && (
-              <Badge variant="outline" className="h-4 rounded-full px-1.5 text-[0.65rem] font-normal">
+              <Badge variant="outline" className="h-4 px-1 text-[0.6rem]">
                 {ocorrencia.natureza === 'fixa' ? 'fixa' : 'variável'}
               </Badge>
             )}

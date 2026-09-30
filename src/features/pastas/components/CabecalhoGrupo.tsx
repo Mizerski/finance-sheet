@@ -20,17 +20,17 @@ export function CabecalhoGrupo({ grupo, aberto, ano, colunas, onAlternar }: Cabe
   const quantidade = lancamentos.length
 
   return (
-    <TableRow className="border-b-border/50 bg-muted/40 hover:bg-muted/60">
+    <TableRow className="border-b-2 border-b-foreground bg-muted hover:bg-amarelo/40">
       <TableCell colSpan={colunas} className="p-0">
         <button
           type="button"
           aria-expanded={aberto}
           onClick={onAlternar}
-          className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 py-2.5 pr-3 pl-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:pr-5 sm:pl-4"
+          className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 py-2.5 pr-3 pl-3 text-left outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:pr-5 sm:pl-4"
         >
-          <ChevronRight className={cn('size-4 text-muted-foreground', aberto && 'rotate-90')} />
-          <PontoCor cor={cor} className="size-2.5" />
-          <span className="font-medium">{nome}</span>
+          <ChevronRight strokeWidth={2.5} className={cn('size-4', aberto && 'rotate-90')} />
+          <PontoCor cor={cor} className="size-3" />
+          <span className="font-heading text-[0.9375rem] font-bold uppercase">{nome}</span>
           <span className="text-muted-foreground tabular-nums">
             {quantidade} {quantidade === 1 ? 'lançamento' : 'lançamentos'}
           </span>

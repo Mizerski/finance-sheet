@@ -20,6 +20,7 @@ import {
   validarLancamento,
   type RascunhoLancamento,
 } from '../formulario'
+import { COR_ATIVA_TIPO } from '../cores'
 import type { Lancamento, TipoMovimento } from '../lancamento'
 import { ROTULO_NATUREZA, ROTULO_TIPO } from '../textos'
 import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../vigencia'
@@ -32,7 +33,11 @@ interface FormularioLancamentoProps {
   onConcluir: () => void
 }
 
-const OPCOES_TIPO = (['saida', 'entrada'] as const).map((valor) => ({ valor, rotulo: ROTULO_TIPO[valor] }))
+const OPCOES_TIPO = (['saida', 'entrada'] as const).map((valor) => ({
+  valor,
+  rotulo: ROTULO_TIPO[valor],
+  corAtiva: COR_ATIVA_TIPO[valor],
+}))
 const OPCOES_NATUREZA = (['fixa', 'variavel'] as const).map((valor) => ({ valor, rotulo: ROTULO_NATUREZA[valor] }))
 const OPCOES_RECORRENCIA = [
   { valor: 'unica' as const, rotulo: 'Única' },
@@ -150,9 +155,9 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
             >
               <SelectValue placeholder="Escolher" />
             </SelectTrigger>
-            <SelectContent position="popper" className="rounded-2xl">
+            <SelectContent position="popper">
               {categoriasDoTipo.map((c) => (
-                <SelectItem key={c.id} value={c.id} className="rounded-full">
+                <SelectItem key={c.id} value={c.id}>
                   <PontoCor cor={c.cor} />
                   {c.nome}
                 </SelectItem>
@@ -195,12 +200,12 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
               <SelectTrigger id="lanc-tag" className={CAMPO_SELECT}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent position="popper" className="rounded-2xl">
-                <SelectItem value={NENHUMA} className="rounded-full">
+              <SelectContent position="popper">
+                <SelectItem value={NENHUMA}>
                   Sem tag
                 </SelectItem>
                 {estado.tags.map((t) => (
-                  <SelectItem key={t.id} value={t.id} className="rounded-full">
+                  <SelectItem key={t.id} value={t.id}>
                     <PontoCor cor={t.cor} />
                     {t.nome}
                     {t.evitavel && <span className="text-muted-foreground">· evitável</span>}
@@ -231,12 +236,12 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           <SelectTrigger id="lanc-pasta" className={CAMPO_SELECT}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent position="popper" className="rounded-2xl">
-            <SelectItem value={NENHUMA} className="rounded-full">
+          <SelectContent position="popper">
+            <SelectItem value={NENHUMA}>
               Sem pasta
             </SelectItem>
             {estado.pastas.map((p) => (
-              <SelectItem key={p.id} value={p.id} className="rounded-full">
+              <SelectItem key={p.id} value={p.id}>
                 <PontoCor cor={p.cor} />
                 {p.nome}
               </SelectItem>
@@ -346,7 +351,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
       )}
 
       {perguntarVigencia && (
-        <Field data-invalid={!!erroVigencia || undefined} className="rounded-2xl p-4 ring-1 ring-border">
+        <Field data-invalid={!!erroVigencia || undefined} className="border-2 border-l-8 border-foreground border-l-amarelo p-4">
           <FieldLabel htmlFor="lanc-vigencia">Este lançamento já aconteceu. A mudança vale</FieldLabel>
           <ControleSegmentado
             id="lanc-vigencia"
@@ -379,7 +384,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>
-          <Button type="button" variant="outline" className={cn(BOTAO, 'bg-card')}>
+          <Button type="button" variant="outline" className={BOTAO}>
             Cancelar
           </Button>
         </DialogClose>

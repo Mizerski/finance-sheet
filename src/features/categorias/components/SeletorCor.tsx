@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from 'react'
 import { Check } from 'lucide-react'
+import { ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { CORES_CATEGORIA, GRUPOS_CORES_CATEGORIA } from '../cores'
 
@@ -26,7 +27,7 @@ export function SeletorCor({ id, valor, onChange }: SeletorCorProps) {
     <div id={id} role="radiogroup" aria-label="Cor" onKeyDown={aoTeclar} className="flex flex-col gap-3">
       {GRUPOS_CORES_CATEGORIA.map((grupo) => (
         <div key={grupo.nome} role="group" aria-label={grupo.nome} className="flex flex-col gap-1.5">
-          <span aria-hidden className="text-[0.68rem] tracking-wide text-muted-foreground uppercase">
+          <span aria-hidden className={cn(ROTULO, 'text-muted-foreground')}>
             {grupo.nome}
           </span>
           <div className="flex flex-wrap gap-2">
@@ -44,12 +45,12 @@ export function SeletorCor({ id, valor, onChange }: SeletorCorProps) {
                   tabIndex={ativo || (atual < 0 && i === 0) ? 0 : -1}
                   onClick={() => onChange(c.hex)}
                   className={cn(
-                    'flex size-8 items-center justify-center rounded-full text-primary-foreground ring-offset-2 ring-offset-card transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    ativo && 'ring-2 ring-foreground/30',
+                    'flex size-8 items-center justify-center rounded-full text-papel ring-offset-2 ring-offset-card transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    ativo && 'ring-2 ring-foreground',
                   )}
                   style={{ backgroundColor: c.hex }}
                 >
-                  {ativo && <Check className="size-4" />}
+                  {ativo && <Check strokeWidth={3} className="size-4" />}
                 </button>
               )
             })}

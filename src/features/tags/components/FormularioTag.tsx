@@ -3,7 +3,6 @@ import { proximaCorLivre } from '@/features/categorias/cores'
 import { SeletorCor } from '@/features/categorias/components/SeletorCor'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { BOTAO, CAMPO, RODAPE_DIALOG } from '@/shared/lib/estilos'
-import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
@@ -84,7 +83,7 @@ export function FormularioTag({ tag, onConcluir }: FormularioTagProps) {
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>
-          <Button type="button" variant="outline" className={cn(BOTAO, 'bg-card')}>
+          <Button type="button" variant="outline" className={BOTAO}>
             Cancelar
           </Button>
         </DialogClose>

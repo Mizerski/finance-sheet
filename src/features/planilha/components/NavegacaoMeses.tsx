@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { nomeDoMes } from '@/shared/lib/datas'
+import { BOTAO_GRUPO, GRUPO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 
@@ -25,21 +26,21 @@ export function NavegacaoMeses({ meses, temAnterior, temProximo, onAnterior, onP
   // Atravessando o ano, os meses viram abreviações para os dois anos caberem.
   const viraAno = primeiro.ano !== ultimo.ano
   const formato = viraAno ? 'curto' : 'longo'
-  const ano = (a: number) => <span className="font-normal text-muted-foreground">{a}</span>
+  const ano = (a: number) => <span className="font-light">{a}</span>
 
   return (
-    <div className={cn('flex min-w-0 items-center gap-1 rounded-full bg-card p-1 ring-1 ring-border', className)}>
+    <div className={cn(GRUPO, 'min-w-0', className)}>
       <Button
         variant="ghost"
         size="icon"
-        className="rounded-full"
+        className={BOTAO_GRUPO}
         onClick={onAnterior}
         disabled={!temAnterior}
         aria-label="Mês anterior"
       >
         <ChevronLeft />
       </Button>
-      <span className="min-w-0 flex-1 truncate px-1 text-center text-sm font-medium capitalize sm:w-52 sm:flex-none">
+      <span className="min-w-0 flex-1 truncate border-x-2 border-foreground px-2 text-center font-heading text-sm leading-9 font-bold uppercase sm:w-60 sm:flex-none">
         {meses.length === 1 ? (
           <>
             {nomeDoMes(primeiro.mes)} {ano(primeiro.ano)}
@@ -57,7 +58,7 @@ export function NavegacaoMeses({ meses, temAnterior, temProximo, onAnterior, onP
       <Button
         variant="ghost"
         size="icon"
-        className="rounded-full"
+        className={BOTAO_GRUPO}
         onClick={onProximo}
         disabled={!temProximo}
         aria-label="Próximo mês"

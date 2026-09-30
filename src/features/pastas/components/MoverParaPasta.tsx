@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Check, FolderInput } from 'lucide-react'
 import { PontoCor } from '@/shared/components/PontoCor'
-import { CAMADA } from '@/shared/lib/estilos'
+import { CAMADA, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
@@ -35,8 +35,8 @@ export function MoverParaPasta({ descricao, pastaAtual, pastas, onMover }: Mover
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className={cn(CAMADA, 'w-60 gap-3')}>
-        <p className="text-[0.68rem] tracking-wide text-muted-foreground uppercase">Mover para</p>
-        <ul className="flex flex-col gap-1">
+        <p className={cn(ROTULO, 'border-b-2 border-foreground pb-1.5')}>Mover para</p>
+        <ul className="-mt-1.5 flex flex-col">
           {opcoes.map((o) => {
             const ativa = o.id === atual
             return (
@@ -49,13 +49,13 @@ export function MoverParaPasta({ descricao, pastaAtual, pastas, onMover }: Mover
                     setAberto(false)
                   }}
                   className={cn(
-                    'flex w-full items-center gap-2 rounded-full px-3 py-1.5 text-left text-[0.8125rem] transition-colors outline-none hover:bg-foreground/4 focus-visible:ring-2 focus-visible:ring-ring',
-                    ativa && 'bg-foreground/6',
+                    'flex w-full items-center gap-2 px-2 py-2 text-left text-[0.8125rem] transition-colors outline-none hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-ring',
+                    ativa && 'font-semibold',
                   )}
                 >
                   <PontoCor cor={o.cor} />
                   <span className="min-w-0 flex-1 truncate">{o.nome}</span>
-                  {ativa && <Check className="size-4 text-muted-foreground" />}
+                  {ativa && <Check strokeWidth={3} className="size-4" />}
                 </button>
               </li>
             )

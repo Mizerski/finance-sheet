@@ -130,7 +130,7 @@ function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExc
     <TableRow className={TABELA.linha}>
       <TableCell className={cn(TABELA.celula, TABELA.primeira, 'whitespace-normal')}>
         <div className="flex flex-col gap-1">
-          <span>{l.descricao}</span>
+          <span className="font-medium">{l.descricao}</span>
           {/* No celular, categoria, tag, natureza e recorrência vêm empilhadas sob a descrição. */}
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground lg:hidden">
             <PontoCor cor={categoria.cor} />
@@ -155,7 +155,7 @@ function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExc
       </TableCell>
       <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>{tag && <PilulaTag tag={tag} />}</TableCell>
       <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
-        <Badge variant="outline" className="rounded-full font-normal text-muted-foreground">
+        <Badge variant="outline" className="text-muted-foreground">
           {ROTULO_NATUREZA[l.natureza]}
         </Badge>
       </TableCell>
@@ -165,7 +165,7 @@ function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExc
           {periodo && <span className="text-[0.7rem] text-muted-foreground tabular-nums">{periodo}</span>}
         </div>
       </TableCell>
-      <TableCell className={cn(TABELA.celula, 'text-right tabular-nums', entrada ? 'text-entrada' : 'text-saida')}>
+      <TableCell className={cn(TABELA.celula, 'text-right font-semibold tabular-nums', entrada ? 'text-entrada' : 'text-saida')}>
         {entrada ? '+' : '−'} {formatarBRL(l.valorCentavos)}
       </TableCell>
       <TableCell className={cn(TABELA.celula, TABELA.ultima)}>

@@ -71,7 +71,7 @@ export function BotaoBackup() {
         </PopoverTrigger>
         <PopoverContent align="end" className={cn(CAMADA, 'w-80 gap-3')}>
           <PopoverHeader>
-            <PopoverTitle className="text-base tracking-tight">Backup</PopoverTitle>
+            <PopoverTitle>Backup</PopoverTitle>
             <PopoverDescription>
               Seus dados ficam só neste computador. Exporte um backup de vez em quando e guarde em outro lugar.
             </PopoverDescription>
@@ -81,7 +81,7 @@ export function BotaoBackup() {
               <Download className="size-4" />
               Exportar backup
             </Button>
-            <Button variant="outline" className={cn(BOTAO, 'w-full bg-card')} onClick={escolher}>
+            <Button variant="outline" className={cn(BOTAO, 'w-full')} onClick={escolher}>
               <Upload className="size-4" />
               Importar backup
             </Button>
@@ -92,7 +92,7 @@ export function BotaoBackup() {
             </p>
           )}
           {caminho && (
-            <p className="border-t pt-3 text-xs break-all text-muted-foreground">Arquivo de dados: {caminho}</p>
+            <p className="border-t-2 border-foreground pt-3 text-xs break-all text-muted-foreground">Arquivo de dados: {caminho}</p>
           )}
         </PopoverContent>
       </Popover>

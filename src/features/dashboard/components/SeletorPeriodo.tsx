@@ -5,7 +5,7 @@ import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { IntervaloAnos } from '@/features/projecao/anos'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
 import { deDataISO, formatarData, paraDataISO } from '@/shared/lib/datas'
-import { BOTAO, CAMADA } from '@/shared/lib/estilos'
+import { BOTAO_GRUPO, BOTAO, CAMADA, GRUPO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Calendar } from '@/shared/ui/calendar'
@@ -43,7 +43,7 @@ function contarDias(n: number) {
   return `${n} ${n === 1 ? 'dia' : 'dias'}`
 }
 
-/** Pílula "‹ março de 2026 ›": as setas andam um período, o centro abre o calendário. */
+/** Grupo "‹ março de 2026 ›": as setas andam um período, o centro abre o calendário. */
 export function SeletorPeriodo({ periodo, intervalo, hoje, onChange }: SeletorPeriodoProps) {
   const [aberto, setAberto] = useState(false)
   const [rascunho, setRascunho] = useState<DateRange | undefined>()
@@ -68,11 +68,11 @@ export function SeletorPeriodo({ periodo, intervalo, hoje, onChange }: SeletorPe
   const ate = rascunho?.to && paraDataISO(rascunho.to)
 
   return (
-    <div className="flex min-w-0 items-center gap-1 rounded-full bg-card p-1 ring-1 ring-border">
+    <div className={cn(GRUPO, 'min-w-0')}>
       <Button
         variant="ghost"
         size="icon"
-        className="rounded-full"
+        className={BOTAO_GRUPO}
         onClick={() => aplicar(deslocar(periodo, -1))}
         disabled={periodo.de <= inicio}
         aria-label="Período anterior"
@@ -90,16 +90,16 @@ export function SeletorPeriodo({ periodo, intervalo, hoje, onChange }: SeletorPe
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
-            className="h-8 min-w-0 flex-1 rounded-full px-3 font-medium tabular-nums sm:w-56 sm:flex-none"
+            className="h-full min-w-0 flex-1 rounded-none border-0 border-x-2 border-foreground px-3 font-heading text-sm font-bold uppercase tabular-nums shadow-none hover:bg-amarelo sm:w-60 sm:flex-none"
             aria-label={`Período do relatório: ${rotuloDoPeriodo(periodo)}. Alterar`}
           >
-            <CalendarDays className="text-muted-foreground" />
+            <CalendarDays />
             <span className="truncate">{rotuloDoPeriodo(periodo)}</span>
           </Button>
         </PopoverTrigger>
 
         <PopoverContent align="end" className={cn(CAMADA, 'flex w-auto flex-col gap-3')}>
-          <div role="group" aria-label="Período inteiro" className="flex gap-1 rounded-full bg-muted p-1">
+          <div role="group" aria-label="Período inteiro" className="flex border-2 border-foreground">
             {UNIDADES.map((u) => (
               <button
                 key={u.valor}
@@ -107,8 +107,8 @@ export function SeletorPeriodo({ periodo, intervalo, hoje, onChange }: SeletorPe
                 aria-pressed={tipo === u.valor}
                 onClick={() => aplicar(periodoDe(u.valor, referencia))}
                 className={cn(
-                  'flex-1 rounded-full px-3 py-1.5 text-[0.8125rem] text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring',
-                  tipo === u.valor && 'bg-card text-foreground shadow-sm',
+                  'flex-1 border-l-2 border-foreground px-3 py-1.5 text-xs font-semibold tracking-[0.06em] uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                  tipo === u.valor && 'bg-foreground text-background hover:bg-foreground',
                 )}
               >
                 {u.rotulo}
@@ -132,7 +132,7 @@ export function SeletorPeriodo({ periodo, intervalo, hoje, onChange }: SeletorPe
             className="bg-transparent p-0"
           />
 
-          <div className="flex items-center justify-between gap-3 border-t pt-3">
+          <div className="flex items-center justify-between gap-3 border-t-2 border-foreground pt-3">
             <p className="text-xs text-muted-foreground tabular-nums">
               {de && ate
                 ? `${formatarData(de)} – ${formatarData(ate)} · ${contarDias(diasDoPeriodo({ de, ate }))}`
@@ -150,7 +150,7 @@ export function SeletorPeriodo({ periodo, intervalo, hoje, onChange }: SeletorPe
       <Button
         variant="ghost"
         size="icon"
-        className="rounded-full"
+        className={BOTAO_GRUPO}
         onClick={() => aplicar(deslocar(periodo, 1))}
         disabled={periodo.ate >= fim}
         aria-label="Próximo período"

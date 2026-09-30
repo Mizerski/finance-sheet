@@ -1,7 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts'
 import { formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
-import { AREA_GRAFICO, escalaY, SERIES, type DadoGastoAno, type SerieCategoria } from '../graficos'
+import { AREA_GRAFICO, escalaY, CONTORNO, SERIES, type DadoGastoAno, type SerieCategoria } from '../graficos'
 import { CardGrafico } from './CardGrafico'
 import { Legenda } from './Legenda'
 import { TabelaGastosAno } from './TabelaGastosAno'
@@ -15,9 +15,6 @@ interface GraficoGastosAnoProps {
   anoAtual: number
   onAno: (ano: number) => void
 }
-
-/** O contorno na cor do card cria o respiro de 2px entre os segmentos empilhados. */
-const RESPIRO = { stroke: 'var(--card)', strokeWidth: 2 }
 
 /** Anos fora do período ficam esmaecidos, para os do período se destacarem. */
 const OPACIDADE_OUTROS = 0.4
@@ -34,6 +31,7 @@ export function GraficoGastosAno({ dados, series, destaque, anoAtual, onAno }: G
     <CardGrafico
       className="lg:col-span-2"
       titulo="Gastos por ano"
+      faixa="bg-azul"
       descricao={`Saídas por categoria de ${dados[0].ano} a ${dados[dados.length - 1].ano} · clique em um ano para abri-lo`}
       tabela={<TabelaGastosAno dados={dados} series={series} destaque={(d) => destaque(d.numero)} />}
     >
@@ -44,7 +42,7 @@ export function GraficoGastosAno({ dados, series, destaque, anoAtual, onAno }: G
           <XAxis dataKey="ano" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis {...escala} tickFormatter={formatarBRLCompacto} tickLine={false} axisLine={false} width={76} />
           <ChartTooltip
-            cursor={{ fill: 'var(--foreground)', fillOpacity: 0.04 }}
+            cursor={{ fill: 'var(--amarelo)', fillOpacity: 0.3 }}
             content={({ active, payload }) => {
               const d = payload?.[0]?.payload as DadoGastoAno | undefined
               if (!active || !d) return null
@@ -59,17 +57,15 @@ export function GraficoGastosAno({ dados, series, destaque, anoAtual, onAno }: G
               )
             }}
           />
-          {series.map((s, i) => (
+          {series.map((s) => (
             <Bar
               key={s.chave}
               dataKey={(d: DadoGastoAno) => d.valores[s.chave] ?? 0}
               name={s.nome}
               stackId="saidas"
               fill={s.cor}
-              // Só o segmento de cima tem a ponta arredondada.
-              radius={i === series.length - 1 ? [4, 4, 0, 0] : 0}
               maxBarSize={40}
-              {...RESPIRO}
+              {...CONTORNO}
               className="cursor-pointer"
               onClick={abrir}
               isAnimationActive={false}

@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { FILTRO_SEM_TAG } from '@/features/lancamentos/filtros'
 import type { GastoTag } from '@/features/projecao/projecao'
+import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -38,18 +39,20 @@ export function CardTags({ tags, usos, gastos, onNova, onUsarSugeridas, onEditar
 
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
-      <header className="flex items-end justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <h2 className="text-lg leading-none font-medium tracking-tight">
-          Tags <span className="font-normal text-muted-foreground">{tags.length}</span>
-        </h2>
-        <div className="flex flex-col items-end gap-1 text-right">
-          <span className="text-[0.7rem] tracking-wide text-muted-foreground uppercase">Evitáveis no ano</span>
-          <span className="text-sm leading-none font-medium text-saida tabular-nums">
-            {formatarBRL(evitaveis)}{' '}
-            <span className="font-normal text-muted-foreground">· {formatarPercentual(evitaveis, saidas)}</span>
-          </span>
-        </div>
-      </header>
+      <CabecalhoCard
+        titulo="Tags"
+        contagem={tags.length}
+        faixa="bg-amarelo"
+        destaque={{
+          rotulo: 'Evitáveis no ano',
+          valor: (
+            <>
+              <span className="text-saida">{formatarBRL(evitaveis)}</span>{' '}
+              <span className="font-normal text-muted-foreground">· {formatarPercentual(evitaveis, saidas)}</span>
+            </>
+          ),
+        }}
+      />
 
       {tags.length === 0 ? (
         <EstadoVazio
@@ -61,7 +64,7 @@ export function CardTags({ tags, usos, gastos, onNova, onUsarSugeridas, onEditar
                 <Sparkles />
                 Usar sugeridas
               </Button>
-              <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={onNova}>
+              <Button variant="outline" className={BOTAO} onClick={onNova}>
                 <Plus />
                 Nova tag
               </Button>
@@ -99,7 +102,7 @@ export function CardTags({ tags, usos, gastos, onNova, onUsarSugeridas, onEditar
                         {t.nome}
                       </span>
                       {t.evitavel && (
-                        <Badge variant="outline" className="rounded-full font-normal text-muted-foreground">
+                        <Badge variant="outline" className="text-muted-foreground">
                           Evitável
                         </Badge>
                       )}
@@ -161,7 +164,7 @@ export function CardTags({ tags, usos, gastos, onNova, onUsarSugeridas, onEditar
                     <Link
                       to="/lancamentos"
                       search={{ tag: FILTRO_SEM_TAG }}
-                      className="rounded-full px-3 py-1.5 text-[0.8125rem] whitespace-nowrap underline-offset-4 transition-colors outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                      className="px-3 py-1.5 text-xs font-semibold tracking-[0.06em] whitespace-nowrap text-foreground uppercase underline decoration-2 underline-offset-4 outline-none hover:decoration-vermelho focus-visible:outline-2 focus-visible:outline-ring"
                     >
                       Classificar
                     </Link>

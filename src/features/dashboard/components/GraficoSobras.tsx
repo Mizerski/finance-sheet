@@ -1,17 +1,16 @@
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Rectangle, XAxis, YAxis, type BarShapeProps } from 'recharts'
 import { formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
-import { AREA_GRAFICO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
+import { AREA_GRAFICO, CONTORNO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
 import type { Unidade } from '../periodo'
 import { NOME_UNIDADE } from '../relatorio'
 import { CardGrafico } from './CardGrafico'
 import { TabelaPeriodos } from './TabelaPeriodos'
 import { TooltipGrafico } from './TooltipGrafico'
 
-/** Ponta arredondada no fim da barra e base reta no zero, para cima ou para baixo. */
+/** Bloco reto com contorno preto, para cima ou para baixo do zero. */
 function BarraComSinal(props: BarShapeProps) {
-  const negativa = Number(props.value) < 0
-  return <Rectangle {...props} radius={negativa ? [0, 0, 4, 4] : [4, 4, 0, 0]} />
+  return <Rectangle {...props} {...CONTORNO} />
 }
 
 export function GraficoSobras({ dados, unidade }: { dados: DadoPeriodo[]; unidade: Unidade }) {
@@ -22,6 +21,7 @@ export function GraficoSobras({ dados, unidade }: { dados: DadoPeriodo[]; unidad
   return (
     <CardGrafico
       titulo="Sobras"
+      faixa="bg-amarelo"
       descricao={`Quanto sobrou em ${NOME_UNIDADE[unidade].cada}: entradas menos saídas${temEconomia ? ' e economia' : ''}`}
       tabela={
         <TabelaPeriodos
@@ -42,7 +42,7 @@ export function GraficoSobras({ dados, unidade }: { dados: DadoPeriodo[]; unidad
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis dataKey="rotulo" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis {...escala} tickFormatter={formatarBRLCompacto} tickLine={false} axisLine={false} width={76} />
-          {temNegativo && <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeOpacity={0.5} />}
+          {temNegativo && <ReferenceLine y={0} stroke="var(--foreground)" strokeWidth={2} />}
           <ChartTooltip
             cursor={{ fill: 'var(--foreground)', fillOpacity: 0.04 }}
             content={({ active, payload }) => {

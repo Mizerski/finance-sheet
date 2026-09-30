@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useProjecao } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { paraDataISO } from '@/shared/lib/datas'
@@ -45,6 +46,7 @@ export function EconomiasPage() {
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina
+        forma={FORMA_PAGINA.economias}
         titulo="Economias"
         descricao={
           quantidade > 0 ? (

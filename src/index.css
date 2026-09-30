@@ -1,13 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+/* Outfit (geométrica, herdeira da Futura) nos títulos; Inter nos textos e tabelas, pelos algarismos tabulares. */
+@import "@fontsource-variable/inter/opsz.css";
+@import "@fontsource-variable/outfit/wght.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-heading: 'Outfit Variable', 'Futura', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -53,6 +55,14 @@
     --color-grafico-saida: var(--grafico-saida);
     --color-grafico-economia: var(--grafico-economia);
     --color-grafico-saldo: var(--grafico-saldo);
+    --color-vermelho: var(--vermelho);
+    --color-azul: var(--azul);
+    --color-amarelo: var(--amarelo);
+    --color-papel: var(--papel);
+    /* Sombras duras, sem desfoque: o bloco parece recortado e colado sobre o papel. */
+    --shadow-bloco-sm: 3px 3px 0 0 var(--foreground);
+    --shadow-bloco: 4px 4px 0 0 var(--foreground);
+    --shadow-bloco-lg: 6px 6px 0 0 var(--foreground);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -63,59 +73,70 @@
 }
 
 :root {
-    /* Paleta terrosa: linho, areia, terracota, oliva e musgo. */
-    --background: oklch(0.965 0.008 80);
-    --foreground: oklch(0.28 0.015 60);
-    --card: oklch(0.995 0.004 85);
-    --card-foreground: oklch(0.28 0.015 60);
-    --popover: oklch(0.995 0.004 85);
-    --popover-foreground: oklch(0.28 0.015 60);
-    --primary: oklch(0.58 0.115 45);
-    --primary-foreground: oklch(0.985 0.008 80);
-    --secondary: oklch(0.935 0.014 78);
-    --secondary-foreground: oklch(0.32 0.02 60);
-    --muted: oklch(0.94 0.012 80);
-    --muted-foreground: oklch(0.55 0.025 65);
-    --accent: oklch(0.935 0.014 78);
-    --accent-foreground: oklch(0.32 0.02 60);
-    --destructive: oklch(0.52 0.13 35);
-    --border: oklch(0.905 0.014 78);
-    --input: oklch(0.89 0.016 78);
-    --ring: oklch(0.58 0.115 45 / 60%);
-    --chart-1: oklch(0.58 0.115 45);
-    --chart-2: oklch(0.55 0.08 125);
-    --chart-3: oklch(0.72 0.1 75);
-    --chart-4: oklch(0.47 0.045 55);
-    --chart-5: oklch(0.7 0.045 145);
-    --radius: 1rem;
+    /*
+     * Bauhaus: papel claro, preto para a estrutura e as três primárias (vermelho, azul, amarelo).
+     * A cor fala de dinheiro (entrada azul, saída vermelha, economia amarela); o preto organiza a tela.
+     */
+    --background: oklch(0.955 0.007 90);
+    --foreground: oklch(0.2 0.006 80);
+    --card: oklch(0.992 0.003 90);
+    --card-foreground: oklch(0.2 0.006 80);
+    --popover: oklch(0.992 0.003 90);
+    --popover-foreground: oklch(0.2 0.006 80);
+    --primary: oklch(0.2 0.006 80);
+    --primary-foreground: oklch(0.992 0.003 90);
+    --secondary: oklch(0.925 0.008 90);
+    --secondary-foreground: oklch(0.2 0.006 80);
+    --muted: oklch(0.925 0.008 90);
+    --muted-foreground: oklch(0.45 0.01 80);
+    --accent: oklch(0.925 0.008 90);
+    --accent-foreground: oklch(0.2 0.006 80);
+    --destructive: oklch(0.52 0.19 27);
+    /* Divisórias finas; os contornos fortes usam `border-foreground`. */
+    --border: oklch(0.85 0.008 90);
+    --input: oklch(0.2 0.006 80);
+    --ring: oklch(0.45 0.2 264);
+    --chart-1: oklch(0.57 0.2 27);
+    --chart-2: oklch(0.45 0.2 264);
+    --chart-3: oklch(0.83 0.16 88);
+    --chart-4: oklch(0.2 0.006 80);
+    --chart-5: oklch(0.68 0.01 80);
+    --radius: 0rem;
+
+    /* As três primárias, para formas e blocos de cor (nunca para texto sobre o papel, fora o azul e o vermelho). */
+    --vermelho: oklch(0.57 0.2 27);
+    --azul: oklch(0.45 0.2 264);
+    --amarelo: oklch(0.84 0.16 88);
+    /* Papel puro, para texto sobre os blocos de cor. */
+    --papel: oklch(0.992 0.003 90);
 
     /* Planilha */
-    --entrada: oklch(0.47 0.075 125);
-    --entrada-suave: oklch(0.958 0.02 115);
-    --saida: oklch(0.52 0.1 42);
-    --saida-suave: oklch(0.958 0.016 55);
-    --saldo: oklch(0.38 0.05 130);
-    --saldo-suave: oklch(0.93 0.028 115);
-    --negativo: oklch(0.5 0.13 35);
-    --negativo-suave: oklch(0.925 0.035 40);
-    /* Economia (metas): azul ardósia, o único tom frio, para não se confundir com entrada e saída. */
-    --economia: oklch(0.47 0.09 260);
-    --economia-suave: oklch(0.955 0.014 255);
+    --entrada: oklch(0.45 0.2 264);
+    --entrada-suave: oklch(0.955 0.02 264);
+    --saida: oklch(0.52 0.19 27);
+    --saida-suave: oklch(0.958 0.018 27);
+    --saldo: oklch(0.2 0.006 80);
+    --saldo-suave: oklch(0.915 0.008 90);
+    --negativo: oklch(0.5 0.19 27);
+    --negativo-suave: oklch(0.9 0.05 27);
+    /* Economia (metas): amarelo; o texto é um ocre escuro para ter contraste sobre o papel. */
+    --economia: oklch(0.5 0.1 75);
+    --economia-suave: oklch(0.968 0.045 95);
 
-    /* Gráficos: entrada, saída e economia validadas juntas para daltonismo (protan/deutan ΔE >= 8) contra o card. */
-    --grafico-entrada: oklch(0.47 0.1 130);
-    --grafico-saida: oklch(0.66 0.13 42);
-    --grafico-economia: oklch(0.56 0.1 260);
-    --grafico-saldo: oklch(0.42 0.07 145);
+    /* Gráficos: as primárias puras. O amarelo sempre leva contorno preto, para não sumir no papel. */
+    --grafico-entrada: oklch(0.45 0.2 264);
+    --grafico-saida: oklch(0.57 0.2 27);
+    --grafico-economia: oklch(0.84 0.16 88);
+    --grafico-saldo: oklch(0.2 0.006 80);
 
-    --sidebar: oklch(0.985 0.006 80);
-    --sidebar-foreground: oklch(0.28 0.015 60);
-    --sidebar-primary: oklch(0.58 0.115 45);
-    --sidebar-primary-foreground: oklch(0.985 0.008 80);
-    --sidebar-accent: oklch(0.935 0.014 78);
-    --sidebar-accent-foreground: oklch(0.32 0.02 60);
-    --sidebar-border: oklch(0.905 0.014 78);
-    --sidebar-ring: oklch(0.58 0.115 45 / 60%);
+    --sidebar: oklch(0.992 0.003 90);
+    --sidebar-foreground: oklch(0.2 0.006 80);
+    --sidebar-primary: oklch(0.2 0.006 80);
+    --sidebar-primary-foreground: oklch(0.992 0.003 90);
+    --sidebar-accent: oklch(0.925 0.008 90);
+    --sidebar-accent-foreground: oklch(0.2 0.006 80);
+    --sidebar-border: oklch(0.85 0.008 90);
+    --sidebar-ring: oklch(0.45 0.2 264);
 }
 
 .dark {
@@ -158,10 +179,23 @@
     }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01", "cv11";
+    /* Inter: 1 com base e l com cauda, para não confundir 1, l e I em valores e nomes. */
+    font-feature-settings: "cv01", "cv05";
     }
   html {
     @apply font-sans;
+    font-optical-sizing: auto;
+    }
+  h1, h2, h3 {
+    text-wrap: balance;
+    }
+  ::selection {
+    background-color: var(--amarelo);
+    color: var(--foreground);
+    }
+  /* O Tailwind 4 tira o cursor de mão dos botões; tudo que é clicável volta a mostrá-lo. */
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary {
+    cursor: pointer;
     }
 }
 /* Saldos ocultos: o valor fica borrado até passar o mouse em cima. */
@@ -170,4 +204,14 @@
 }
 [data-saldos-ocultos] .valor-saldo:not(:hover) {
   filter: blur(0.4em);
+}
+@media (prefers-reduced-motion: reduce) {
+  .valor-saldo {
+    transition: none;
+  }
+}
+/* Grade de pontos do papel, como papel milimetrado (fundo do app e telas avulsas). */
+.papel-pontilhado {
+  background-image: radial-gradient(color-mix(in oklch, var(--foreground) 14%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
 }

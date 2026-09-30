@@ -1,7 +1,6 @@
 import type { ResumoAno } from '@/features/projecao/projecao'
 import { formatarData, nomeDoDiaDaSemana, deDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { SERIES } from '../graficos'
 import { NO_PERIODO, tipoDoPeriodo, type Periodo } from '../periodo'
 import { CartaoEvitaveis, type ResumoEvitaveis } from './CartaoEvitaveis'
 import { CartaoIndicador } from './CartaoIndicador'
@@ -25,13 +24,15 @@ export function Indicadores({ resumo, evitaveis, periodo }: IndicadoresProps) {
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <CartaoIndicador
         rotulo={`Entradas ${noPeriodo}`}
-        corMarca={SERIES.entradas.color}
+        tom="azul"
+        forma="circulo"
         valor={formatarBRL(resumo.totalEntradasCentavos)}
         detalhe={`Sobra ${noPeriodo}: ${formatarBRL(sobra)}`}
       />
       <CartaoIndicador
         rotulo={`Saídas ${noPeriodo}`}
-        corMarca={SERIES.saidas.color}
+        tom="vermelho"
+        forma="quadrado"
         valor={formatarBRL(resumo.totalSaidasCentavos)}
         detalhe={`${formatarBRL(fixas)} fixas · ${formatarBRL(variaveis)} variáveis${
           economia > 0 ? ` · ${formatarBRL(economia)} guardados nas metas` : ''
@@ -39,6 +40,7 @@ export function Indicadores({ resumo, evitaveis, periodo }: IndicadoresProps) {
       />
       <CartaoIndicador
         rotulo="Saldo final projetado"
+        forma="quarto"
         valor={resumo.saldoFinalCentavos === null ? '—' : formatarBRL(resumo.saldoFinalCentavos)}
         negativo={(resumo.saldoFinalCentavos ?? 0) < 0}
         saldo
@@ -46,6 +48,7 @@ export function Indicadores({ resumo, evitaveis, periodo }: IndicadoresProps) {
       />
       <CartaoIndicador
         rotulo={`Menor saldo ${noPeriodo}`}
+        forma="semicirculo"
         valor={menor ? formatarBRL(menor.valorCentavos) : '—'}
         negativo={(menor?.valorCentavos ?? 0) < 0}
         saldo

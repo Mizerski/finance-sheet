@@ -1,4 +1,5 @@
 import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -25,24 +26,19 @@ export function CardPastas({ pastas, grupos, onNova, onEditar, onExcluir }: Card
 
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
-      <header className="flex items-end justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <h2 className="text-lg leading-none font-medium tracking-tight">
-          Pastas <span className="font-normal text-muted-foreground">{pastas.length}</span>
-        </h2>
-        <div className="flex flex-col items-end gap-1 text-right">
-          <span className="text-[0.7rem] tracking-wide text-muted-foreground uppercase">Sem pasta</span>
-          <span className="text-sm leading-none font-medium tabular-nums">
-            {semPasta} {semPasta === 1 ? 'lançamento' : 'lançamentos'}
-          </span>
-        </div>
-      </header>
+      <CabecalhoCard
+        titulo="Pastas"
+        contagem={pastas.length}
+        faixa="bg-foreground"
+        destaque={{ rotulo: 'Sem pasta', valor: `${semPasta} ${semPasta === 1 ? 'lançamento' : 'lançamentos'}` }}
+      />
 
       {pastas.length === 0 ? (
         <EstadoVazio
           titulo="Nenhuma pasta ainda"
           descricao="Pastas agrupam os lançamentos na lista (ex.: Mercado, Transporte, Assinaturas), sem mudar a projeção."
           acao={
-            <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={onNova}>
+            <Button variant="outline" className={BOTAO} onClick={onNova}>
               <Plus />
               Nova pasta
             </Button>

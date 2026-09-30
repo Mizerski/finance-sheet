@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react'
 import type { TipoMovimento } from '@/features/lancamentos/lancamento'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { BOTAO, CAMPO, RODAPE_DIALOG } from '@/shared/lib/estilos'
-import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
@@ -11,6 +10,7 @@ import { useFinancas } from '@/store/financas-context'
 import type { Categoria } from '../categoria'
 import { proximaCorLivre } from '../cores'
 import { SeletorCor } from './SeletorCor'
+import { COR_ATIVA_TIPO } from '@/features/lancamentos/cores'
 
 interface FormularioCategoriaProps {
   /** Ausente = nova categoria. */
@@ -21,8 +21,8 @@ interface FormularioCategoriaProps {
 }
 
 const OPCOES_TIPO = [
-  { valor: 'saida' as const, rotulo: 'Saída' },
-  { valor: 'entrada' as const, rotulo: 'Entrada' },
+  { valor: 'saida' as const, rotulo: 'Saída', corAtiva: COR_ATIVA_TIPO.saida },
+  { valor: 'entrada' as const, rotulo: 'Entrada', corAtiva: COR_ATIVA_TIPO.entrada },
 ]
 
 export function FormularioCategoria({ categoria, tipoInicial = 'saida', onConcluir }: FormularioCategoriaProps) {
@@ -98,7 +98,7 @@ export function FormularioCategoria({ categoria, tipoInicial = 'saida', onConclu
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>
-          <Button type="button" variant="outline" className={cn(BOTAO, 'bg-card')}>
+          <Button type="button" variant="outline" className={BOTAO}>
             Cancelar
           </Button>
         </DialogClose>

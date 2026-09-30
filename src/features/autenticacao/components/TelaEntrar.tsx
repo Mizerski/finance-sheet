@@ -3,7 +3,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { TelaCentralizada } from '@/shared/components/TelaCentralizada'
 import { BOTAO, CAMPO } from '@/shared/lib/estilos'
-import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Field, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
@@ -62,7 +61,7 @@ export function TelaEntrar({ supabase }: { supabase: SupabaseClient }) {
       >
         <Button
           variant="outline"
-          className={cn(BOTAO, 'bg-card')}
+          className={BOTAO}
           onClick={() => {
             setConfirmarEmail(false)
             setModo('entrar')

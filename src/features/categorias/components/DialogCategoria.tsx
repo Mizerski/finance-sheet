@@ -1,5 +1,5 @@
 import type { TipoMovimento } from '@/features/lancamentos/lancamento'
-import { CAMADA } from '@/shared/lib/estilos'
+import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import type { Categoria } from '../categoria'
@@ -18,7 +18,7 @@ export function DialogCategoria({ aberto, onOpenChange, categoria, tipoInicial }
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">
+          <DialogTitle className={TITULO_DIALOG}>
             {categoria ? 'Editar categoria' : 'Nova categoria'}
           </DialogTitle>
           <DialogDescription>A cor identifica a categoria na planilha e nos gráficos.</DialogDescription>

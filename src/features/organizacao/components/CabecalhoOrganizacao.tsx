@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import type { Aba } from '../aba'
 
@@ -28,6 +29,7 @@ export function CabecalhoOrganizacao({ descricao, acao }: CabecalhoOrganizacaoPr
   return (
     <>
       <CabecalhoPagina
+        forma={FORMA_PAGINA.organizacao}
         titulo="Organização"
         descricao={descricao}
         acoes={

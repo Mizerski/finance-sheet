@@ -1,4 +1,4 @@
-import { CAMADA } from '@/shared/lib/estilos'
+import { CAMADA, ROTULO, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { ITENS_MENU } from '../layout/itens-menu'
@@ -36,12 +36,12 @@ export function DialogAtalhos({ aberto, onOpenChange }: DialogAtalhosProps) {
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-md')}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium tracking-tight">Atalhos de teclado</DialogTitle>
+          <DialogTitle className={TITULO_DIALOG}>Atalhos de teclado</DialogTitle>
           <DialogDescription>Funcionam fora de campos de texto.</DialogDescription>
         </DialogHeader>
         {GRUPOS.map((g) => (
           <section key={g.titulo} className="flex flex-col gap-2">
-            <h3 className="text-[0.68rem] tracking-wide text-muted-foreground uppercase">{g.titulo}</h3>
+            <h3 className={cn(ROTULO, 'border-b-2 border-foreground pb-1')}>{g.titulo}</h3>
             <dl className="flex flex-col gap-2 text-sm">
               {g.atalhos.map((a) => (
                 <div key={a.acao} className="flex items-center justify-between gap-3">
@@ -50,7 +50,7 @@ export function DialogAtalhos({ aberto, onOpenChange }: DialogAtalhosProps) {
                     {a.teclas.map((t) => (
                       <kbd
                         key={t}
-                        className="min-w-7 rounded-full bg-muted px-2 py-0.5 text-center font-sans text-xs ring-1 ring-border"
+                        className="min-w-7 border-2 border-foreground bg-card px-1.5 py-0.5 text-center font-sans text-xs font-semibold shadow-[2px_2px_0_0_var(--foreground)]"
                       >
                         {t}
                       </kbd>

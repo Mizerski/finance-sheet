@@ -11,6 +11,7 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
+import { COR_ATIVA_TIPO } from '../cores'
 import { contarFiltros, FILTRO_SEM_TAG, ID_BUSCA, temFiltro, type FiltrosLancamento } from '../filtros'
 
 interface FiltrosLancamentosProps {
@@ -25,8 +26,8 @@ const TODAS = '__todas__'
 
 const OPCOES_TIPO = [
   { valor: 'todos' as const, rotulo: 'Todos' },
-  { valor: 'entrada' as const, rotulo: 'Entradas' },
-  { valor: 'saida' as const, rotulo: 'Saídas' },
+  { valor: 'entrada' as const, rotulo: 'Entradas', corAtiva: COR_ATIVA_TIPO.entrada },
+  { valor: 'saida' as const, rotulo: 'Saídas', corAtiva: COR_ATIVA_TIPO.saida },
 ]
 const OPCOES_NATUREZA = [
   { valor: 'todas' as const, rotulo: 'Todas' },
@@ -56,7 +57,7 @@ export function FiltrosLancamentos(props: FiltrosLancamentosProps) {
       {busca}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className={cn(BOTAO, 'shrink-0 bg-card')}>
+          <Button variant="outline" className={cn(BOTAO, 'shrink-0')}>
             <SlidersHorizontal />
             Filtros
             {quantidade > 0 && <span className="text-muted-foreground tabular-nums">({quantidade})</span>}
@@ -65,7 +66,7 @@ export function FiltrosLancamentos(props: FiltrosLancamentosProps) {
         <PopoverContent align="end" className={cn(CAMADA, 'flex w-[calc(100vw-2rem)] flex-col gap-3')}>
           <Controles {...props} />
           {quantidade > 0 && (
-            <div className="border-t pt-3">
+            <div className="border-t-2 border-foreground pt-3">
               <BotaoLimpar onClick={() => onChange({ q: filtros.q })} />
             </div>
           )}
@@ -114,7 +115,7 @@ function CampoBusca({ valor, onChange }: { valor: string; onChange: (q: string) 
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-1/2 right-1 size-8 -translate-y-1/2 rounded-full text-muted-foreground"
+          className="absolute top-1/2 right-1 size-8 -translate-y-1/2 text-muted-foreground"
           aria-label="Limpar busca"
           onClick={() => alterar('')}
         >
@@ -164,12 +165,12 @@ function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosPr
         <SelectTrigger aria-label="Filtrar por categoria" className={cn(CAMPO_SELECT, 'sm:w-56')}>
           <SelectValue />
         </SelectTrigger>
-        <SelectContent position="popper" className="rounded-2xl">
-          <SelectItem value={TODAS} className="rounded-full">
+        <SelectContent position="popper">
+          <SelectItem value={TODAS}>
             Todas as categorias
           </SelectItem>
           {categoriasVisiveis.map((c) => (
-            <SelectItem key={c.id} value={c.id} className="rounded-full">
+            <SelectItem key={c.id} value={c.id}>
               <PontoCor cor={c.cor} />
               {c.nome}
             </SelectItem>
@@ -185,16 +186,16 @@ function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosPr
           <SelectTrigger aria-label="Filtrar por tag" className={cn(CAMPO_SELECT, 'sm:w-48')}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent position="popper" className="rounded-2xl">
-            <SelectItem value={TODAS} className="rounded-full">
+          <SelectContent position="popper">
+            <SelectItem value={TODAS}>
               Todas as tags
             </SelectItem>
-            <SelectItem value={FILTRO_SEM_TAG} className="rounded-full">
+            <SelectItem value={FILTRO_SEM_TAG}>
               <PontoCor cor={SEM_TAG.cor} />
               Saídas sem tag
             </SelectItem>
             {tags.map((t) => (
-              <SelectItem key={t.id} value={t.id} className="rounded-full">
+              <SelectItem key={t.id} value={t.id}>
                 <PontoCor cor={t.cor} />
                 {t.nome}
               </SelectItem>
@@ -208,7 +209,7 @@ function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosPr
 
 function BotaoLimpar({ onClick }: { onClick: () => void }) {
   return (
-    <Button variant="ghost" className="h-10 rounded-full px-4 text-muted-foreground" onClick={onClick}>
+    <Button variant="ghost" className={cn(BOTAO, 'text-muted-foreground')} onClick={onClick}>
       <X />
       Limpar filtros
     </Button>
