@@ -4,6 +4,7 @@ import { gastosPorCategoria, gastosPorTag, resumirAno, totalEvitavel } from '@/f
 import { useAno } from '@/features/projecao/useAno'
 import { useProjecoes } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { anoDe, formatarData, paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { VALOR_SALDO } from '@/shared/lib/estilos'
@@ -79,6 +80,7 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina
+        forma={FORMA_PAGINA.dashboard}
         titulo={
           <>
             Dashboard <span className="text-muted-foreground">{rotuloDoPeriodo(periodo)}</span>

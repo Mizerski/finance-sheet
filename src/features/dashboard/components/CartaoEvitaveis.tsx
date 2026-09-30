@@ -36,6 +36,8 @@ export function CartaoEvitaveis({ resumo, periodo, className }: CartaoEvitaveisP
       rotulo={`Gastos evitáveis ${NO_PERIODO[tipoDoPeriodo(periodo)]}`}
       valor={temTagEvitavel ? formatarBRL(totalCentavos) : '—'}
       className={className}
+      tom="amarelo"
+      forma="triangulo"
       detalhe={
         temTagEvitavel ? (
           `${formatarPercentual(totalCentavos, saidasCentavos)} das saídas${
@@ -44,7 +46,7 @@ export function CartaoEvitaveis({ resumo, periodo, className }: CartaoEvitaveisP
         ) : (
           <>
             Marque uma tag como evitável em{' '}
-            <Link to="/organizacao" search={{ aba: 'tags' }} className="underline underline-offset-4 hover:text-foreground">
+            <Link to="/organizacao" search={{ aba: 'tags' }} className="font-semibold underline decoration-2 underline-offset-4">
               Organização
             </Link>
           </>

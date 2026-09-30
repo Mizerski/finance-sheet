@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { formatarData, paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { VALOR_SALDO } from '@/shared/lib/estilos'
+import { ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { useFinancas } from '@/store/financas-context'
@@ -31,7 +31,9 @@ export function SaldoProjetado() {
 
   return (
     <div className="flex items-center gap-2 sm:gap-3">
+      {/* Régua vertical entre os dois saldos, como nas colunas de um cartaz. */}
       <Saldo rotulo="Hoje" titulo={`Saldo no fim de hoje, ${formatarData(hoje)}`} centavos={saldoHoje} />
+      <span aria-hidden className="h-7 w-0.5 bg-foreground" />
       <Saldo
         rotulo={`Fim de ${ano}`}
         titulo={`Saldo projetado em ${formatarData(`${ano}-12-31`)}`}
@@ -60,12 +62,12 @@ interface SaldoProps {
 function Saldo({ rotulo, titulo, centavos }: SaldoProps) {
   return (
     <span className="flex flex-col" title={titulo}>
-      <span className="text-[0.68rem] leading-tight tracking-wide whitespace-nowrap text-muted-foreground uppercase">
+      <span className={cn(ROTULO, 'leading-tight whitespace-nowrap text-muted-foreground')}>
         {rotulo}
       </span>
       <span
         className={cn(
-          'text-xs leading-tight font-medium tracking-tight whitespace-nowrap tabular-nums sm:text-[0.8125rem] sm:tracking-normal',
+          'text-xs leading-tight font-semibold tracking-tight whitespace-nowrap tabular-nums sm:text-sm sm:tracking-normal',
           VALOR_SALDO,
           centavos !== null && centavos < 0 && 'text-negativo',
         )}

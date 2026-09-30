@@ -4,6 +4,8 @@ import { cn } from '@/shared/lib/utils'
 export interface OpcaoSegmentada<T extends string> {
   valor: T
   rotulo: ReactNode
+  /** Fundo da opção quando ativa, no lugar do preto (ex.: `bg-azul text-papel` para entradas). */
+  corAtiva?: string
 }
 
 interface ControleSegmentadoProps<T extends string> {
@@ -17,7 +19,7 @@ interface ControleSegmentadoProps<T extends string> {
   className?: string
 }
 
-/** Grupo de opções exclusivas em pílula (trilho `bg-muted`, item ativo `bg-card`). */
+/** Grupo de opções exclusivas: faixa com contorno preto, divisórias entre as opções e a ativa em bloco preto. */
 export function ControleSegmentado<T extends string>({
   rotulo,
   valor,
@@ -44,7 +46,7 @@ export function ControleSegmentado<T extends string>({
       role="radiogroup"
       aria-label={rotulo}
       onKeyDown={aoTeclar}
-      className={cn('flex gap-1 rounded-full bg-muted p-1', className)}
+      className={cn('flex border-2 border-foreground bg-card', className)}
     >
       {opcoes.map((o) => {
         const ativo = o.valor === valor
@@ -58,8 +60,8 @@ export function ControleSegmentado<T extends string>({
             disabled={desabilitado}
             onClick={() => onChange(o.valor)}
             className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[0.8125rem] whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
-              ativo && 'bg-card text-foreground shadow-sm',
+              'flex min-h-9 flex-1 items-center justify-center gap-1.5 border-l-2 border-foreground px-3 py-1.5 text-xs font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50',
+              ativo && (o.corAtiva ?? 'bg-foreground text-background hover:bg-foreground'),
             )}
           >
             {o.rotulo}

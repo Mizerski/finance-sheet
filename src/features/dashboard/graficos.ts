@@ -86,6 +86,9 @@ export const SERIES = {
   sobra: { label: 'Sobra', color: 'var(--grafico-saldo)' },
 } satisfies ChartConfig
 
+/** Contorno preto das barras e fatias: separa os blocos de cor e dá contraste ao amarelo sobre o papel. */
+export const CONTORNO = { stroke: 'var(--foreground)', strokeWidth: 1.5 }
+
 /** Classes comuns do container dos gráficos cartesianos (altura inclui o eixo X). */
 export const AREA_GRAFICO = 'aspect-auto h-64 w-full'
 

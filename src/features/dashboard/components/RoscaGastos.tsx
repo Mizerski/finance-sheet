@@ -2,7 +2,7 @@ import { Pie, PieChart } from 'recharts'
 import { CATEGORIA_DESCONHECIDA } from '@/features/categorias/categoria'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { VALOR_DESTAQUE } from '@/shared/lib/estilos'
+import { ROTULO, VALOR_DESTAQUE } from '@/shared/lib/estilos'
 import { formatarPercentual } from '@/shared/lib/percentual'
 import { cn } from '@/shared/lib/utils'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
@@ -73,10 +73,9 @@ export function RoscaGastos({ itens, rotuloValor }: RoscaGastosProps) {
               data={fatias}
               dataKey="centavos"
               nameKey="nome"
-              innerRadius="68%"
+              innerRadius="62%"
               outerRadius="100%"
-              cornerRadius={4}
-              stroke="var(--card)"
+              stroke="var(--foreground)"
               strokeWidth={2}
               isAnimationActive={false}
             />
@@ -84,22 +83,22 @@ export function RoscaGastos({ itens, rotuloValor }: RoscaGastosProps) {
         </ChartContainer>
         {/* Total no centro da rosca; não intercepta o hover das fatias. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-[0.7rem] tracking-wide text-muted-foreground uppercase">Total</span>
+          <span className={cn(ROTULO, 'text-muted-foreground')}>Total</span>
           <span className={cn('text-xl', VALOR_DESTAQUE)}>{formatarBRL(total)}</span>
         </div>
       </div>
 
       {/* Legenda com valores: identifica as fatias sem depender só da cor. */}
-      <ul className="flex w-full min-w-0 flex-col gap-2.5 text-sm">
+      <ul className="flex w-full min-w-0 flex-col text-sm">
         {fatias.map((f) => (
-          <li key={f.id} className="flex items-center gap-2">
-            <PontoCor cor={f.fill} className="size-2.5 rounded-[3px]" />
+          <li key={f.id} className="flex items-center gap-2 border-b border-border py-2 last:border-b-0">
+            <PontoCor cor={f.fill} className="size-3 rounded-none" />
             <span className="min-w-0 flex-1 truncate">
               {f.nome}
               {f.detalhe && <span className="text-xs text-muted-foreground"> · {f.detalhe}</span>}
             </span>
             <span className="text-xs text-muted-foreground tabular-nums">{formatarPercentual(f.centavos, total)}</span>
-            <span className="w-24 text-right tabular-nums">{formatarBRL(f.centavos)}</span>
+            <span className="w-24 text-right font-semibold tabular-nums">{formatarBRL(f.centavos)}</span>
           </li>
         ))}
       </ul>

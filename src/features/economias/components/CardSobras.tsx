@@ -2,8 +2,9 @@ import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import type { ResumoMes } from '@/features/projecao/projecao'
 import { nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { CARD, TABELA, TITULO_CARD } from '@/shared/lib/estilos'
+import { CARD, ROTULO, TABELA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
+import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { sobraDoMes } from '../sobras'
@@ -32,17 +33,16 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
 
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
-      <header className="flex flex-wrap items-start justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className={TITULO_CARD}>
-            Sobras <span className="font-normal text-muted-foreground">{ano}</span>
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            O que fica na conta a cada mês: entradas menos saídas e economia
-          </p>
-        </div>
-        <SeletorAno />
-      </header>
+      <CabecalhoCard
+        titulo={
+          <>
+            Sobras <span className="font-light">{ano}</span>
+          </>
+        }
+        faixa="bg-amarelo"
+        descricao="O que fica na conta a cada mês: entradas menos saídas e economia"
+        acoes={<SeletorAno />}
+      />
 
       {/* No celular, letra menor e mais junta para as cinco colunas caberem em 343px. */}
       <Table className={cn(TABELA.tabela, 'text-[0.7rem] tracking-tight sm:tracking-normal')}>
@@ -83,7 +83,7 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
             )
           })}
         </TableBody>
-        <TableFooter className="border-t-border/70 bg-transparent font-medium">
+        <TableFooter className="bg-transparent font-semibold">
           <LinhaRodape rotulo="Total" valores={total} />
           <LinhaRodape
             rotulo="Média"
@@ -126,7 +126,7 @@ function LinhaRodape({
 }) {
   return (
     <TableRow className="hover:bg-transparent">
-      <TableCell className={cn(CELULA, TABELA.primeira, 'text-[0.68rem] tracking-wide text-muted-foreground uppercase')}>
+      <TableCell className={cn(CELULA, TABELA.primeira, ROTULO, 'font-semibold')}>
         {rotulo}
       </TableCell>
       <Valor centavos={valores.entradas} cor={COLUNAS[0].cor} />

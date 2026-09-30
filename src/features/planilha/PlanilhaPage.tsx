@@ -8,6 +8,7 @@ import { DialogLancamento } from '@/features/lancamentos/components/DialogLancam
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { useProjecoes } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { useAtalhos } from '@/shared/hooks/useAtalhos'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
 import { formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
@@ -110,6 +111,7 @@ export function PlanilhaPage() {
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina
+        forma={FORMA_PAGINA.planilha}
         titulo={
           <>
             Planilha <span className="text-muted-foreground">{ano}</span>
@@ -144,13 +146,13 @@ export function PlanilhaPage() {
             />
             <Button
               variant="outline"
-              className={cn(BOTAO, 'ml-auto bg-card md:ml-0')}
+              className={cn(BOTAO, 'ml-auto md:ml-0')}
               title="Voltar para hoje (atalho T)"
               onClick={irParaHoje}
             >
               Hoje
             </Button>
-            <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={() => setConferindo(true)}>
+            <Button variant="outline" className={BOTAO} onClick={() => setConferindo(true)}>
               <Landmark aria-hidden />
               <span className="sm:hidden">Conferir</span>
               <span className="hidden sm:inline">Conferir saldo</span>
@@ -201,7 +203,7 @@ function BotaoSaldoInicial({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="rounded-full text-foreground underline decoration-border underline-offset-4 outline-none transition-colors hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      className="text-foreground underline decoration-foreground/30 decoration-2 underline-offset-4 outline-none transition-colors hover:decoration-vermelho focus-visible:outline-2 focus-visible:outline-ring"
     >
       alterar saldo inicial
     </button>

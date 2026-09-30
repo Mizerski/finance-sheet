@@ -17,18 +17,17 @@ interface PontoProps {
   value?: number | null
 }
 
-/** Marcador de 8px com anel na cor do card; abaixo de zero ganha a cor de negativo. */
+/** Marcador quadrado de 8px; abaixo de zero fica vermelho. */
 function Ponto({ cx, cy, value, index }: PontoProps) {
   if (cx === undefined || cy === undefined || value == null) return <g key={index} />
   return (
-    <circle
+    <rect
       key={index}
-      cx={cx}
-      cy={cy}
-      r={4}
+      x={cx - 4}
+      y={cy - 4}
+      width={8}
+      height={8}
       fill={value < 0 ? 'var(--negativo)' : 'var(--color-saldo)'}
-      stroke="var(--card)"
-      strokeWidth={2}
     />
   )
 }
@@ -49,6 +48,7 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
   return (
     <CardGrafico
       titulo={`Saldo no fim de ${cada}`}
+      faixa="bg-foreground"
       descricao={`Quanto sobra na conta ${noFim}`}
       className={className}
       tabela={
@@ -73,9 +73,9 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
             className="tabular-nums"
             tick={{ className: VALOR_SALDO }}
           />
-          {temNegativo && <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeOpacity={0.5} />}
+          {temNegativo && <ReferenceLine y={0} stroke="var(--vermelho)" strokeWidth={2} strokeDasharray="6 4" />}
           <ChartTooltip
-            cursor={{ stroke: 'var(--border)', strokeWidth: 1 }}
+            cursor={{ stroke: 'var(--foreground)', strokeWidth: 1, strokeDasharray: '3 3' }}
             content={({ active, payload }) => {
               const d = payload?.[0]?.payload as DadoPeriodo | undefined
               if (!active || !d || d.saldo === null) return null
@@ -91,11 +91,11 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
             dataKey="saldo"
             type="linear"
             stroke="var(--color-saldo)"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
+            strokeWidth={3}
+            strokeLinejoin="miter"
+            strokeLinecap="square"
             dot={(props: PontoProps) => <Ponto key={props.index} {...props} />}
-            activeDot={{ r: 5, stroke: 'var(--card)', strokeWidth: 2 }}
+            activeDot={{ r: 6, fill: 'var(--amarelo)', stroke: 'var(--foreground)', strokeWidth: 2 }}
             isAnimationActive={false}
           >
             {/* Rótulo direto só no último mês: o valor que a projeção entrega. */}
@@ -107,7 +107,7 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
                     x={Number(x)}
                     y={Number(y) - 12}
                     textAnchor="end"
-                    className={cn('fill-foreground text-xs font-medium', VALOR_SALDO)}
+                    className={cn('fill-foreground text-xs font-semibold', VALOR_SALDO)}
                   >
                     {formatarBRL(value)}
                   </text>

@@ -39,7 +39,7 @@ export function ConfirmarExclusao({
         </DialogHeader>
         <DialogFooter className={RODAPE_DIALOG}>
           <DialogClose asChild>
-            <Button variant="outline" className={cn(BOTAO, 'bg-card')}>
+            <Button variant="outline" className={BOTAO}>
               Cancelar
             </Button>
           </DialogClose>

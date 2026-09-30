@@ -47,7 +47,7 @@ Cada pessoa tem a sua conta. Os dados ficam no Supabase, protegidos por RLS: nin
 ## Tecnologias
 
 - **React 19 + TypeScript + Vite**
-- **Tailwind CSS 4** e **shadcn/ui** (Radix), com design system próprio em tons terrosos ([docs/design-system.md](docs/design-system.md))
+- **Tailwind CSS 4** e **shadcn/ui** (Radix), com design system próprio inspirado na Bauhaus ([docs/design-system.md](docs/design-system.md))
 - **TanStack Router**: rotas com parâmetros de busca validados
 - **Recharts**, pelo componente Chart do shadcn
 - **date-fns**, com locale pt-BR

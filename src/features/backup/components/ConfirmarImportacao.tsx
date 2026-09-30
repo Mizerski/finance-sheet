@@ -1,6 +1,6 @@
 import { formatarData } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG, VALOR_SALDO } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG, VALOR_SALDO, ROTULO as ROTULO_BASE } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import {
@@ -23,7 +23,7 @@ interface ConfirmarImportacaoProps {
   onConfirmar: (backup: Backup) => void
 }
 
-const ROTULO = 'text-[0.68rem] tracking-wide text-muted-foreground uppercase'
+const ROTULO = cn(ROTULO_BASE, 'text-muted-foreground')
 
 /** Mostra o que muda antes de trocar os dados atuais pelos do backup. */
 export function ConfirmarImportacao({ backup, atual, onCancelar, onConfirmar }: ConfirmarImportacaoProps) {
@@ -54,7 +54,7 @@ export function ConfirmarImportacao({ backup, atual, onCancelar, onConfirmar }: 
 
         <DialogFooter className={RODAPE_DIALOG}>
           <DialogClose asChild>
-            <Button variant="outline" className={cn(BOTAO, 'bg-card')}>
+            <Button variant="outline" className={BOTAO}>
               Cancelar
             </Button>
           </DialogClose>

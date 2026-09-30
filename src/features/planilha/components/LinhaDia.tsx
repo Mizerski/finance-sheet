@@ -18,11 +18,14 @@ interface LinhaDiaProps {
   comEconomia: boolean
 }
 
-/** Véu sobre o fundo de cada célula, para destacar a linha sem perder a cor da coluna. */
+/**
+ * Véu sobre o fundo de cada célula, para destacar a linha sem perder a cor da coluna.
+ * Hoje ganha uma moldura preta em cima e embaixo, que atravessa as cores das colunas.
+ */
 const VEU = {
-  hover: '[&>td]:group-hover:shadow-[inset_0_0_0_999px_oklch(0.28_0.015_60/4%)]',
-  aberto: '[&>td]:shadow-[inset_0_0_0_999px_oklch(0.28_0.015_60/6%)]',
-  hoje: 'font-medium [&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-primary)_12%,transparent)]',
+  hover: '[&>td]:group-hover:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-foreground)_6%,transparent)]',
+  aberto: '[&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-foreground)_9%,transparent)]',
+  hoje: 'font-semibold [&>td]:shadow-[inset_0_2px_0_0_var(--color-foreground),inset_0_-2px_0_0_var(--color-foreground)]',
 }
 
 export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia }: LinhaDiaProps) {
@@ -37,7 +40,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
           ref={linhaRef}
           onClick={() => setAberto((a) => !a)}
           className={cn(
-            'group cursor-pointer border-b-border/50 hover:bg-transparent has-aria-expanded:bg-transparent',
+            'group cursor-pointer border-b-border/70 hover:bg-transparent has-aria-expanded:bg-transparent',
             VEU.hover,
             aberto && VEU.aberto,
             !dia.noCalculo && 'text-muted-foreground',
@@ -51,12 +54,13 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
               aria-haspopup="dialog"
               aria-expanded={aberto}
               aria-label={`Lançamentos de ${formatarData(dia.data)}`}
-              className="-mx-1 flex items-center gap-1 rounded-full px-1 tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="-mx-1 flex items-center gap-1 px-1 tabular-nums outline-none focus-visible:outline-2 focus-visible:outline-ring"
             >
+              {/* Hoje: o número vira um bloco vermelho. */}
               <span
                 className={cn(
-                  'inline-flex h-6 min-w-5 items-center justify-center rounded-full',
-                  ehHoje && 'bg-primary px-1 text-primary-foreground',
+                  'inline-flex h-6 min-w-5 items-center justify-center',
+                  ehHoje && 'bg-vermelho px-1 text-papel',
                 )}
               >
                 {String(dia.dia).padStart(2, '0')}
@@ -81,7 +85,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
 
       <PopoverContent
         align="start"
-        className="w-80 rounded-2xl p-4 shadow-lg ring-border"
+        className="w-80 rounded-none border-2 border-foreground p-4 shadow-bloco-lg ring-0"
         // Clicar na própria linha alterna o popover em vez de fechar e reabrir.
         onInteractOutside={(e) => {
           if (linhaRef.current?.contains(e.target as Node)) e.preventDefault()

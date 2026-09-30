@@ -1,9 +1,10 @@
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import type { TipoMovimento } from '@/features/lancamentos/lancamento'
+import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CARD, TABELA, TITULO_CARD } from '@/shared/lib/estilos'
+import { BOTAO, CARD, TABELA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
@@ -30,23 +31,18 @@ export function CardCategorias({ tipo, categorias, usos, totais, onNova, onEdita
 
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
-      <header className="flex items-end justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
-        <h2 className={TITULO_CARD}>
-          {TITULO[tipo]} <span className="font-normal text-muted-foreground">{categorias.length}</span>
-        </h2>
-        <div className="flex flex-col items-end gap-1 text-right">
-          <span className="text-[0.7rem] tracking-wide text-muted-foreground uppercase">Total no ano</span>
-          <span className={cn('text-sm leading-none font-medium tabular-nums', corValor)}>
-            {formatarBRL(totalDoTipo)}
-          </span>
-        </div>
-      </header>
+      <CabecalhoCard
+        titulo={TITULO[tipo]}
+        contagem={categorias.length}
+        faixa={tipo === 'entrada' ? 'bg-azul' : 'bg-vermelho'}
+        destaque={{ rotulo: 'Total no ano', valor: formatarBRL(totalDoTipo), className: corValor }}
+      />
 
       {categorias.length === 0 ? (
         <EstadoVazio
           titulo={`Nenhuma categoria de ${tipo === 'entrada' ? 'entrada' : 'saída'}`}
           acao={
-            <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={onNova}>
+            <Button variant="outline" className={BOTAO} onClick={onNova}>
               <Plus />
               Nova categoria
             </Button>

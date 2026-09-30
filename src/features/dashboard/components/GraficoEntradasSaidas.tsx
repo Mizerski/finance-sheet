@@ -1,16 +1,13 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
-import { AREA_GRAFICO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
+import { AREA_GRAFICO, CONTORNO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
 import type { Unidade } from '../periodo'
 import { NOME_UNIDADE } from '../relatorio'
 import { CardGrafico } from './CardGrafico'
 import { Legenda } from './Legenda'
 import { TabelaPeriodos } from './TabelaPeriodos'
 import { TooltipGrafico } from './TooltipGrafico'
-
-/** Barras finas com topo arredondado e base reta. */
-const RAIO_TOPO: [number, number, number, number] = [4, 4, 0, 0]
 
 export function GraficoEntradasSaidas({ dados, unidade }: { dados: DadoPeriodo[]; unidade: Unidade }) {
   const escala = escalaY(dados.flatMap((d) => [d.entradas, d.saidas, d.economia]))
@@ -19,6 +16,7 @@ export function GraficoEntradasSaidas({ dados, unidade }: { dados: DadoPeriodo[]
   return (
     <CardGrafico
       titulo="Entradas vs saídas"
+      faixa="bg-azul"
       descricao={`Total que entra, sai e vai para as metas de economia em ${NOME_UNIDADE[unidade].cada}`}
       tabela={
         <TabelaPeriodos
@@ -64,10 +62,10 @@ export function GraficoEntradasSaidas({ dados, unidade }: { dados: DadoPeriodo[]
               )
             }}
           />
-          <Bar dataKey="entradas" fill="var(--color-entradas)" radius={RAIO_TOPO} maxBarSize={24} isAnimationActive={false} />
-          <Bar dataKey="saidas" fill="var(--color-saidas)" radius={RAIO_TOPO} maxBarSize={24} isAnimationActive={false} />
+          <Bar dataKey="entradas" fill="var(--color-entradas)" {...CONTORNO} maxBarSize={24} isAnimationActive={false} />
+          <Bar dataKey="saidas" fill="var(--color-saidas)" {...CONTORNO} maxBarSize={24} isAnimationActive={false} />
           {temEconomia && (
-            <Bar dataKey="economia" fill="var(--color-economia)" radius={RAIO_TOPO} maxBarSize={24} isAnimationActive={false} />
+            <Bar dataKey="economia" fill="var(--color-economia)" {...CONTORNO} maxBarSize={24} isAnimationActive={false} />
           )}
         </BarChart>
       </ChartContainer>

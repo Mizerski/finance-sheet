@@ -109,7 +109,7 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>
-          <Button type="button" variant="outline" className={cn(BOTAO, 'bg-card')}>
+          <Button type="button" variant="outline" className={BOTAO}>
             {informado && projetado !== null && diferenca === 0 ? 'Fechar' : 'Cancelar'}
           </Button>
         </DialogClose>
@@ -135,12 +135,12 @@ function Comparacao({ projetado, real, diferenca, data }: ComparacaoProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl p-4 text-sm ring-1 ring-border">
+    <div className="flex flex-col gap-2 border-2 border-foreground p-4 text-sm">
       <Linha rotulo="Na planilha" valor={projetado} />
       {real !== null && (
         <>
           <Linha rotulo="No banco" valor={real} />
-          <div className="flex justify-between border-t pt-2 font-medium">
+          <div className="flex justify-between border-t-2 border-foreground pt-2 font-semibold">
             <span>Diferença</span>
             <span className={cn('tabular-nums', VALOR_SALDO, diferenca > 0 && 'text-entrada', diferenca < 0 && 'text-saida')}>
               {diferenca === 0 ? formatarBRL(0) : `${diferenca > 0 ? '+' : '−'} ${formatarBRL(Math.abs(diferenca))}`}

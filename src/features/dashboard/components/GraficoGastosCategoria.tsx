@@ -11,7 +11,7 @@ interface GraficoGastosCategoriaProps {
 
 export function GraficoGastosCategoria({ gastos, noPeriodo: periodo }: GraficoGastosCategoriaProps) {
   return (
-    <CardGrafico titulo="Gastos por categoria" descricao={`Para onde vão as saídas ${periodo}`}>
+    <CardGrafico faixa="bg-vermelho" titulo="Gastos por categoria" descricao={`Para onde vão as saídas ${periodo}`}>
       {gastos.length === 0 ? (
         <EstadoVazio titulo={`Nenhuma saída ${periodo}`} />
       ) : (

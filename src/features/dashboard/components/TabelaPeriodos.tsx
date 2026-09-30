@@ -36,7 +36,7 @@ export function TabelaPeriodos<T extends ValoresPeriodo>({ dados, periodo, rotul
         {dados.map((d) => (
           <TableRow
             key={rotulo(d)}
-            className={cn(TABELA.linha, destaque?.(d) && 'font-medium [&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-foreground)_6%,transparent)]')}
+            className={cn(TABELA.linha, destaque?.(d) && 'font-semibold [&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-amarelo)_30%,transparent)]')}
           >
             <TableCell className={cn(TABELA.celula, TABELA.primeira, 'first-letter:uppercase')}>{rotulo(d)}</TableCell>
             {colunas.map((c, i) => {
