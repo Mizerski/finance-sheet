@@ -15,6 +15,7 @@ import { useFinancas } from '@/store/financas-context'
 import { resumirMeta } from './aportes'
 import { capacidadeDePoupanca, periodoDaCapacidade } from './capacidade'
 import { gastosGrandes } from './gastos-grandes'
+import { metaPrincipal } from './marcos'
 import { gastoEssencial, MESES_DE_RESERVA_PADRAO, metaDeReserva, NOME_RESERVA } from './reserva'
 import { CardCapacidade } from './components/CardCapacidade'
 import { CardGastosGrandes } from './components/CardGastosGrandes'
@@ -57,6 +58,7 @@ export function EconomiasPage() {
   const essencial = useMemo(() => gastoEssencial(dias, estado.tags, hoje), [dias, estado.tags, hoje])
   const grandes = useMemo(() => gastosGrandes(dias, estado.lancamentos, hoje), [dias, estado.lancamentos, hoje])
   const reserva = metaDeReserva(estado.metas)
+  const principal = metaPrincipal(estado.metas, resumos)
   const guardado = [...resumos.values()].reduce((t, r) => t + r.guardadoCentavos, 0)
   const alvo = estado.metas.reduce((t, m) => t + m.valorAlvoCentavos, 0)
   const quantidade = estado.metas.length
@@ -105,6 +107,7 @@ export function EconomiasPage() {
             <CardMeta
               key={meta.id}
               meta={meta}
+              principal={meta.id === principal?.id && estado.metas.length > 1}
               resumo={resumos.get(meta.id)!}
               hoje={hoje}
               onEditar={() => setEdicao({ aberto: true, meta })}
