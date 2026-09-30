@@ -7,11 +7,13 @@ import { Button } from '@/shared/ui/button'
 import { Field, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/shared/ui/popover'
+import { useIniciarComSistema } from '../useIniciarComSistema'
 import { useLembrete } from '../useLembrete'
 
 /** Desktop: liga, desliga e escolhe o horário do lembrete diário de registrar os gastos. */
 export function BotaoLembrete() {
   const { prefs, alterar, testar, erro } = useLembrete()
+  const inicio = useIniciarComSistema()
   const ativo = prefs?.ativo ?? false
   const Icone = ativo ? Bell : BellOff
 
@@ -33,7 +35,7 @@ export function BotaoLembrete() {
           <PopoverTitle>Lembrete diário</PopoverTitle>
           <PopoverDescription>
             Uma notificação por dia para registrar os gastos, só se você ainda não salvou nenhum lançamento. Funciona
-            com o app aberto, mesmo minimizado.
+            com o app aberto ou na bandeja do sistema.
           </PopoverDescription>
         </PopoverHeader>
 
@@ -63,12 +65,41 @@ export function BotaoLembrete() {
               <BellRing className="size-4" />
               Testar notificação
             </Button>
+
+            {/* Para o lembrete chegar com a janela fechada, o app precisa continuar rodando na bandeja. */}
+            <div className="flex flex-col gap-3 border-t-2 border-foreground pt-3">
+              <Field>
+                <FieldLabel>Ao fechar a janela</FieldLabel>
+                <ControleSegmentado
+                  rotulo="Ao fechar a janela"
+                  valor={prefs.bandeja ? 'bandeja' : 'fechar'}
+                  opcoes={[
+                    { valor: 'bandeja', rotulo: 'Fica na bandeja' },
+                    { valor: 'fechar', rotulo: 'Fecha o app' },
+                  ]}
+                  onChange={(v) => alterar({ bandeja: v === 'bandeja' })}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>Iniciar com o sistema</FieldLabel>
+                <ControleSegmentado
+                  rotulo="Iniciar com o sistema"
+                  valor={inicio.ativo ? 'sim' : 'nao'}
+                  opcoes={[
+                    { valor: 'sim', rotulo: 'Sim, na bandeja' },
+                    { valor: 'nao', rotulo: 'Não' },
+                  ]}
+                  desabilitado={inicio.ativo === null}
+                  onChange={(v) => inicio.alterar(v === 'sim')}
+                />
+              </Field>
+            </div>
           </div>
         )}
 
-        {erro && (
+        {(erro ?? inicio.erro) && (
           <p role="status" className="text-xs text-negativo">
-            {erro}
+            {erro ?? inicio.erro}
           </p>
         )}
         {prefs && (prefs.ultimoAviso || prefs.ultimoRegistro) && (

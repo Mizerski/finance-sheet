@@ -5,6 +5,8 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 /** Preferências do lembrete diário (só no desktop, fora dos dados financeiros e dos backups). */
 export interface PreferenciasLembrete {
   ativo: boolean
+  /** Fechar a janela só a esconde na bandeja, e o lembrete continua funcionando. */
+  bandeja: boolean
   /** "HH:mm": a partir de quando o lembrete pode aparecer. */
   horario: string
   /** Dia do último lembrete mostrado: no máximo um por dia. */
@@ -13,7 +15,7 @@ export interface PreferenciasLembrete {
   ultimoRegistro?: DataISO
 }
 
-export const PREFERENCIAS_PADRAO: PreferenciasLembrete = { ativo: true, horario: '20:00' }
+export const PREFERENCIAS_PADRAO: PreferenciasLembrete = { ativo: true, bandeja: true, horario: '20:00' }
 
 /**
  * Se o lembrete deve aparecer agora: ligado, depois do horário, ainda não mostrado hoje,

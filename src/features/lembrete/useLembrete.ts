@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { invoke } from '@tauri-apps/api/core'
 import { resumirMeta } from '@/features/economias/aportes'
 import { metaPrincipal } from '@/features/economias/marcos'
 import { paraDataISO } from '@/shared/lib/datas'
@@ -54,6 +55,13 @@ export function useLembrete() {
     assinaturaInicial.current = assinatura
     alterar({ ultimoRegistro: paraDataISO(new Date()) })
   }, [assinatura, alterar, prefs])
+
+  // O Rust decide se fechar a janela esconde na bandeja ou encerra o app.
+  const bandeja = prefs?.bandeja
+  useEffect(() => {
+    if (bandeja === undefined) return
+    invoke('definir_bandeja', { ativa: bandeja }).catch((e) => setErro(traduzirErro(e)))
+  }, [bandeja])
 
   const ativo = prefs?.ativo ?? false
   useEffect(() => {
