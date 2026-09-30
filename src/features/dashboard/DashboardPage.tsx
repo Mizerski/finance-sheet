@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { resumirMeta } from '@/features/economias/aportes'
+import { CardMetaPrincipal } from '@/features/economias/components/CardMetaPrincipal'
+import { metaPrincipal, progressoDaMeta } from '@/features/economias/marcos'
 import { diasDaPasta, gastosPorCategoria, gastosPorPasta, gastosPorTag, resumirAno, totalEvitavel } from '@/features/projecao/projecao'
 import { useAno } from '@/features/projecao/useAno'
 import { useProjecoes } from '@/features/projecao/useProjecao'
@@ -80,6 +83,13 @@ export function DashboardPage() {
   }, [periodo, projecoes, porTag, resumo, estado.tags])
   const abertura = resumo.saldoInicial
 
+  // A meta em destaque olha para hoje, não para o período do relatório.
+  const principal = useMemo(() => {
+    const resumos = new Map(estado.metas.map((m) => [m.id, resumirMeta(m, hoje)]))
+    const meta = metaPrincipal(estado.metas, resumos)
+    return meta && { meta, resumo: resumos.get(meta.id)!, progresso: progressoDaMeta(meta, hoje) }
+  }, [estado.metas, hoje])
+
   // O ano das outras telas acompanha o início do período.
   const irPara = (novo: Periodo) =>
     navigate({
@@ -113,6 +123,8 @@ export function DashboardPage() {
       />
 
       <Indicadores resumo={resumo} evitaveis={evitaveis} periodo={periodo} />
+
+      <CardMetaPrincipal principal={principal} totalDeMetas={estado.metas.length} hoje={hoje} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Saldo na largura toda: com o gráfico de tags, a grade fica sem buracos. */}

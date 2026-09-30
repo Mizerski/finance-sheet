@@ -5,6 +5,7 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { Forma } from '@/shared/components/Forma'
 import { BOTAO, CARD, ROTULO, TITULO_CARD, VALOR_DESTAQUE } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
+import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import type { ResumoMeta } from '../aportes'
@@ -13,6 +14,8 @@ import { BarraProgresso } from './BarraProgresso'
 
 interface CardMetaProps {
   meta: MetaEconomia
+  /** A meta em destaque no Dashboard (a próxima a terminar). */
+  principal?: boolean
   resumo: ResumoMeta
   hoje: DataISO
   onEditar: () => void
@@ -20,7 +23,7 @@ interface CardMetaProps {
   onExcluir: () => void
 }
 
-export function CardMeta({ meta, resumo, hoje, onEditar, onAjustar, onExcluir }: CardMetaProps) {
+export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, onExcluir }: CardMetaProps) {
   const percentual = Math.floor(resumo.percentual * 100)
   const fimDoAno = `${hoje.slice(0, 4)}-12-31`
 
@@ -33,7 +36,12 @@ export function CardMeta({ meta, resumo, hoje, onEditar, onAjustar, onExcluir }:
         </span>
         <div className="flex min-w-0 flex-1 items-start justify-between gap-3 py-3 pr-2 pl-4">
           <div className="flex min-w-0 flex-col gap-1.5">
-            <h2 className={cn('truncate', TITULO_CARD)}>{meta.nome}</h2>
+            <div className="flex min-w-0 items-center gap-2">
+              <h2 className={cn('truncate', TITULO_CARD)}>{meta.nome}</h2>
+              {principal && (
+                <Badge className="shrink-0 border-foreground bg-amarelo text-foreground">Principal</Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               <span className="tabular-nums">{formatarBRL(meta.aporteMensalCentavos)}</span> todo dia {meta.diaDoMes} ·
               desde {formatarData(meta.inicio)}
@@ -114,7 +122,7 @@ function Dado({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 }
 
 /** Quando a meta termina no ritmo atual (média real) e, se for diferente, pelo plano. */
-function Previsao({ resumo }: { resumo: ResumoMeta }) {
+export function Previsao({ resumo }: { resumo: ResumoMeta }) {
   const { concluida, conclusaoPrevista, conclusaoNoPlano, mediaCentavos, ritmoCentavos } = resumo
 
   if (concluida && conclusaoPrevista) return <>Meta atingida no aporte de {formatarData(conclusaoPrevista)}.</>
@@ -135,7 +143,7 @@ function Previsao({ resumo }: { resumo: ResumoMeta }) {
 }
 
 /** Se o plano cumpre o prazo e, se não cumpre, de quanto precisa ser o aporte para cumprir. */
-function SituacaoPrazo({ prazo, resumo, hoje }: { prazo: DataISO; resumo: ResumoMeta; hoje: DataISO }) {
+export function SituacaoPrazo({ prazo, resumo, hoje }: { prazo: DataISO; resumo: ResumoMeta; hoje: DataISO }) {
   const quando = <span className="font-semibold text-foreground">{formatarMesAno(prazo)}</span>
 
   if (resumo.noPrazo) return <>Dentro do prazo de {quando}.</>
