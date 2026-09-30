@@ -36,7 +36,8 @@ src/
 │   ├── dashboard/        # Indicadores, gráficos e seletor de período
 │   ├── projecao/         # O cálculo do saldo (funções puras) e o ano exibido
 │   ├── autenticacao/     # Login e sessão (só web)
-│   └── backup/           # Exportar e importar JSON (só desktop)
+│   ├── backup/           # Exportar e importar JSON (só desktop)
+│   └── atualizacao/      # Aviso de versão nova e instalação (só desktop)
 ├── shared/               # O que não pertence a nenhuma feature
 │   ├── ui/               # Componentes shadcn
 │   ├── components/       # Componentes do app (CabecalhoPagina, Forma, Marca…)

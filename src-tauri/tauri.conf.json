@@ -46,5 +46,17 @@
         "language": "pt-BR"
       }
     }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "COLE_AQUI_A_CHAVE_PUBLICA",
+      "endpoints": [
+        "https://github.com/Mizerski/finance-sheet/releases/latest/download/latest.json"
+      ],
+      "requireSignedVersion": true,
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

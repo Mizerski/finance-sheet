@@ -73,6 +73,15 @@ Quem mantém o repositório publica as versões. A pipeline [`release.yml`](../.
 
 A release só é publicada se os instaladores forem gerados; se algo falhar, ela fica como rascunho e é reaproveitada quando a tag for enviada de novo. macOS e Linux já estão preparados na matriz da pipeline, comentados.
 
+### Atualização automática
+
+O app desktop confere, ao abrir, o `latest.json` da última release e oferece instalar a versão nova (`src/features/atualizacao/`). A pipeline assina as atualizações e sobe esse arquivo; o app só instala o que estiver assinado com a chave do projeto.
+
+- A chave pública fica em `plugins.updater.pubkey` (`src-tauri/tauri.conf.json`). A privada e a senha ficam nos secrets `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` do repositório. Sem eles, a release falha antes de gerar os instaladores.
+- A assinatura só é ligada na release (`src-tauri/tauri.release.conf.json`), então `npm run desktop:build` e o build de teste não precisam da chave.
+- **Não perca a chave privada.** Os apps instalados só aceitam atualizações assinadas com ela; sem a chave, cada pessoa teria que baixar o instalador de novo à mão. Guarde uma cópia fora do repositório.
+- Em desenvolvimento (`npm run desktop`) o app não procura atualizações.
+
 ## Dúvidas
 
 Abra uma [issue](https://github.com/Mizerski/finance-sheet/issues). Relatos de bug ajudam mais com: o que você fez, o que esperava, o que aconteceu, a plataforma (web ou desktop, e o sistema operacional) e um print, se der.

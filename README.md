@@ -104,6 +104,8 @@ A mesma interface, em duas versões:
 
 Use o botão de **backup** no cabeçalho para exportar uma cópia dos dados de vez em quando.
 
+Depois de instalado, o app avisa quando sai uma versão nova e se atualiza com um clique, sem perder os dados.
+
 > O instalador não é assinado digitalmente. Se aparecer o aviso do SmartScreen, clique em **Mais informações** → **Executar assim mesmo**.
 
 ## Para desenvolvedores
