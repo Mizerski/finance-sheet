@@ -8,7 +8,7 @@ Branch `feature/melhorias-usabilidade`. Vem da revisão de design (nota 3/4). Ca
   - Ao salvar um lançamento mensal ou diário que já aconteceu antes de hoje, com mudança de valor, tipo, categoria, tag, natureza ou recorrência, o formulário pergunta: "Daqui para frente" (padrão, a partir de hoje ou de uma data escolhida) ou "Desde o início".
   - "Daqui para frente" encerra o lançamento antigo no dia anterior e cria um novo a partir da data. Nada muda no formato dos dados.
   - Excluir um recorrente com ocorrências passadas oferece "Encerrar" (fim ontem, histórico mantido) além de excluir de vez.
-- [ ] **2. Conferir o saldo com o banco**
+- [x] **2. Conferir o saldo com o banco**
   - Botão "Conferir saldo" na Planilha: você informa o saldo real de hoje, o app mostra a diferença e cria um lançamento único "Ajuste de saldo" (entrada ou saída).
 - [ ] **3. Cabeçalho: saldo claro e sem rolagem horizontal**
   - Mostrar o saldo de hoje e o do fim do ano com rótulos explícitos, também no celular.

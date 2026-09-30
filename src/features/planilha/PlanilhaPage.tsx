@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Landmark } from 'lucide-react'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useAno } from '@/features/projecao/useAno'
@@ -14,6 +15,7 @@ import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { useFinancas } from '@/store/financas-context'
+import { DialogConferirSaldo } from './components/DialogConferirSaldo'
 import { NavegacaoMeses } from './components/NavegacaoMeses'
 import { PrimeirosPassos } from './components/PrimeirosPassos'
 import { TabelaMes } from './components/TabelaMes'
@@ -48,6 +50,7 @@ export function PlanilhaPage() {
   const navigate = useNavigate({ from: '/' })
   const [edicao, setEdicao] = useState<Edicao>({ aberto: false })
   const [editandoSaldo, setEditandoSaldo] = useState(false)
+  const [conferindo, setConferindo] = useState(false)
 
   // Cada mês precisa de ~430px para os valores caberem com folga (~540px com a coluna Economia).
   const comEconomia = estado.metas.length > 0
@@ -132,6 +135,11 @@ export function PlanilhaPage() {
             >
               Hoje
             </Button>
+            <Button variant="outline" className={cn(BOTAO, 'bg-card')} onClick={() => setConferindo(true)}>
+              <Landmark aria-hidden />
+              <span className="sm:hidden">Conferir</span>
+              <span className="hidden sm:inline">Conferir saldo</span>
+            </Button>
           </div>
         }
       />
@@ -167,6 +175,8 @@ export function PlanilhaPage() {
       />
 
       <DialogSaldoInicial aberto={editandoSaldo} onOpenChange={setEditandoSaldo} />
+
+      <DialogConferirSaldo aberto={conferindo} onOpenChange={setConferindo} />
     </div>
   )
 }
