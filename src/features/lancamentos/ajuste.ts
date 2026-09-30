@@ -25,3 +25,8 @@ export function lancamentoDeAjuste(
     recorrencia: { tipo: 'unica', data },
   }
 }
+
+/** Lançamento criado ao conferir o saldo: corrige a projeção, não é uma entrada ou um gasto de verdade. */
+export function ehAjusteDeSaldo(l: Lancamento): boolean {
+  return l.descricao === DESCRICAO_AJUSTE && l.categoriaId === ''
+}

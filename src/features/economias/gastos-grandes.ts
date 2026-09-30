@@ -1,3 +1,4 @@
+import { ehAjusteDeSaldo } from '@/features/lancamentos/ajuste'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import type { DiaProjetado } from '@/features/projecao/projecao'
 import type { DataISO } from '@/shared/lib/datas'
@@ -26,7 +27,10 @@ export interface GastosGrandes {
  */
 export function gastosGrandes(dias: DiaProjetado[], lancamentos: Lancamento[], hoje: DataISO): GastosGrandes {
   const { primeiroAporte, fim } = periodoDaCapacidade(hoje)
-  const unicas = new Set(lancamentos.filter((l) => l.recorrencia.tipo === 'unica').map((l) => l.id))
+  // Ajustes de saldo corrigem a projeção; não são gastos.
+  const unicas = new Set(
+    lancamentos.filter((l) => l.recorrencia.tipo === 'unica' && !ehAjusteDeSaldo(l)).map((l) => l.id),
+  )
   const periodo = dias.filter((d) => d.data >= hoje && d.data <= fim && d.saldoCentavos !== null)
 
   // Média mensal das saídas nos 12 meses cheios, para saber o que é "grande" para este usuário.
