@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
+import { Plus } from 'lucide-react'
+import type { Categoria } from '@/features/categorias/categoria'
+import { DialogCategoria } from '@/features/categorias/components/DialogCategoria'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
@@ -11,7 +14,7 @@ import { Button } from '@/shared/ui/button'
 import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
+import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { useFinancas } from '@/store/financas-context'
 import {
   paraLancamento,
@@ -48,6 +51,8 @@ const OPCOES_RECORRENCIA = [
 ]
 /** O Select do Radix não aceita valor vazio, então "sem tag" e "sem pasta" usam um valor sentinela. */
 const NENHUMA = '__nenhuma__'
+/** Item do seletor de categoria que abre o cadastro em vez de escolher. */
+const NOVA_CATEGORIA = '__nova__'
 
 const OPCOES_DIAS = [
   { valor: 'todos' as const, rotulo: 'Todos os dias' },
@@ -70,6 +75,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   const [tentouSalvar, setTentouSalvar] = useState(false)
   const [vigencia, setVigencia] = useState<Vigencia>('daqui')
   const [aPartirDe, setAPartirDe] = useState<DataISO>(hoje)
+  const [criandoCategoria, setCriandoCategoria] = useState(false)
 
   const saida = rascunho.tipo === 'saida'
   const categoriasDoTipo = estado.categorias.filter((c) => c.tipo === rascunho.tipo)
@@ -95,13 +101,26 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   }
 
   function alterarRecorrencia(recorrencia: RascunhoLancamento['recorrencia']) {
-    // "Toda terça daqui em diante": num lançamento novo, a semanal começa na data escolhida (hoje ou o dia
-    // clicado na planilha), e não desde o saldo inicial. O início continua editável logo abaixo.
+    // "Todo dia 10 daqui em diante": num lançamento novo, a recorrência começa na data escolhida (hoje ou o
+    // dia clicado na planilha), e não desde o saldo inicial. O início continua editável logo abaixo.
     setRascunho((r) => ({
       ...r,
       recorrencia,
-      ...(recorrencia === 'semanal' && !lancamento && !r.inicio && { inicio: r.data ?? hoje }),
+      ...(recorrencia !== 'unica' && !lancamento && !r.inicio && { inicio: r.data ?? hoje }),
     }))
+  }
+
+  function escolherCategoria(valor: string) {
+    // Logo depois de criar uma categoria, o <select> oculto do Radix ainda não tem a opção nova e avisa
+    // um valor vazio; a lista não tem opção vazia, então ignorar não perde nenhuma escolha real.
+    if (!valor) return
+    if (valor === NOVA_CATEGORIA) setCriandoCategoria(true)
+    else alterar('categoriaId', valor)
+  }
+
+  /** A categoria criada no meio do lançamento já fica escolhida (se for do mesmo tipo). */
+  function categoriaCriada(categoria: Categoria) {
+    if (categoria.tipo === rascunho.tipo) alterar('categoriaId', categoria.id)
   }
 
   function alterarTipo(tipo: TipoMovimento) {
@@ -159,7 +178,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
         <Field data-invalid={!!erros.categoriaId || undefined}>
           <FieldLabel htmlFor="lanc-categoria">Categoria</FieldLabel>
-          <Select value={rascunho.categoriaId} onValueChange={(v) => alterar('categoriaId', v)}>
+          <Select value={rascunho.categoriaId} onValueChange={escolherCategoria}>
             <SelectTrigger
               id="lanc-categoria"
               aria-invalid={!!erros.categoriaId || undefined}
@@ -174,16 +193,33 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
                   {c.nome}
                 </SelectItem>
               ))}
+              {categoriasDoTipo.length > 0 && <SelectSeparator />}
+              <SelectItem value={NOVA_CATEGORIA} className="font-semibold">
+                <Plus />
+                Nova categoria
+              </SelectItem>
             </SelectContent>
           </Select>
           {categoriasDoTipo.length === 0 ? (
             <FieldDescription>
               Nenhuma categoria de {ROTULO_TIPO[rascunho.tipo].toLowerCase()}.{' '}
-              <Link to="/organizacao">Criar categoria</Link>
+              <button
+                type="button"
+                onClick={() => setCriandoCategoria(true)}
+                className="underline underline-offset-4 hover:text-primary"
+              >
+                Criar categoria
+              </button>
             </FieldDescription>
           ) : (
             <FieldError>{erros.categoriaId}</FieldError>
           )}
+          <DialogCategoria
+            aberto={criandoCategoria}
+            onOpenChange={setCriandoCategoria}
+            tipoInicial={rascunho.tipo}
+            onSalvar={categoriaCriada}
+          />
         </Field>
       </div>
 
@@ -328,7 +364,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           {erros.diaDoMes ? (
             <FieldError>{erros.diaDoMes}</FieldError>
           ) : (
-            <FieldDescription>Se o mês não tiver esse dia, usa o último dia do mês.</FieldDescription>
+            <FieldDescription>Repete todo mês a partir do início. Se o mês não tiver esse dia, usa o último.</FieldDescription>
           )}
         </Field>
       )}

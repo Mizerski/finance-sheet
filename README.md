@@ -48,7 +48,7 @@ Entradas e saídas **únicas, semanais, mensais ou diárias** (só em dias útei
 
 ### Dashboard: o ano inteiro num relance
 
-Entradas, saídas, saldo final projetado, menor saldo do ano e **gastos evitáveis**. Gráficos de saldo no fim de cada mês, entradas vs saídas, sobras, gastos por categoria, por tag e pelos próximos anos. Cada gráfico também vira tabela, e o relatório vale para um dia, uma semana, um mês, o ano ou qualquer intervalo que você escolher.
+Entradas, saídas, saldo final projetado, menor saldo do ano e **gastos evitáveis**. Gráficos de saldo no fim de cada mês, entradas vs saídas, sobras, gastos por categoria, por tag, por pasta (quanto custam todas as Assinaturas juntas, e cada uma) e pelos próximos anos. Cada gráfico também vira tabela, e o relatório vale para um dia, uma semana, um mês, o ano ou qualquer intervalo que você escolher.
 
 ![Dashboard com indicadores e gráficos](docs/screenshots/dashboard.png)
 
@@ -62,7 +62,9 @@ Defina o valor alvo e quanto guardar por mês. O app desconta os aportes do sald
 
 - **Categorias** agrupam entradas e saídas na planilha e nos gráficos, com o total de cada uma no ano.
 - **Tags** dizem se um gasto era necessário ou evitável, e alimentam o indicador de gastos evitáveis.
-- **Pastas** organizam a lista de lançamentos do jeito que fizer sentido para você.
+- **Pastas** organizam a lista de lançamentos do jeito que fizer sentido para você, e o dashboard mostra quanto cada pasta custa.
+
+Faltou uma categoria no meio de um lançamento? Crie ali mesmo, pelo seletor de categoria.
 
 ![Categorias de entradas e saídas](docs/screenshots/organizacao.png)
 

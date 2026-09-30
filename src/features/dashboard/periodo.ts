@@ -40,6 +40,16 @@ function dataValida(valor: unknown): valor is DataISO {
 }
 
 /** `validateSearch` do dashboard: aceita o par de datas só se as duas forem válidas. */
+export interface BuscaDashboard extends BuscaPeriodo {
+  /** Pasta detalhada por categoria no card de pastas. */
+  pasta?: string
+}
+
+export function validarBuscaDashboard(search: Record<string, unknown>): BuscaDashboard {
+  const pasta = typeof search.pasta === 'string' && search.pasta ? search.pasta : undefined
+  return { ...validarPeriodo(search), ...(pasta && { pasta }) }
+}
+
 export function validarPeriodo(search: Record<string, unknown>): BuscaPeriodo {
   if (!dataValida(search.de) || !dataValida(search.ate)) return {}
   return search.de <= search.ate ? { de: search.de, ate: search.ate } : { de: search.ate, ate: search.de }

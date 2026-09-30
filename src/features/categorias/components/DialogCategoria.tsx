@@ -11,9 +11,11 @@ interface DialogCategoriaProps {
   /** Ausente = nova categoria. */
   categoria?: Categoria
   tipoInicial?: TipoMovimento
+  /** Chamado com a categoria depois de salvar (ex.: para escolhê-la no lançamento). */
+  onSalvar?: (categoria: Categoria) => void
 }
 
-export function DialogCategoria({ aberto, onOpenChange, categoria, tipoInicial }: DialogCategoriaProps) {
+export function DialogCategoria({ aberto, onOpenChange, categoria, tipoInicial, onSalvar }: DialogCategoriaProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
@@ -26,7 +28,10 @@ export function DialogCategoria({ aberto, onOpenChange, categoria, tipoInicial }
         <FormularioCategoria
           categoria={categoria}
           tipoInicial={tipoInicial}
-          onConcluir={() => onOpenChange(false)}
+          onConcluir={(salva) => {
+            onSalvar?.(salva)
+            onOpenChange(false)
+          }}
         />
       </DialogContent>
     </Dialog>

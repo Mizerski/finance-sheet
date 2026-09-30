@@ -2,6 +2,7 @@ import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/ca
 import { indexarAportes, type Aporte } from '@/features/economias/aportes'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento, Natureza, TipoMovimento } from '@/features/lancamentos/lancamento'
+import { SEM_PASTA, type Pasta } from '@/features/pastas/pasta'
 import { SEM_TAG, type Tag } from '@/features/tags/tag'
 import { anoDe, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
 import type { Configuracao } from './configuracao'
@@ -13,6 +14,7 @@ export interface Ocorrencia {
   natureza: Natureza
   categoriaId: string
   tagId?: string
+  pastaId?: string
   valorCentavos: number
 }
 
@@ -64,6 +66,14 @@ export interface GastoTag {
   totalCentavos: number
 }
 
+export interface GastoPasta {
+  /** '' = saídas sem pasta. */
+  pastaId: string
+  nome: string
+  cor: string
+  totalCentavos: number
+}
+
 export interface ResumoAno {
   totalEntradasCentavos: number
   totalSaidasFixasCentavos: number
@@ -108,6 +118,7 @@ function paraOcorrencia(l: Lancamento): Ocorrencia {
     natureza: l.natureza,
     categoriaId: l.categoriaId,
     ...(l.tagId && { tagId: l.tagId }),
+    ...(l.pastaId && { pastaId: l.pastaId }),
     valorCentavos: l.valorCentavos,
   }
 }
@@ -262,6 +273,37 @@ export function gastosPorTag(dias: DiaProjetado[], tags: Tag[]): GastoTag[] {
       return { tagId, nome: tag.nome, cor: tag.cor, evitavel: tag.evitavel, totalCentavos }
     })
     .sort((a, b) => b.totalCentavos - a.totalCentavos)
+}
+
+/** Pasta da ocorrência, ou '' se não tiver (ou se a pasta foi excluída). */
+function pastaDa(o: Ocorrencia, pastas: Map<string, Pasta>): string {
+  return o.pastaId && pastas.has(o.pastaId) ? o.pastaId : ''
+}
+
+/** Saídas agrupadas por pasta (as sem pasta juntas, com pastaId ''), do maior para o menor. */
+export function gastosPorPasta(dias: DiaProjetado[], pastas: Pasta[]): GastoPasta[] {
+  const porId = new Map(pastas.map((p) => [p.id, p]))
+  const totais = new Map<string, number>()
+  for (const d of dias) {
+    for (const o of d.ocorrencias) {
+      if (o.tipo !== 'saida') continue
+      const chave = pastaDa(o, porId)
+      totais.set(chave, (totais.get(chave) ?? 0) + o.valorCentavos)
+    }
+  }
+
+  return [...totais]
+    .map(([pastaId, totalCentavos]) => {
+      const pasta = porId.get(pastaId) ?? SEM_PASTA
+      return { pastaId, nome: pasta.nome, cor: pasta.cor, totalCentavos }
+    })
+    .sort((a, b) => b.totalCentavos - a.totalCentavos)
+}
+
+/** Os mesmos dias só com as ocorrências de uma pasta ('' = sem pasta), para detalhar a pasta por categoria. */
+export function diasDaPasta(dias: DiaProjetado[], pastaId: string, pastas: Pasta[]): DiaProjetado[] {
+  const porId = new Map(pastas.map((p) => [p.id, p]))
+  return dias.map((d) => ({ ...d, ocorrencias: d.ocorrencias.filter((o) => pastaDa(o, porId) === pastaId) }))
 }
 
 /** Soma das saídas com tags evitáveis. */
