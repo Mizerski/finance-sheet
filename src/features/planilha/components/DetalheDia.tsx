@@ -1,5 +1,7 @@
-import { Pencil } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { Pencil, PiggyBank } from 'lucide-react'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
+import type { Aporte } from '@/features/economias/aportes'
 import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
 import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -27,7 +29,7 @@ export function DetalheDia({ dia, categorias, onEditar }: DetalheDiaProps) {
 
       {!dia.noCalculo ? (
         <p className="text-muted-foreground">Antes da data do saldo inicial, fora do cálculo.</p>
-      ) : dia.ocorrencias.length === 0 ? (
+      ) : dia.ocorrencias.length === 0 && dia.aportes.length === 0 ? (
         <p className="text-muted-foreground">Nenhum lançamento neste dia.</p>
       ) : (
         <ul className="-mx-2 flex flex-col">
@@ -38,6 +40,9 @@ export function DetalheDia({ dia, categorias, onEditar }: DetalheDiaProps) {
               categoria={categorias.get(o.categoriaId) ?? CATEGORIA_DESCONHECIDA}
               onEditar={() => onEditar(o.lancamentoId)}
             />
+          ))}
+          {dia.aportes.map((a) => (
+            <ItemAporte key={a.metaId} aporte={a} />
           ))}
         </ul>
       )}
@@ -51,6 +56,33 @@ export function DetalheDia({ dia, categorias, onEditar }: DetalheDiaProps) {
         </div>
       )}
     </>
+  )
+}
+
+/** Aporte de uma meta: leva à tela Economias, onde a meta é editada. */
+function ItemAporte({ aporte }: { aporte: Aporte }) {
+  return (
+    <li>
+      <Link
+        to="/economias"
+        className="group/item flex w-full items-start justify-between gap-3 rounded-xl px-2 py-1.5 text-left transition-colors outline-none hover:bg-foreground/4 focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate font-medium">{aporte.nome}</span>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <PiggyBank aria-hidden className="size-3.5 text-economia" />
+            Meta de economia{aporte.ajustado && ' · valor ajustado'}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          <Pencil
+            aria-hidden
+            className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
+          />
+          <span className="text-economia tabular-nums">− {formatarBRL(aporte.valorCentavos)}</span>
+        </span>
+      </Link>
+    </li>
   )
 }
 

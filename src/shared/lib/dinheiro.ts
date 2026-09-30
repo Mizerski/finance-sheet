@@ -8,6 +8,16 @@ export function formatarBRL(centavos: number): string {
   return formatador.format(centavos / 100)
 }
 
+const formatadorSemSimbolo = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+/** 125000 → "1.250,00": só onde o contexto já diz que é dinheiro e falta espaço (planilha no celular). */
+export function formatarBRLSemSimbolo(centavos: number): string {
+  return formatadorSemSimbolo.format(centavos / 100)
+}
+
 /** Converte um valor em reais (ex.: 119.87) para centavos inteiros (11987). */
 export function reaisParaCentavos(reais: number): number {
   return Math.round(reais * 100)

@@ -9,13 +9,13 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { VALOR_SALDO } from '@/shared/lib/estilos'
 import { useFinancas } from '@/store/financas-context'
 import { GraficoEntradasSaidas } from './components/GraficoEntradasSaidas'
-import { GraficoFixasVariaveis } from './components/GraficoFixasVariaveis'
 import { GraficoGastosAno } from './components/GraficoGastosAno'
 import { GraficoGastosCategoria } from './components/GraficoGastosCategoria'
 import { GraficoSaldo } from './components/GraficoSaldo'
+import { GraficoSobras } from './components/GraficoSobras'
 import { Indicadores } from './components/Indicadores'
 import { SeletorPeriodo } from './components/SeletorPeriodo'
-import { dadosAnuais } from './graficos'
+import { gastosPorAno } from './graficos'
 import {
   diasDoPeriodo,
   limitarPeriodo,
@@ -48,7 +48,7 @@ export function DashboardPage() {
   const dias = useMemo(() => diasNoPeriodo(projecoes, periodo), [projecoes, periodo])
   const resumo = useMemo(() => resumirAno(dias), [dias])
   const grupos = useMemo(() => agrupar(dias, unidade), [dias, unidade])
-  const anuais = useMemo(() => dadosAnuais(projecoes), [projecoes])
+  const anuais = useMemo(() => gastosPorAno(projecoes, estado.categorias), [projecoes, estado.categorias])
   const gastos = useMemo(() => gastosPorCategoria(dias, estado.categorias), [dias, estado.categorias])
   const abertura = resumo.saldoInicial
 
@@ -89,9 +89,10 @@ export function DashboardPage() {
         <GraficoSaldo dados={grupos} unidade={unidade} />
         <GraficoEntradasSaidas dados={grupos} unidade={unidade} />
         <GraficoGastosCategoria gastos={gastos} noPeriodo={noPeriodo} />
-        <GraficoFixasVariaveis dados={grupos} unidade={unidade} />
+        <GraficoSobras dados={grupos} unidade={unidade} />
         <GraficoGastosAno
-          dados={anuais}
+          dados={anuais.dados}
+          series={anuais.series}
           destaque={(a) => a >= anoDe(de) && a <= anoDe(ate)}
           anoAtual={anoAtual}
           onAno={(a) => irPara(periodoDoAno(a))}

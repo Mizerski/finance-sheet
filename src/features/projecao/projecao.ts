@@ -1,4 +1,6 @@
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
+import { indexarAportes, type Aporte } from '@/features/economias/aportes'
+import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento, Natureza, TipoMovimento } from '@/features/lancamentos/lancamento'
 import { anoDe, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
 import type { Configuracao } from './configuracao'
@@ -24,6 +26,9 @@ export interface DiaProjetado {
   entradasCentavos: number
   saidasFixasCentavos: number
   saidasVariaveisCentavos: number
+  /** Aportes das metas de economia no dia (descontados do saldo, como uma saída). */
+  aportes: Aporte[]
+  economiaCentavos: number
   /** Saldo acumulado ao fim do dia; null fora do cálculo. */
   saldoCentavos: number | null
 }
@@ -34,6 +39,7 @@ export interface ResumoMes {
   saidasFixasCentavos: number
   saidasVariaveisCentavos: number
   saidasCentavos: number
+  economiaCentavos: number
   /** Saldo antes do primeiro dia calculado do mês (= saldo final do mês anterior). */
   saldoInicialCentavos: number | null
   /** Saldo ao fim do último dia do mês. */
@@ -52,6 +58,7 @@ export interface ResumoAno {
   totalSaidasFixasCentavos: number
   totalSaidasVariaveisCentavos: number
   totalSaidasCentavos: number
+  totalEconomiaCentavos: number
   /** Saldo antes do primeiro dia calculado do ano: o saldo inicial ou o fim do ano anterior. */
   saldoInicial: { valorCentavos: number; data: DataISO } | null
   saldoFinalCentavos: number | null
@@ -127,6 +134,7 @@ function lancamentosDoDia(indice: IndiceLancamentos, dia: DiaCalendario): Lancam
 function projetarDias(
   config: Configuracao,
   indice: IndiceLancamentos,
+  aportes: Map<DataISO, Aporte[]>,
   ano: number,
   saldoAbertura: number,
 ): DiaProjetado[] {
@@ -143,6 +151,8 @@ function projetarDias(
         entradasCentavos: 0,
         saidasFixasCentavos: 0,
         saidasVariaveisCentavos: 0,
+        aportes: [],
+        economiaCentavos: 0,
         saldoCentavos: null,
       }
     }
@@ -151,7 +161,9 @@ function projetarDias(
     const entradas = somar(ocorrencias, (o) => o.tipo === 'entrada')
     const fixas = somar(ocorrencias, (o) => o.tipo === 'saida' && o.natureza === 'fixa')
     const variaveis = somar(ocorrencias, (o) => o.tipo === 'saida' && o.natureza === 'variavel')
-    saldo += entradas - fixas - variaveis
+    const doDia = aportes.get(dia.data) ?? []
+    const economia = doDia.reduce((t, a) => t + a.valorCentavos, 0)
+    saldo += entradas - fixas - variaveis - economia
 
     return {
       ...base,
@@ -160,6 +172,8 @@ function projetarDias(
       entradasCentavos: entradas,
       saidasFixasCentavos: fixas,
       saidasVariaveisCentavos: variaveis,
+      aportes: doDia,
+      economiaCentavos: economia,
       saldoCentavos: saldo,
     }
   })
@@ -167,7 +181,7 @@ function projetarDias(
 
 function saldoAntesDoDia(d: DiaProjetado): number | null {
   if (d.saldoCentavos === null) return null
-  return d.saldoCentavos - d.entradasCentavos + d.saidasFixasCentavos + d.saidasVariaveisCentavos
+  return d.saldoCentavos - d.entradasCentavos + d.saidasFixasCentavos + d.saidasVariaveisCentavos + d.economiaCentavos
 }
 
 export function agregarPorMes(dias: DiaProjetado[]): ResumoMes[] {
@@ -177,6 +191,7 @@ export function agregarPorMes(dias: DiaProjetado[]): ResumoMes[] {
     const entradas = calculados.reduce((t, d) => t + d.entradasCentavos, 0)
     const fixas = calculados.reduce((t, d) => t + d.saidasFixasCentavos, 0)
     const variaveis = calculados.reduce((t, d) => t + d.saidasVariaveisCentavos, 0)
+    const economia = calculados.reduce((t, d) => t + d.economiaCentavos, 0)
 
     return {
       mes,
@@ -184,6 +199,7 @@ export function agregarPorMes(dias: DiaProjetado[]): ResumoMes[] {
       saidasFixasCentavos: fixas,
       saidasVariaveisCentavos: variaveis,
       saidasCentavos: fixas + variaveis,
+      economiaCentavos: economia,
       saldoInicialCentavos: calculados.length ? saldoAntesDoDia(calculados[0]) : null,
       saldoFinalCentavos: doMes.at(-1)?.saldoCentavos ?? null,
     }
@@ -228,6 +244,7 @@ export function resumirAno(dias: DiaProjetado[]): ResumoAno {
   let totalEntradas = 0
   let totalFixas = 0
   let totalVariaveis = 0
+  let totalEconomia = 0
   let saldoInicial: ResumoAno['saldoInicial'] = null
   let menorSaldo: ResumoAno['menorSaldo'] = null
   let saldoFinal: number | null = null
@@ -236,6 +253,7 @@ export function resumirAno(dias: DiaProjetado[]): ResumoAno {
     totalEntradas += d.entradasCentavos
     totalFixas += d.saidasFixasCentavos
     totalVariaveis += d.saidasVariaveisCentavos
+    totalEconomia += d.economiaCentavos
     if (d.saldoCentavos === null) continue
     saldoInicial ??= { valorCentavos: saldoAntesDoDia(d)!, data: d.data }
     saldoFinal = d.saldoCentavos
@@ -250,6 +268,7 @@ export function resumirAno(dias: DiaProjetado[]): ResumoAno {
     totalSaidasFixasCentavos: totalFixas,
     totalSaidasVariaveisCentavos: totalVariaveis,
     totalSaidasCentavos: totalFixas + totalVariaveis,
+    totalEconomiaCentavos: totalEconomia,
     saldoInicial,
     saldoFinalCentavos: saldoFinal,
     menorSaldo,
@@ -259,14 +278,22 @@ export function resumirAno(dias: DiaProjetado[]): ResumoAno {
 /**
  * Projeta os anos de `de` a `ate`, um resultado por ano.
  * O saldo é encadeado desde o ano de dataSaldoInicial: o fim de um ano é a abertura do seguinte.
+ * Os aportes das metas de economia saem do saldo como uma saída à parte.
  */
-export function projetarAnos(config: Configuracao, lancamentos: Lancamento[], de: number, ate: number): Projecao[] {
+export function projetarAnos(
+  config: Configuracao,
+  lancamentos: Lancamento[],
+  metas: MetaEconomia[],
+  de: number,
+  ate: number,
+): Projecao[] {
   const indice = indexar(lancamentos)
+  const aportes = indexarAportes(metas, `${ate}-12-31`)
   const projecoes: Projecao[] = []
   let saldo = config.saldoInicialCentavos
 
   for (let ano = Math.min(de, anoDe(config.dataSaldoInicial)); ano <= ate; ano++) {
-    const dias = projetarDias(config, indice, ano, saldo)
+    const dias = projetarDias(config, indice, aportes, ano, saldo)
     saldo = dias.at(-1)?.saldoCentavos ?? config.saldoInicialCentavos
     if (ano >= de) projecoes.push({ ano, dias, meses: agregarPorMes(dias), resumo: resumirAno(dias) })
   }

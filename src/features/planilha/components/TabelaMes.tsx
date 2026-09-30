@@ -27,10 +27,19 @@ interface TabelaMesProps {
   categorias: Map<string, Categoria>
   /** Abre a edição de um lançamento a partir do popover do dia. */
   onEditar: (lancamentoId: string) => void
+  /** Mostra a coluna Economia (quando há metas de economia). */
+  comEconomia: boolean
+}
+
+interface Coluna {
+  rotulo: string
+  curto?: string
+  largura: string
+  className: string
 }
 
 /** Larguras fixas para as colunas ficarem alinhadas entre os meses lado a lado. */
-const COLUNAS: { rotulo: string; curto?: string; largura: string; className: string }[] = [
+const COLUNAS: Coluna[] = [
   { rotulo: 'Dia', largura: 'lg:w-[14%]', className: cn(COR_COLUNA.dia, 'text-left') },
   { rotulo: 'Entradas', largura: 'lg:w-[21%]', className: COR_COLUNA.entrada },
   { rotulo: 'Saídas fixas', curto: 'Fixas', largura: 'lg:w-[21%]', className: COR_COLUNA.saida },
@@ -38,11 +47,22 @@ const COLUNAS: { rotulo: string; curto?: string; largura: string; className: str
   { rotulo: 'Saldo', largura: 'lg:w-[23%]', className: COR_COLUNA.saldo },
 ]
 
+/** Com a coluna Economia, as de valor dividem o espaço que sobra do dia. */
+const COLUNAS_COM_ECONOMIA: Coluna[] = [
+  { rotulo: 'Dia', largura: 'lg:w-[12%]', className: cn(COR_COLUNA.dia, 'text-left') },
+  { rotulo: 'Entradas', largura: 'lg:w-[17%]', className: COR_COLUNA.entrada },
+  { rotulo: 'Saídas fixas', curto: 'Fixas', largura: 'lg:w-[17%]', className: COR_COLUNA.saida },
+  { rotulo: 'Diário', largura: 'lg:w-[17%]', className: COR_COLUNA.saida },
+  { rotulo: 'Economia', curto: 'Econ.', largura: 'lg:w-[17%]', className: COR_COLUNA.economia },
+  { rotulo: 'Saldo', largura: 'lg:w-[20%]', className: COR_COLUNA.saldo },
+]
+
 /** Todo mês ocupa 31 linhas, para as tabelas terem a mesma altura. */
 const LINHAS_POR_MES = 31
 
-export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar }: TabelaMesProps) {
+export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, comEconomia }: TabelaMesProps) {
   const saldoInicial = resumo.saldoInicialCentavos
+  const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
 
   return (
     <Card className="gap-0 rounded-3xl py-0 shadow-none ring-border">
@@ -68,7 +88,7 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar }: Tab
       <Table className="text-[0.7rem] sm:text-[0.8125rem] lg:table-fixed">
         <TableHeader>
           <TableRow className="border-b-border/70 hover:bg-transparent">
-            {COLUNAS.map((c) => (
+            {colunas.map((c) => (
               <TableHead
                 key={c.rotulo}
                 className={cn(
@@ -99,10 +119,11 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar }: Tab
               ehHoje={dia.data === hoje}
               categorias={categorias}
               onEditar={onEditar}
+              comEconomia={comEconomia}
             />
           ))}
           {Array.from({ length: LINHAS_POR_MES - dias.length }, (_, i) => (
-            <LinhaVazia key={i} />
+            <LinhaVazia key={i} comEconomia={comEconomia} />
           ))}
         </TableBody>
 
@@ -111,10 +132,11 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar }: Tab
             <TableCell className={cn(CELULA_DIA, 'text-[0.68rem] tracking-wide text-muted-foreground uppercase')}>
               Total
             </TableCell>
-            <CelulaValor centavos={resumo.entradasCentavos} className={COR_COLUNA.entrada} />
-            <CelulaValor centavos={resumo.saidasFixasCentavos} className={COR_COLUNA.saida} />
-            <CelulaValor centavos={resumo.saidasVariaveisCentavos} className={COR_COLUNA.saida} />
-            <CelulaSaldo centavos={resumo.saldoFinalCentavos} />
+            <CelulaValor centavos={resumo.entradasCentavos} className={COR_COLUNA.entrada} compacta={comEconomia} />
+            <CelulaValor centavos={resumo.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+            <CelulaValor centavos={resumo.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+            {comEconomia && <CelulaValor centavos={resumo.economiaCentavos} className={COR_COLUNA.economia} compacta />}
+            <CelulaSaldo centavos={resumo.saldoFinalCentavos} compacta={comEconomia} />
           </TableRow>
         </TableFooter>
       </Table>
@@ -123,7 +145,7 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar }: Tab
 }
 
 /** Linha sem dia, com a mesma altura e as mesmas cores de coluna de uma linha normal. */
-function LinhaVazia() {
+function LinhaVazia({ comEconomia }: { comEconomia: boolean }) {
   return (
     <TableRow aria-hidden className="border-b-transparent hover:bg-transparent">
       <TableCell className={CELULA_DIA}>
@@ -132,6 +154,7 @@ function LinhaVazia() {
       <TableCell className={cn(CELULA, COR_COLUNA.entrada)} />
       <TableCell className={cn(CELULA, COR_COLUNA.saida)} />
       <TableCell className={cn(CELULA, COR_COLUNA.saida)} />
+      {comEconomia && <TableCell className={cn(CELULA, COR_COLUNA.economia)} />}
       <TableCell className={cn(CELULA, COR_COLUNA.saldo)} />
     </TableRow>
   )

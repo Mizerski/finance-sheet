@@ -37,8 +37,10 @@ Os tokens ficam em `:root` em `src/index.css` e são expostos ao Tailwind em `@t
 | Saída | `text-saida` (argila) | `bg-saida-suave` |
 | Saldo positivo | `text-saldo` (musgo) | `bg-saldo-suave` |
 | Saldo negativo | `text-negativo` (terracota forte) | `bg-negativo-suave` |
+| Economia (metas) | `text-economia` (azul ardósia) | `bg-economia-suave` |
 
-- Um valor de entrada é **sempre** oliva, um de saída **sempre** argila e um saldo negativo **sempre** `text-negativo`, em qualquer tela: tabela, card, popover ou gráfico.
+- Um valor de entrada é **sempre** oliva, um de saída **sempre** argila, um aporte de economia **sempre** azul ardósia e um saldo negativo **sempre** `text-negativo`, em qualquer tela: tabela, card, popover ou gráfico.
+- O azul ardósia é o único tom frio da paleta, de propósito: a economia não pode ser confundida com entrada nem com saída, inclusive por quem tem daltonismo.
 - Na planilha, as combinações ficam em `COR_COLUNA` (`src/features/planilha/cores.ts`). Reaproveite essas constantes em vez de repetir classes.
 
 ### Gráficos
@@ -51,11 +53,24 @@ Use `--chart-1` a `--chart-5`, nesta ordem (`var(--color-chart-N)` no config do 
 4. marrom argila
 5. sálvia
 
-Em gráficos de entradas vs saídas, use `--entrada` e `--saida`, não as cores de chart.
+Em gráficos de entradas vs saídas, use `--grafico-entrada`, `--grafico-saida` e `--grafico-economia` (validadas juntas para daltonismo), não as cores de chart. Gráficos por categoria usam a cor da própria categoria.
 
 ### Cores de categoria
 
-São dados e ficam em hex. Ofereça só opções terrosas. As atuais: `#6b7f3a` (oliva), `#8c6a4f` (marrom), `#c0763f` (terracota clara). Sem categoria: `#a39a8e`. Sugestões para novas: `#b5894f` (ocre), `#7d8a6a` (sálvia), `#9c5b3f` (argila), `#6f5a4a` (café), `#a67c52` (caramelo), `#5f6b4e` (musgo).
+São dados e ficam em hex. A lista oferecida no seletor fica em `GRUPOS_CORES_CATEGORIA` (`src/features/categorias/cores.ts`), dividida por família. Todas são dessaturadas, no mesmo espírito da paleta terrosa: nada de vermelho, rosa ou roxo vivos.
+
+| Família | Cores |
+|---|---|
+| Terrosos | `#6b7f3a` oliva, `#8c6a4f` marrom, `#c0763f` terracota clara, `#b5894f` ocre, `#7d8a6a` sálvia, `#9c5b3f` argila, `#6f5a4a` café, `#a67c52` caramelo, `#5f6b4e` musgo |
+| Vermelhos e rosas | `#71232b` vinho, `#a4435f` framboesa, `#7a4c6b` malva, `#ba7d99` rosa antigo |
+| Roxos | `#4a2951` ameixa, `#57488d` uva, `#996bad` orquídea, `#858ac0` lavanda |
+
+Sem categoria: `#a39a8e`. Uma cor nova precisa de:
+
+- contraste de pelo menos 3:1 com o card, para funcionar como marca em gráficos e mostrar o ✓ do seletor;
+- distância de pelo menos ~8 (ΔE OKLab ×100) de todas as outras da lista, para não parecer repetida.
+
+A faixa vermelha já está cheia (terracota, argila, vinho e framboesa): um coral, por exemplo, só se diferencia saturado demais.
 
 ## Tipografia
 

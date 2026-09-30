@@ -120,6 +120,10 @@ npm run desktop:build   # gera os instaladores
 
 Os instaladores ficam em `src-tauri/target/release/bundle/`: `nsis/*-setup.exe` e `msi/*.msi`.
 
+### Testar uma branch antes do merge
+
+A cada push numa branch `feature/**`, a pipeline [`.github/workflows/build-teste.yml`](.github/workflows/build-teste.yml) roda o lint, o typecheck e gera os instaladores do Windows, sem publicar nada. Para baixar: aba **Actions** → a execução da branch → **Artifacts** → `instaladores-windows-<número>` (ficam 14 dias). Também dá para rodar à mão em qualquer branch pela aba Actions.
+
 ### Publicar uma versão
 
 A pipeline [`.github/workflows/release.yml`](.github/workflows/release.yml) gera os instaladores de Windows e os publica numa Release. macOS e Linux já estão preparados na pipeline, comentados. Para disparar:

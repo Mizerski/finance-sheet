@@ -1,25 +1,28 @@
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Rectangle, XAxis, YAxis, type BarShapeProps } from 'recharts'
 import { formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
 import { AREA_GRAFICO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
 import type { Unidade } from '../periodo'
 import { NOME_UNIDADE } from '../relatorio'
 import { CardGrafico } from './CardGrafico'
-import { Legenda } from './Legenda'
 import { TabelaPeriodos } from './TabelaPeriodos'
 import { TooltipGrafico } from './TooltipGrafico'
 
-/** Barras finas com topo arredondado e base reta. */
-const RAIO_TOPO: [number, number, number, number] = [4, 4, 0, 0]
+/** Ponta arredondada no fim da barra e base reta no zero, para cima ou para baixo. */
+function BarraComSinal(props: BarShapeProps) {
+  const negativa = Number(props.value) < 0
+  return <Rectangle {...props} radius={negativa ? [0, 0, 4, 4] : [4, 4, 0, 0]} />
+}
 
-export function GraficoEntradasSaidas({ dados, unidade }: { dados: DadoPeriodo[]; unidade: Unidade }) {
-  const escala = escalaY(dados.flatMap((d) => [d.entradas, d.saidas, d.economia]))
+export function GraficoSobras({ dados, unidade }: { dados: DadoPeriodo[]; unidade: Unidade }) {
+  const escala = escalaY(dados.map((d) => d.sobra))
+  const temNegativo = dados.some((d) => d.sobra < 0)
   const temEconomia = dados.some((d) => d.economia > 0)
 
   return (
     <CardGrafico
-      titulo="Entradas vs saídas"
-      descricao={`Total que entra, sai e vai para as metas de economia em ${NOME_UNIDADE[unidade].cada}`}
+      titulo="Sobras"
+      descricao={`Quanto sobrou em ${NOME_UNIDADE[unidade].cada}: entradas menos saídas${temEconomia ? ' e economia' : ''}`}
       tabela={
         <TabelaPeriodos
           dados={dados}
@@ -29,23 +32,19 @@ export function GraficoEntradasSaidas({ dados, unidade }: { dados: DadoPeriodo[]
             { chave: 'entradas', rotulo: 'Entradas' },
             { chave: 'saidas', rotulo: 'Saídas' },
             ...(temEconomia ? [{ chave: 'economia' as const, rotulo: 'Economia' }] : []),
+            { chave: 'sobra', rotulo: 'Sobra' },
           ]}
         />
       }
     >
-      <Legenda
-        itens={[
-          { rotulo: SERIES.entradas.label, cor: SERIES.entradas.color },
-          { rotulo: SERIES.saidas.label, cor: SERIES.saidas.color },
-          ...(temEconomia ? [{ rotulo: SERIES.economia.label, cor: SERIES.economia.color }] : []),
-        ]}
-      />
       <ChartContainer config={SERIES} className={AREA_GRAFICO}>
-        <BarChart data={dados} margin={{ top: 16, right: 12, left: 4, bottom: 0 }} barGap={2} barCategoryGap="24%">
+        <BarChart data={dados} margin={{ top: 16, right: 12, left: 4, bottom: 0 }} barCategoryGap="30%">
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis dataKey="rotulo" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis {...escala} tickFormatter={formatarBRLCompacto} tickLine={false} axisLine={false} width={76} />
+          {temNegativo && <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeOpacity={0.5} />}
           <ChartTooltip
+            cursor={{ fill: 'var(--foreground)', fillOpacity: 0.04 }}
             content={({ active, payload }) => {
               const d = payload?.[0]?.payload as DadoPeriodo | undefined
               if (!active || !d) return null
@@ -64,11 +63,12 @@ export function GraficoEntradasSaidas({ dados, unidade }: { dados: DadoPeriodo[]
               )
             }}
           />
-          <Bar dataKey="entradas" fill="var(--color-entradas)" radius={RAIO_TOPO} maxBarSize={24} isAnimationActive={false} />
-          <Bar dataKey="saidas" fill="var(--color-saidas)" radius={RAIO_TOPO} maxBarSize={24} isAnimationActive={false} />
-          {temEconomia && (
-            <Bar dataKey="economia" fill="var(--color-economia)" radius={RAIO_TOPO} maxBarSize={24} isAnimationActive={false} />
-          )}
+          <Bar dataKey="sobra" maxBarSize={24} shape={BarraComSinal} isAnimationActive={false}>
+            {/* Sobra negativa (gastou mais do que entrou) na cor de negativo; o sinal também aparece pela posição. */}
+            {dados.map((d) => (
+              <Cell key={d.chave} fill={d.sobra < 0 ? 'var(--negativo)' : 'var(--color-sobra)'} />
+            ))}
+          </Bar>
         </BarChart>
       </ChartContainer>
     </CardGrafico>
