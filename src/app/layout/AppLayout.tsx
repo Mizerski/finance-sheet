@@ -24,8 +24,9 @@ export function AppLayout() {
     <MemoriaNavegacaoProvider>
       <div className="min-h-svh bg-background">
         <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md">
-          <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center justify-between gap-4 sm:justify-start">
+          {/* Abaixo de 69rem, o menu desce para uma linha própria: marca, saldos e menu não cabem juntos. */}
+          <div className="flex flex-col gap-3 p-4 min-[69rem]:flex-row min-[69rem]:items-center min-[69rem]:justify-between">
+            <div className="flex items-center justify-between gap-4 min-[69rem]:justify-start">
               <span className="flex items-center gap-2 text-[0.95rem] font-medium tracking-tight">
                 <span aria-hidden className="size-5 rounded-full bg-primary" />
                 Projeção Financeira
@@ -53,7 +54,7 @@ function Menu() {
   const { buscaPara } = useMemoriaNavegacao()
 
   return (
-    <nav className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full bg-muted p-1 sm:flex-none">
+    <nav className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full bg-muted p-1 min-[69rem]:flex-initial">
       {ITENS.map(({ to, rotulo, icone: Icone }) => (
         <Link
           key={to}

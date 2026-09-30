@@ -10,12 +10,13 @@ Branch `feature/melhorias-usabilidade`. Vem da revisão de design (nota 3/4). Ca
   - Excluir um recorrente com ocorrências passadas oferece "Encerrar" (fim ontem, histórico mantido) além de excluir de vez.
 - [x] **2. Conferir o saldo com o banco**
   - Botão "Conferir saldo" na Planilha: você informa o saldo real de hoje, o app mostra a diferença e cria um lançamento único "Ajuste de saldo" (entrada ou saída).
-- [ ] **3. Cabeçalho: saldo claro e sem rolagem horizontal**
+- [x] **3. Cabeçalho: saldo claro e sem rolagem horizontal**
   - Mostrar o saldo de hoje e o do fim do ano com rótulos explícitos, também no celular.
   - Corrigir o menu que empurra o botão de backup para fora da tela entre 640px e ~910px.
 - [ ] **4. Busca e filtros compactos em Lançamentos**
   - Campo de busca pela descrição, guardado em `?q=`.
   - No celular, os quatro filtros viram um botão "Filtros (n)".
+  - A tabela precisa de ~824px e rola dentro do card entre ~770px e ~860px; ajustar colunas para caber.
 - [ ] **5. Atalhos de teclado**
   - `N` novo lançamento, `T` hoje, `←`/`→` meses na Planilha, `1`–`5` abas, `/` busca, `?` lista de atalhos.
 
