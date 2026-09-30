@@ -1,9 +1,9 @@
-import type { DataISO } from '@/shared/lib/datas'
+import { deDataISO, type DataISO } from '@/shared/lib/datas'
 import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from './lancamento'
 
 /**
  * Estado do formulário. Guarda os campos de todos os tipos de recorrência,
- * para nada se perder ao alternar entre única, mensal e diária.
+ * para nada se perder ao alternar entre única, semanal, mensal e diária.
  */
 export interface RascunhoLancamento {
   descricao: string
@@ -17,6 +17,8 @@ export interface RascunhoLancamento {
   natureza: Natureza
   recorrencia: Recorrencia['tipo']
   data: DataISO | undefined
+  /** 0 (domingo) a 6 (sábado). */
+  diasDaSemana: number[]
   diaDoMes: string
   apenasDiasUteis: boolean
   inicio: DataISO | undefined
@@ -37,6 +39,7 @@ export function rascunhoVazio(data: DataISO): RascunhoLancamento {
     natureza: 'variavel',
     recorrencia: 'unica',
     data,
+    diasDaSemana: [deDataISO(data).getDay()],
     diaDoMes: String(Number(data.slice(8, 10))),
     apenasDiasUteis: false,
     inicio: undefined,
@@ -57,6 +60,7 @@ export function rascunhoDe(l: Lancamento, hoje: DataISO): RascunhoLancamento {
     natureza: l.natureza,
     recorrencia: r.tipo,
     data: r.tipo === 'unica' ? r.data : hoje,
+    ...(r.tipo === 'semanal' && { diasDaSemana: r.diasDaSemana }),
     ...(r.tipo === 'mensal' && { diaDoMes: String(r.diaDoMes) }),
     ...(r.tipo === 'diaria' && { apenasDiasUteis: r.apenasDiasUteis }),
     inicio: l.inicio,
@@ -75,6 +79,9 @@ export function validarLancamento(r: RascunhoLancamento, categoriasValidas: Set<
   if (r.valorCentavos <= 0) erros.valorCentavos = 'Informe um valor maior que zero.'
   if (!categoriasValidas.has(r.categoriaId)) erros.categoriaId = 'Escolha uma categoria.'
   if (r.recorrencia === 'unica' && !r.data) erros.data = 'Escolha a data.'
+  if (r.recorrencia === 'semanal' && r.diasDaSemana.length === 0) {
+    erros.diasDaSemana = 'Escolha pelo menos um dia da semana.'
+  }
   if (r.recorrencia === 'mensal' && lerDiaDoMes(r.diaDoMes) === null) {
     erros.diaDoMes = 'Use um dia entre 1 e 31.'
   }
@@ -89,9 +96,11 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
   const recorrencia: Recorrencia =
     r.recorrencia === 'unica'
       ? { tipo: 'unica', data: r.data! }
-      : r.recorrencia === 'mensal'
-        ? { tipo: 'mensal', diaDoMes: lerDiaDoMes(r.diaDoMes)! }
-        : { tipo: 'diaria', apenasDiasUteis: r.apenasDiasUteis }
+      : r.recorrencia === 'semanal'
+        ? { tipo: 'semanal', diasDaSemana: [...new Set(r.diasDaSemana)].sort((a, b) => a - b) }
+        : r.recorrencia === 'mensal'
+          ? { tipo: 'mensal', diaDoMes: lerDiaDoMes(r.diaDoMes)! }
+          : { tipo: 'diaria', apenasDiasUteis: r.apenasDiasUteis }
 
   const limites = r.recorrencia === 'unica' ? {} : { inicio: r.inicio, fim: r.fim }
 

@@ -91,6 +91,8 @@ export function ocorreEm(lancamento: Lancamento, dia: DiaCalendario): boolean {
   switch (r.tipo) {
     case 'unica':
       return dia.data === r.data
+    case 'semanal':
+      return r.diasDaSemana.includes(dia.diaDaSemana)
     case 'mensal':
       return dia.dia === Math.min(r.diaDoMes, dia.diasNoMes)
     case 'diaria':

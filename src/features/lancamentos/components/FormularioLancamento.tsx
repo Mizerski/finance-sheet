@@ -23,6 +23,7 @@ import {
 import { COR_ATIVA_TIPO } from '../cores'
 import type { Lancamento, TipoMovimento } from '../lancamento'
 import { ROTULO_NATUREZA, ROTULO_TIPO } from '../textos'
+import { SeletorDiasSemana } from './SeletorDiasSemana'
 import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../vigencia'
 
 interface FormularioLancamentoProps {
@@ -41,6 +42,7 @@ const OPCOES_TIPO = (['saida', 'entrada'] as const).map((valor) => ({
 const OPCOES_NATUREZA = (['fixa', 'variavel'] as const).map((valor) => ({ valor, rotulo: ROTULO_NATUREZA[valor] }))
 const OPCOES_RECORRENCIA = [
   { valor: 'unica' as const, rotulo: 'Única' },
+  { valor: 'semanal' as const, rotulo: 'Semanal' },
   { valor: 'mensal' as const, rotulo: 'Mensal' },
   { valor: 'diaria' as const, rotulo: 'Diária' },
 ]
@@ -90,6 +92,16 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
   function alterar<K extends keyof RascunhoLancamento>(campo: K, valor: RascunhoLancamento[K]) {
     setRascunho((r) => ({ ...r, [campo]: valor }))
+  }
+
+  function alterarRecorrencia(recorrencia: RascunhoLancamento['recorrencia']) {
+    // "Toda terça daqui em diante": num lançamento novo, a semanal começa na data escolhida (hoje ou o dia
+    // clicado na planilha), e não desde o saldo inicial. O início continua editável logo abaixo.
+    setRascunho((r) => ({
+      ...r,
+      recorrencia,
+      ...(recorrencia === 'semanal' && !lancamento && !r.inicio && { inicio: r.data ?? hoje }),
+    }))
   }
 
   function alterarTipo(tipo: TipoMovimento) {
@@ -265,9 +277,26 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           rotulo="Recorrência"
           valor={rascunho.recorrencia}
           opcoes={OPCOES_RECORRENCIA}
-          onChange={(v) => alterar('recorrencia', v)}
+          onChange={alterarRecorrencia}
         />
       </Field>
+
+      {rascunho.recorrencia === 'semanal' && (
+        <Field data-invalid={!!erros.diasDaSemana || undefined}>
+          <FieldLabel id="lanc-dias-semana">Dias da semana</FieldLabel>
+          <SeletorDiasSemana
+            rotuloId="lanc-dias-semana"
+            valor={rascunho.diasDaSemana}
+            onChange={(v) => alterar('diasDaSemana', v)}
+            invalido={!!erros.diasDaSemana}
+          />
+          {erros.diasDaSemana ? (
+            <FieldError>{erros.diasDaSemana}</FieldError>
+          ) : (
+            <FieldDescription>Repete toda semana nos dias marcados, a partir do início.</FieldDescription>
+          )}
+        </Field>
+      )}
 
       {rascunho.recorrencia === 'unica' && (
         <Field data-invalid={!!erros.data || undefined}>

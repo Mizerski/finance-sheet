@@ -47,6 +47,12 @@ function ehRecorrencia(r: unknown): boolean {
   switch (r.tipo) {
     case 'unica':
       return ehData(r.data)
+    case 'semanal':
+      return (
+        Array.isArray(r.diasDaSemana) &&
+        r.diasDaSemana.length > 0 &&
+        r.diasDaSemana.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)
+      )
     case 'mensal':
       return Number.isInteger(r.diaDoMes) && (r.diaDoMes as number) >= 1 && (r.diaDoMes as number) <= 31
     case 'diaria':
