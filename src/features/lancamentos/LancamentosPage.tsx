@@ -7,6 +7,7 @@ import { useProjecao } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
+import { formatarData, paraDataISO, somarDias } from '@/shared/lib/datas'
 import { BOTAO, CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
@@ -17,6 +18,7 @@ import { FiltrosLancamentos } from './components/FiltrosLancamentos'
 import { TabelaLancamentos } from './components/TabelaLancamentos'
 import { filtrarLancamentos, temFiltro, type FiltrosLancamento } from './filtros'
 import type { Lancamento } from './lancamento'
+import { encerrar, recorrenteEmAndamento } from './vigencia'
 
 /** O item continua guardado ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Selecao {
@@ -35,6 +37,7 @@ export function LancamentosPage() {
   const { ano, dias } = useProjecao()
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
+  const [hoje] = useState(() => paraDataISO(new Date()))
 
   const categorias = useMemo(() => new Map(estado.categorias.map((c) => [c.id, c])), [estado.categorias])
   const tags = useMemo(() => new Map(estado.tags.map((t) => [t.id, t])), [estado.tags])
@@ -61,6 +64,8 @@ export function LancamentosPage() {
     dispatch({ tipo: 'lancamento/salvar', lancamento: pastaId ? { ...semPasta, pastaId } : semPasta })
   }
   const novo = () => setEdicao({ aberto: true })
+  // Recorrente que já aconteceu: encerrar mantém os meses que passaram, excluir apaga tudo.
+  const encerravel = exclusao.lancamento && recorrenteEmAndamento(exclusao.lancamento, hoje) ? exclusao.lancamento : undefined
 
   return (
     <div className="flex flex-col gap-4">
@@ -135,10 +140,24 @@ export function LancamentosPage() {
         onOpenChange={(aberto) => setExclusao((e) => ({ ...e, aberto }))}
         titulo="Excluir lançamento?"
         descricao={
-          <>
-            <span className="font-medium text-foreground">{exclusao.lancamento?.descricao}</span> sai da planilha e da
-            projeção. Não dá para desfazer.
-          </>
+          encerravel ? (
+            <>
+              <span className="font-medium text-foreground">{encerravel.descricao}</span> já aconteceu antes de hoje.
+              Encerrar mantém o histórico até {formatarData(somarDias(hoje, -1))} e para a partir de hoje. Excluir de
+              vez apaga também os meses que passaram, sem desfazer.
+            </>
+          ) : (
+            <>
+              <span className="font-medium text-foreground">{exclusao.lancamento?.descricao}</span> sai da planilha e
+              da projeção. Não dá para desfazer.
+            </>
+          )
+        }
+        alternativa={
+          encerravel && {
+            rotulo: 'Encerrar',
+            onClick: () => dispatch({ tipo: 'lancamento/salvar', lancamento: encerrar(encerravel, hoje) }),
+          }
         }
         onConfirmar={() =>
           exclusao.lancamento && dispatch({ tipo: 'lancamento/excluir', id: exclusao.lancamento.id })

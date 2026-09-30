@@ -4,7 +4,7 @@ import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { SeletorData } from '@/shared/components/SeletorData'
-import { paraDataISO, type DataISO } from '@/shared/lib/datas'
+import { formatarData, paraDataISO, somarDias, type DataISO } from '@/shared/lib/datas'
 import { BOTAO, CAMPO, CAMPO_SELECT, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
@@ -22,6 +22,7 @@ import {
 } from '../formulario'
 import type { Lancamento, TipoMovimento } from '../lancamento'
 import { ROTULO_NATUREZA, ROTULO_TIPO } from '../textos'
+import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../vigencia'
 
 interface FormularioLancamentoProps {
   /** Ausente = novo lançamento. */
@@ -46,18 +47,41 @@ const OPCOES_DIAS = [
   { valor: 'uteis' as const, rotulo: 'Dias úteis' },
 ]
 
+type Vigencia = 'daqui' | 'sempre'
+
+const OPCOES_VIGENCIA = [
+  { valor: 'daqui' as const, rotulo: 'Daqui para frente' },
+  { valor: 'sempre' as const, rotulo: 'Desde o início' },
+]
+
 export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: FormularioLancamentoProps) {
   const { estado, dispatch } = useFinancas()
-  const [rascunho, setRascunho] = useState<RascunhoLancamento>(() => {
-    const hoje = paraDataISO(new Date())
-    return lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(dataInicial ?? hoje)
-  })
+  const [hoje] = useState(() => paraDataISO(new Date()))
+  const [rascunho, setRascunho] = useState<RascunhoLancamento>(() =>
+    lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(dataInicial ?? hoje),
+  )
   const [tentouSalvar, setTentouSalvar] = useState(false)
+  const [vigencia, setVigencia] = useState<Vigencia>('daqui')
+  const [aPartirDe, setAPartirDe] = useState<DataISO>(hoje)
 
   const saida = rascunho.tipo === 'saida'
   const categoriasDoTipo = estado.categorias.filter((c) => c.tipo === rascunho.tipo)
   const idsValidos = new Set(categoriasDoTipo.map((c) => c.id))
   const erros = tentouSalvar ? validarLancamento(rascunho, idsValidos) : {}
+
+  // Recorrente que já aconteceu: pergunta se a mudança vale para os meses que passaram.
+  // Quem mexe no início ou no fim já está cuidando do período, então não pergunta.
+  const editado = lancamento && paraLancamento(rascunho, lancamento.id)
+  const perguntarVigencia =
+    !!lancamento &&
+    !!editado &&
+    recorrenteEmAndamento(lancamento, hoje) &&
+    rascunho.inicio === lancamento.inicio &&
+    rascunho.fim === lancamento.fim &&
+    mudaOcorrencias(lancamento, editado)
+  /** Original que termina na véspera de `aPartirDe`, quando a mudança vale daqui para frente. */
+  const dividirDe = perguntarVigencia && vigencia === 'daqui' ? lancamento : undefined
+  const erroVigencia = tentouSalvar && dividirDe ? validarVigencia(dividirDe, aPartirDe) : undefined
 
   function alterar<K extends keyof RascunhoLancamento>(campo: K, valor: RascunhoLancamento[K]) {
     setRascunho((r) => ({ ...r, [campo]: valor }))
@@ -71,12 +95,18 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
   function salvar(e: FormEvent) {
     e.preventDefault()
-    if (Object.keys(validarLancamento(rascunho, idsValidos)).length > 0) {
+    if (
+      Object.keys(validarLancamento(rascunho, idsValidos)).length > 0 ||
+      (dividirDe && validarVigencia(dividirDe, aPartirDe))
+    ) {
       setTentouSalvar(true)
       return
     }
-    const id = lancamento?.id ?? crypto.randomUUID()
-    dispatch({ tipo: 'lancamento/salvar', lancamento: paraLancamento(rascunho, id) })
+    const salvos =
+      dividirDe && editado
+        ? dividirEm(dividirDe, editado, aPartirDe, crypto.randomUUID())
+        : [editado ?? paraLancamento(rascunho, crypto.randomUUID())]
+    for (const l of salvos) dispatch({ tipo: 'lancamento/salvar', lancamento: l })
     onConcluir()
   }
 
@@ -313,6 +343,38 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
             <FieldError>{erros.fim}</FieldError>
           </Field>
         </div>
+      )}
+
+      {perguntarVigencia && (
+        <Field data-invalid={!!erroVigencia || undefined} className="rounded-2xl p-4 ring-1 ring-border">
+          <FieldLabel htmlFor="lanc-vigencia">Este lançamento já aconteceu. A mudança vale</FieldLabel>
+          <ControleSegmentado
+            id="lanc-vigencia"
+            rotulo="A mudança vale"
+            valor={vigencia}
+            opcoes={OPCOES_VIGENCIA}
+            onChange={setVigencia}
+          />
+          {vigencia === 'daqui' ? (
+            <>
+              <SeletorData
+                id="lanc-a-partir-de"
+                valor={aPartirDe}
+                onChange={(v) => v && setAPartirDe(v)}
+                invalido={!!erroVigencia}
+              />
+              {erroVigencia ? (
+                <FieldError>{erroVigencia}</FieldError>
+              ) : (
+                <FieldDescription>
+                  Até {formatarData(somarDias(aPartirDe, -1))} continua como antes; o lançamento vira dois na lista.
+                </FieldDescription>
+              )}
+            </>
+          ) : (
+            <FieldDescription>Os meses que já passaram também mudam, e o saldo deles é recalculado.</FieldDescription>
+          )}
+        </Field>
       )}
 
       <DialogFooter className={RODAPE_DIALOG}>
