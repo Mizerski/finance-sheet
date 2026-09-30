@@ -14,7 +14,7 @@ export interface ContextoMeta {
   hoje: DataISO
 }
 
-type Saldo = { data: DataISO; valorCentavos: number }
+export type Saldo = { data: DataISO; valorCentavos: number }
 
 /** O que vale para a meta qualquer que seja o aporte: a sobra sem ela e o maior aporte que cabe. */
 export interface LimitesMeta {
@@ -42,7 +42,7 @@ export interface AvaliacaoAporte {
 }
 
 /** Menor saldo entre `hoje` e o fim do período, com as metas dadas. */
-function menorSaldo(ctx: ContextoMeta, metas: MetaEconomia[]): Saldo | null {
+export function menorSaldo(ctx: ContextoMeta, metas: MetaEconomia[]): Saldo | null {
   const { fim } = periodoDaCapacidade(ctx.hoje)
   let menor: Saldo | null = null
   for (const p of projetarAnos(ctx.config, ctx.lancamentos, metas, anoDe(ctx.hoje), anoDe(fim))) {

@@ -16,6 +16,7 @@ import { resumirMeta } from './aportes'
 import { capacidadeDePoupanca, periodoDaCapacidade } from './capacidade'
 import { gastosGrandes } from './gastos-grandes'
 import { metaPrincipal } from './marcos'
+import { montarSugestoes } from './sugestoes'
 import { gastoEssencial, MESES_DE_RESERVA_PADRAO, metaDeReserva, NOME_RESERVA } from './reserva'
 import { CardCapacidade } from './components/CardCapacidade'
 import { CardGastosGrandes } from './components/CardGastosGrandes'
@@ -23,6 +24,7 @@ import { CardMeta } from './components/CardMeta'
 import { CardSobras } from './components/CardSobras'
 import { DialogAportes } from './components/DialogAportes'
 import { CardReserva } from './components/CardReserva'
+import { CardSugestoes } from './components/CardSugestoes'
 import { DialogMeta } from './components/DialogMeta'
 import type { SugestaoMeta } from './components/FormularioMeta'
 import type { MetaEconomia } from './meta'
@@ -59,6 +61,18 @@ export function EconomiasPage() {
   const grandes = useMemo(() => gastosGrandes(dias, estado.lancamentos, hoje), [dias, estado.lancamentos, hoje])
   const reserva = metaDeReserva(estado.metas)
   const principal = metaPrincipal(estado.metas, resumos)
+  const sugestoes = useMemo(
+    () =>
+      montarSugestoes({
+        config: estado.config,
+        lancamentos: estado.lancamentos,
+        metas: estado.metas,
+        projecoes,
+        resumos,
+        hoje,
+      }),
+    [estado.config, estado.lancamentos, estado.metas, projecoes, resumos, hoje],
+  )
   const guardado = [...resumos.values()].reduce((t, r) => t + r.guardadoCentavos, 0)
   const alvo = estado.metas.reduce((t, m) => t + m.valorAlvoCentavos, 0)
   const quantidade = estado.metas.length
@@ -117,6 +131,13 @@ export function EconomiasPage() {
           ))}
         </div>
       )}
+
+      <CardSugestoes
+        sugestoes={sugestoes}
+        capacidade={capacidade}
+        onAplicar={(meta) => dispatch({ tipo: 'meta/salvar', meta })}
+        onNovaMeta={nova}
+      />
 
       {capacidade && <CardCapacidade capacidade={capacidade} />}
 
