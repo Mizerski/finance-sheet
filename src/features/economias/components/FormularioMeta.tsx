@@ -14,20 +14,25 @@ import type { MetaEconomia } from '../meta'
 import { useAvaliacaoMeta } from '../useAvaliacaoMeta'
 import { DiagnosticoMeta } from './DiagnosticoMeta'
 
+/** Valores que o formulário já abre preenchidos (ex.: a reserva de emergência sugerida). */
+export type SugestaoMeta = Partial<Pick<MetaEconomia, 'nome' | 'valorAlvoCentavos' | 'aporteMensalCentavos'>>
+
 interface FormularioMetaProps {
   /** Ausente = nova meta. */
   meta?: MetaEconomia
+  /** Sobrepõe os valores da meta (ou os padrões, numa meta nova). */
+  sugestao?: SugestaoMeta
   onConcluir: () => void
 }
 
 type Erros = Partial<Record<'nome' | 'alvo' | 'aporte' | 'dia' | 'inicio' | 'prazo', string>>
 
-export function FormularioMeta({ meta, onConcluir }: FormularioMetaProps) {
+export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaProps) {
   const { dispatch } = useFinancas()
   const [hoje] = useState(() => paraDataISO(new Date()))
-  const [nome, setNome] = useState(meta?.nome ?? '')
-  const [alvo, setAlvo] = useState(meta?.valorAlvoCentavos ?? 0)
-  const [aporte, setAporte] = useState(meta?.aporteMensalCentavos ?? 0)
+  const [nome, setNome] = useState(sugestao?.nome ?? meta?.nome ?? '')
+  const [alvo, setAlvo] = useState(sugestao?.valorAlvoCentavos ?? meta?.valorAlvoCentavos ?? 0)
+  const [aporte, setAporte] = useState(sugestao?.aporteMensalCentavos ?? meta?.aporteMensalCentavos ?? 0)
   const [dia, setDia] = useState(String(meta?.diaDoMes ?? Number(hoje.slice(8, 10))))
   const [inicio, setInicio] = useState<DataISO | undefined>(meta?.inicio ?? hoje)
   const [prazo, setPrazo] = useState<DataISO | undefined>(meta?.prazo)
