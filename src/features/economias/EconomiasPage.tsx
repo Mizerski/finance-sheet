@@ -12,6 +12,8 @@ import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { useFinancas } from '@/store/financas-context'
 import { resumirMeta } from './aportes'
+import { useCapacidade } from './useCapacidade'
+import { CardCapacidade } from './components/CardCapacidade'
 import { CardMeta } from './components/CardMeta'
 import { CardSobras } from './components/CardSobras'
 import { DialogAportes } from './components/DialogAportes'
@@ -38,6 +40,8 @@ export function EconomiasPage() {
     () => new Map(estado.metas.map((m) => [m.id, resumirMeta(m, hoje)])),
     [estado.metas, hoje],
   )
+  // Independe do ano exibido: olha sempre os próximos meses a partir de hoje.
+  const capacidade = useCapacidade(hoje)
   const guardado = [...resumos.values()].reduce((t, r) => t + r.guardadoCentavos, 0)
   const alvo = estado.metas.reduce((t, m) => t + m.valorAlvoCentavos, 0)
   const quantidade = estado.metas.length
@@ -95,6 +99,8 @@ export function EconomiasPage() {
           ))}
         </div>
       )}
+
+      {capacidade && <CardCapacidade capacidade={capacidade} />}
 
       <CardSobras ano={ano} meses={meses} />
 

@@ -38,6 +38,7 @@ interface LinhaMeta {
   aporte_mensal_centavos: number
   dia_do_mes: number
   inicio: string
+  prazo: string | null
   ajustes: Record<string, number>
 }
 
@@ -47,7 +48,7 @@ interface LinhaConfiguracao {
 }
 
 const COLUNAS_LANCAMENTO = 'id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
-const COLUNAS_META = 'id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, ajustes'
+const COLUNAS_META = 'id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, prazo, ajustes'
 
 /** O PostgREST devolve no máximo 1000 linhas por consulta; busca página por página. */
 const TAMANHO_PAGINA = 1000
@@ -114,6 +115,7 @@ function deLinhaMeta(m: LinhaMeta): MetaEconomia {
     aporteMensalCentavos: m.aporte_mensal_centavos,
     diaDoMes: m.dia_do_mes,
     inicio: m.inicio,
+    ...(m.prazo && { prazo: m.prazo }),
     ajustes: m.ajustes ?? {},
   }
 }
@@ -126,6 +128,7 @@ function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
     aporte_mensal_centavos: m.aporteMensalCentavos,
     dia_do_mes: m.diaDoMes,
     inicio: m.inicio,
+    prazo: m.prazo ?? null,
     ajustes: m.ajustes,
   }
 }

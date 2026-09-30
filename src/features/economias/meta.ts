@@ -14,6 +14,8 @@ export interface MetaEconomia {
   diaDoMes: number
   /** Nenhum aporte acontece antes desta data. */
   inicio: DataISO
+  /** Data até quando o usuário quer atingir o valor alvo; ausente = sem prazo. */
+  prazo?: DataISO
   /**
    * Valor real guardado em meses que fugiram do plano ("yyyy-MM" → centavos, 0 = não guardou).
    * Meses sem ajuste usam o aporte mensal.
