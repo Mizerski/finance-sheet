@@ -49,7 +49,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "COLE_AQUI_A_CHAVE_PUBLICA",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEwNTM4QjI3RDQ1QjVERTAKUldUZ1hWdlVKNHRURUxkUmhJdzRxcVM1UnZ2aXA4QzBpM2lseDErTGRZcVlMcGtiZWFzV204aEkK",
       "endpoints": [
         "https://github.com/Mizerski/finance-sheet/releases/latest/download/latest.json"
       ],
