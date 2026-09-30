@@ -5,8 +5,12 @@ import type { Configuracao } from '@/features/projecao/configuracao'
 import type { Pasta } from '@/features/pastas/pasta'
 import type { Tag } from '@/features/tags/tag'
 
-/** Formato de DadosFinancas no arquivo local e no backup; aumente e converta os dados antigos se o formato mudar. */
-export const VERSAO_DADOS = 3
+/**
+ * Formato de DadosFinancas no arquivo local e no backup; aumente e converta os dados antigos se o formato mudar.
+ * Versão 4: recorrência semanal. Os dados da versão 3 continuam válidos, sem conversão; o número novo
+ * só impede que um app antigo, que não conhece a recorrência semanal, importe um backup novo.
+ */
+export const VERSAO_DADOS = 4
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {

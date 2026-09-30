@@ -6,6 +6,8 @@ export type Natureza = 'fixa' | 'variavel'
 export type Recorrencia =
   | { tipo: 'unica'; data: DataISO }
   /** Se o mês não tiver esse dia (ex.: 31 em abril), usa o último dia do mês. */
+  /** Dias da semana de 0 (domingo) a 6 (sábado), sem repetição e em ordem. Ex.: toda terça = [2]. */
+  | { tipo: 'semanal'; diasDaSemana: number[] }
   | { tipo: 'mensal'; diaDoMes: number }
   | { tipo: 'diaria'; apenasDiasUteis: boolean }
 

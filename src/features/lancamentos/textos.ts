@@ -1,15 +1,31 @@
-import { formatarData } from '@/shared/lib/datas'
+import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
 import type { Lancamento, Natureza, TipoMovimento } from './lancamento'
 
 export const ROTULO_TIPO: Record<TipoMovimento, string> = { entrada: 'Entrada', saida: 'Saída' }
 export const ROTULO_NATUREZA: Record<Natureza, string> = { fixa: 'Fixa', variavel: 'Variável' }
 
-/** "Todo dia 5", "Dias úteis", "Única em 10/02/2026"… */
+/** Nomes para "toda terça", "todo sábado" (sábado e domingo pedem "todo"). */
+const DIA_POR_EXTENSO = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
+
+/** "Toda terça", "Todo sábado", "Toda semana: seg, qua e sex"… */
+function descreverSemanal(dias: number[]): string {
+  if (dias.length === 1) {
+    const [dia] = dias
+    return `${dia === 0 || dia === 6 ? 'Todo' : 'Toda'} ${DIA_POR_EXTENSO[dia]}`
+  }
+  if (dias.length === 7) return 'Toda semana, todos os dias'
+  const nomes = dias.map((d) => nomeDoDiaDaSemana(d))
+  return `Toda semana: ${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`
+}
+
+/** "Todo dia 5", "Toda terça", "Dias úteis", "Única em 10/02/2026"… */
 export function descreverRecorrencia(l: Lancamento): string {
   const r = l.recorrencia
   switch (r.tipo) {
     case 'unica':
       return `Única em ${formatarData(r.data)}`
+    case 'semanal':
+      return descreverSemanal(r.diasDaSemana)
     case 'mensal':
       return r.diaDoMes > 28 ? `Todo dia ${r.diaDoMes} (ou o último)` : `Todo dia ${r.diaDoMes}`
     case 'diaria':
