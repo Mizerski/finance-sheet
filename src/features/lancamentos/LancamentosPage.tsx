@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
+import { agruparPorPasta } from '@/features/pastas/grupos'
+import { totalPorLancamento } from '@/features/projecao/projecao'
+import { useProjecao } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
@@ -27,17 +30,36 @@ function contar(n: number, singular: string, plural: string) {
 
 export function LancamentosPage() {
   const { estado, dispatch } = useFinancas()
-  const filtros = useSearch({ from: '/lancamentos' })
+  const { fechadas, ...filtros } = useSearch({ from: '/lancamentos' })
   const navigate = useNavigate({ from: '/lancamentos' })
+  const { ano, dias } = useProjecao()
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
 
   const categorias = useMemo(() => new Map(estado.categorias.map((c) => [c.id, c])), [estado.categorias])
-  const visiveis = filtrarLancamentos(estado.lancamentos, filtros)
+  const tags = useMemo(() => new Map(estado.tags.map((t) => [t.id, t])), [estado.tags])
+  const totalNoAno = useMemo(() => totalPorLancamento(dias), [dias])
+  const visiveis = filtrarLancamentos(estado.lancamentos, filtros, new Set(tags.keys()))
+  const grupos = agruparPorPasta(visiveis, estado.pastas, totalNoAno)
   const total = estado.lancamentos.length
   const filtrando = temFiltro(filtros)
 
-  const alterarFiltros = (novos: FiltrosLancamento) => navigate({ search: novos, replace: true })
+  // Os grupos fechados continuam fechados ao trocar ou limpar os filtros.
+  const alterarFiltros = (novos: FiltrosLancamento) => navigate({ search: { ...novos, fechadas }, replace: true })
+  const alternarGrupo = (chave: string) =>
+    navigate({
+      search: (s) => {
+        const atuais = s.fechadas ?? []
+        const novas = atuais.includes(chave) ? atuais.filter((c) => c !== chave) : [...atuais, chave]
+        return { ...s, fechadas: novas.length > 0 ? novas : undefined }
+      },
+      replace: true,
+      resetScroll: false,
+    })
+  const mover = (l: Lancamento, pastaId: string | undefined) => {
+    const { pastaId: _, ...semPasta } = l
+    dispatch({ tipo: 'lancamento/salvar', lancamento: pastaId ? { ...semPasta, pastaId } : semPasta })
+  }
   const novo = () => setEdicao({ aberto: true })
 
   return (
@@ -57,13 +79,24 @@ export function LancamentosPage() {
         }
       />
 
-      <FiltrosLancamentos filtros={filtros} categorias={estado.categorias} onChange={alterarFiltros} />
+      <FiltrosLancamentos
+        filtros={filtros}
+        categorias={estado.categorias}
+        tags={estado.tags}
+        onChange={alterarFiltros}
+      />
 
       <Card className={cn(CARD, 'overflow-hidden')}>
         {visiveis.length > 0 ? (
           <TabelaLancamentos
-            lancamentos={visiveis}
+            grupos={grupos}
             categorias={categorias}
+            tags={tags}
+            pastas={estado.pastas}
+            fechadas={new Set(fechadas)}
+            ano={ano}
+            onAlternarGrupo={alternarGrupo}
+            onMover={mover}
             onEditar={(lancamento) => setEdicao({ aberto: true, lancamento })}
             onExcluir={(lancamento) => setExclusao({ aberto: true, lancamento })}
           />

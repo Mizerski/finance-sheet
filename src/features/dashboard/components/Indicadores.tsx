@@ -3,10 +3,17 @@ import { formatarData, nomeDoDiaDaSemana, deDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { SERIES } from '../graficos'
 import { NO_PERIODO, tipoDoPeriodo, type Periodo } from '../periodo'
+import { CartaoEvitaveis, type ResumoEvitaveis } from './CartaoEvitaveis'
 import { CartaoIndicador } from './CartaoIndicador'
 
-/** `resumo` é o resumo dos dias do período (resumirAno serve para qualquer lista de dias). */
-export function Indicadores({ resumo, periodo }: { resumo: ResumoAno; periodo: Periodo }) {
+interface IndicadoresProps {
+  /** Resumo dos dias do período (resumirAno serve para qualquer lista de dias). */
+  resumo: ResumoAno
+  evitaveis: ResumoEvitaveis
+  periodo: Periodo
+}
+
+export function Indicadores({ resumo, evitaveis, periodo }: IndicadoresProps) {
   const noPeriodo = NO_PERIODO[tipoDoPeriodo(periodo)]
   const fixas = resumo.totalSaidasFixasCentavos
   const variaveis = resumo.totalSaidasVariaveisCentavos
@@ -15,7 +22,7 @@ export function Indicadores({ resumo, periodo }: { resumo: ResumoAno; periodo: P
   const menor = resumo.menorSaldo
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <CartaoIndicador
         rotulo={`Entradas ${noPeriodo}`}
         corMarca={SERIES.entradas.color}
@@ -50,6 +57,8 @@ export function Indicadores({ resumo, periodo }: { resumo: ResumoAno; periodo: P
             : 'Sem dias no cálculo'
         }
       />
+      {/* Quinto cartão: ocupa a linha inteira enquanto a grade tem duas colunas. */}
+      <CartaoEvitaveis resumo={evitaveis} periodo={periodo} className="sm:col-span-2 xl:col-span-1" />
     </div>
   )
 }

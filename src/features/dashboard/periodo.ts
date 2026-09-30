@@ -119,3 +119,12 @@ export const NO_PERIODO: Record<TipoPeriodo, string> = {
   ano: 'no ano',
   personalizado: 'no período',
 }
+
+/** Complemento para comparar com o período vizinho anterior: "no mês anterior"… */
+export const NO_ANTERIOR: Record<TipoPeriodo, string> = {
+  dia: 'no dia anterior',
+  semana: 'na semana anterior',
+  mes: 'no mês anterior',
+  ano: 'no ano anterior',
+  personalizado: 'no período anterior',
+}

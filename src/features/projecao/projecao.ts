@@ -2,6 +2,7 @@ import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/ca
 import { indexarAportes, type Aporte } from '@/features/economias/aportes'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento, Natureza, TipoMovimento } from '@/features/lancamentos/lancamento'
+import { SEM_TAG, type Tag } from '@/features/tags/tag'
 import { anoDe, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
 import type { Configuracao } from './configuracao'
 
@@ -11,6 +12,7 @@ export interface Ocorrencia {
   tipo: TipoMovimento
   natureza: Natureza
   categoriaId: string
+  tagId?: string
   valorCentavos: number
 }
 
@@ -50,6 +52,15 @@ export interface GastoCategoria {
   categoriaId: string
   nome: string
   cor: string
+  totalCentavos: number
+}
+
+export interface GastoTag {
+  /** '' = saídas sem tag. */
+  tagId: string
+  nome: string
+  cor: string
+  evitavel: boolean
   totalCentavos: number
 }
 
@@ -94,6 +105,7 @@ function paraOcorrencia(l: Lancamento): Ocorrencia {
     tipo: l.tipo,
     natureza: l.natureza,
     categoriaId: l.categoriaId,
+    ...(l.tagId && { tagId: l.tagId }),
     valorCentavos: l.valorCentavos,
   }
 }
@@ -227,6 +239,41 @@ export function gastosPorCategoria(
       return { categoriaId, nome: cat.nome, cor: cat.cor, totalCentavos }
     })
     .sort((a, b) => b.totalCentavos - a.totalCentavos)
+}
+
+/** Saídas agrupadas por tag (as sem tag juntas, com tagId ''), do maior para o menor. */
+export function gastosPorTag(dias: DiaProjetado[], tags: Tag[]): GastoTag[] {
+  const porId = new Map(tags.map((t) => [t.id, t]))
+  const totais = new Map<string, number>()
+  for (const d of dias) {
+    for (const o of d.ocorrencias) {
+      if (o.tipo !== 'saida') continue
+      // Tag já excluída conta como sem tag.
+      const chave = o.tagId && porId.has(o.tagId) ? o.tagId : ''
+      totais.set(chave, (totais.get(chave) ?? 0) + o.valorCentavos)
+    }
+  }
+
+  return [...totais]
+    .map(([tagId, totalCentavos]) => {
+      const tag = porId.get(tagId) ?? { ...SEM_TAG, evitavel: false }
+      return { tagId, nome: tag.nome, cor: tag.cor, evitavel: tag.evitavel, totalCentavos }
+    })
+    .sort((a, b) => b.totalCentavos - a.totalCentavos)
+}
+
+/** Soma das saídas com tags evitáveis. */
+export function totalEvitavel(gastos: GastoTag[]): number {
+  return gastos.reduce((t, g) => (g.evitavel ? t + g.totalCentavos : t), 0)
+}
+
+/** Total projetado nos dias (todas as ocorrências somadas) de cada lançamento, pelo id. */
+export function totalPorLancamento(dias: DiaProjetado[]): Map<string, number> {
+  const totais = new Map<string, number>()
+  for (const d of dias) {
+    for (const o of d.ocorrencias) totais.set(o.lancamentoId, (totais.get(o.lancamentoId) ?? 0) + o.valorCentavos)
+  }
+  return totais
 }
 
 /** Total projetado no ano (entradas e saídas) de cada categoria, pelo id. */

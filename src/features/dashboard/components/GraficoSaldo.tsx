@@ -33,7 +33,13 @@ function Ponto({ cx, cy, value, index }: PontoProps) {
   )
 }
 
-export function GraficoSaldo({ dados, unidade }: { dados: DadoPeriodo[]; unidade: Unidade }) {
+interface GraficoSaldoProps {
+  dados: DadoPeriodo[]
+  unidade: Unidade
+  className?: string
+}
+
+export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
   const { cada, noFim } = NOME_UNIDADE[unidade]
   const ultimo = dados.findLastIndex((d) => d.saldo !== null)
   const saldos = dados.flatMap((d) => (d.saldo === null ? [] : [d.saldo]))
@@ -44,6 +50,7 @@ export function GraficoSaldo({ dados, unidade }: { dados: DadoPeriodo[]; unidade
     <CardGrafico
       titulo={`Saldo no fim de ${cada}`}
       descricao={`Quanto sobra na conta ${noFim}`}
+      className={className}
       tabela={
         <TabelaPeriodos
           dados={dados}

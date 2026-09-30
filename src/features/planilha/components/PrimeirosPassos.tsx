@@ -32,7 +32,7 @@ export function PrimeirosPassos({ saldoDefinido, temCategorias, temLancamentos, 
           <span className="text-muted-foreground">e a partir de que dia ele vale</span>
         </Passo>
         <Passo numero={2} feito={temCategorias}>
-          <Link to="/categorias" className={ACAO}>
+          <Link to="/organizacao" className={ACAO}>
             Crie categorias
           </Link>{' '}
           <span className="text-muted-foreground">de entrada e de saída</span>
