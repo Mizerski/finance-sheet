@@ -90,7 +90,7 @@ O coração do app são funções puras em `src/features/projecao/projecao.ts`, 
 1. **`projetarAnos`** percorre os anos desde a data do saldo inicial. O saldo do fim de um ano é a abertura do seguinte.
 2. Para cada dia, **`ocorreEm`** decide quais lançamentos acontecem (única, semanal, mensal, diária ou só em dias úteis, dentro de início e fim). Dia 31 em mês de 30 dias cai no último dia do mês.
 3. O dia soma **entradas**, **saídas fixas**, **saídas variáveis** e os **aportes das metas** (calculados por `aportesDaMeta`, que para ao atingir o alvo e respeita os ajustes de cada mês), e acumula o **saldo**.
-4. Funções de agregação (`agregarPorMes`, `resumirAno`, `gastosPorCategoria`, `gastosPorTag`…) alimentam a planilha, o dashboard e as economias.
+4. Funções de agregação (`agregarPorMes`, `resumirAno`, `gastosPorCategoria`, `gastosPorTag`, `gastosPorPasta`…) alimentam a planilha, o dashboard e as economias.
 
 O hook `useProjecoes` memoriza o resultado para que o cabeçalho e a página aberta reaproveitem o mesmo cálculo.
 
@@ -109,7 +109,7 @@ Declaradas em `src/app/router.tsx`:
 | `/lancamentos` | Lançamentos | `q`, `tipo`, `natureza`, `categoria`, `tag`, `fechadas` |
 | `/organizacao` | Organização | `aba` (`tags` ou `pastas`; sem ela, categorias) |
 | `/economias` | Economias | — |
-| `/dashboard` | Dashboard | `de`, `ate` (período) |
+| `/dashboard` | Dashboard | `de`, `ate` (período), `pasta` (pasta detalhada por categoria) |
 
 O ano exibido fica em `?ano=` na rota raiz e acompanha a navegação entre telas. `/categorias` redireciona para `/organizacao`.
 

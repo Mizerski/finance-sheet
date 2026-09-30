@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { gastosPorCategoria, gastosPorTag, resumirAno, totalEvitavel } from '@/features/projecao/projecao'
+import { diasDaPasta, gastosPorCategoria, gastosPorPasta, gastosPorTag, resumirAno, totalEvitavel } from '@/features/projecao/projecao'
 import { useAno } from '@/features/projecao/useAno'
 import { useProjecoes } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
@@ -12,6 +12,7 @@ import { useFinancas } from '@/store/financas-context'
 import { GraficoEntradasSaidas } from './components/GraficoEntradasSaidas'
 import { GraficoGastosAno } from './components/GraficoGastosAno'
 import { GraficoGastosCategoria } from './components/GraficoGastosCategoria'
+import { GraficoGastosPasta } from './components/GraficoGastosPasta'
 import { GraficoGastosTag } from './components/GraficoGastosTag'
 import { GraficoSaldo } from './components/GraficoSaldo'
 import { GraficoSobras } from './components/GraficoSobras'
@@ -54,6 +55,16 @@ export function DashboardPage() {
   const anuais = useMemo(() => gastosPorAno(projecoes, estado.categorias), [projecoes, estado.categorias])
   const gastos = useMemo(() => gastosPorCategoria(dias, estado.categorias), [dias, estado.categorias])
   const porTag = useMemo(() => gastosPorTag(dias, estado.tags), [dias, estado.tags])
+  const porPasta = useMemo(() => gastosPorPasta(dias, estado.pastas), [dias, estado.pastas])
+  // Sem ?pasta= (ou com uma pasta excluída), detalha a pasta que mais gastou no período.
+  const pasta =
+    estado.pastas.find((p) => p.id === search.pasta) ??
+    estado.pastas.find((p) => p.id === porPasta.find((g) => g.pastaId)?.pastaId) ??
+    estado.pastas[0]
+  const categoriasDaPasta = useMemo(
+    () => (pasta ? gastosPorCategoria(diasDaPasta(dias, pasta.id, estado.pastas), estado.categorias) : []),
+    [pasta, dias, estado.pastas, estado.categorias],
+  )
   const evitaveis = useMemo(() => {
     // Só compara com o período anterior se ele foi todo calculado (sem dias antes do saldo inicial).
     const anterior = deslocar(periodo, -1)
@@ -72,7 +83,7 @@ export function DashboardPage() {
   // O ano das outras telas acompanha o início do período.
   const irPara = (novo: Periodo) =>
     navigate({
-      search: { de: novo.de, ate: novo.ate, ano: anoDe(novo.de) === anoAtual ? undefined : anoDe(novo.de) },
+      search: (s) => ({ ...s, de: novo.de, ate: novo.ate, ano: anoDe(novo.de) === anoAtual ? undefined : anoDe(novo.de) }),
       replace: true,
       resetScroll: false,
     })
@@ -110,6 +121,15 @@ export function DashboardPage() {
         <GraficoSobras dados={grupos} unidade={unidade} />
         <GraficoGastosCategoria gastos={gastos} noPeriodo={noPeriodo} />
         <GraficoGastosTag gastos={porTag} temTags={estado.tags.length > 0} noPeriodo={noPeriodo} />
+        <GraficoGastosPasta
+          gastos={porPasta}
+          pastas={estado.pastas}
+          pasta={pasta}
+          onPasta={(id) => navigate({ search: (s) => ({ ...s, pasta: id }), replace: true, resetScroll: false })}
+          categoriasDaPasta={categoriasDaPasta}
+          noPeriodo={noPeriodo}
+          className="lg:col-span-2"
+        />
         <GraficoGastosAno
           dados={anuais.dados}
           series={anuais.series}

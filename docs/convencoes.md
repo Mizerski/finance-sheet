@@ -50,7 +50,7 @@ Componentes pequenos: se um arquivo cresce demais ou mistura assuntos, separe.
 - **Metas de economia** não são lançamentos nem têm categoria. Os aportes não são salvos: `aportesDaMeta` os calcula a partir do valor alvo, do aporte mensal e dos `ajustes`, e para ao atingir o alvo. A projeção os desconta do saldo na coluna Economia.
 - **Sobra** de um período = entradas − saídas − economia.
 - **Tags** só existem em saídas, no máximo uma por lançamento. Tag com `evitavel` soma no indicador de gastos evitáveis. Excluir a tag deixa os lançamentos sem tag.
-- **Pastas** só organizam a lista de lançamentos, sem afetar a projeção. No máximo uma por lançamento. Excluir a pasta deixa os lançamentos sem pasta.
+- **Pastas** organizam a lista de lançamentos, sem afetar a projeção; o dashboard soma as saídas de cada pasta e detalha uma delas por categoria. No máximo uma por lançamento. Excluir a pasta deixa os lançamentos sem pasta.
 - Categorias, tags e pastas são cadastradas na tela Organização.
 
 ## Interface

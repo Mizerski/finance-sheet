@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { EconomiasPage } from '@/features/economias/EconomiasPage'
 import { validarBusca } from '@/features/lancamentos/filtros'
-import { validarPeriodo } from '@/features/dashboard/periodo'
+import { validarBuscaDashboard } from '@/features/dashboard/periodo'
 import { validarAno } from '@/features/projecao/anos'
 import { LancamentosPage } from '@/features/lancamentos/LancamentosPage'
 import { validarAba } from '@/features/organizacao/aba'
@@ -84,8 +84,8 @@ const economiasRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
-  // Período do relatório (?de=&ate=); sem ele, o ano inteiro.
-  validateSearch: validarPeriodo,
+  // Período do relatório (?de=&ate=); sem ele, o ano inteiro. ?pasta= é a pasta detalhada por categoria.
+  validateSearch: validarBuscaDashboard,
   // Recharts só é baixado ao abrir o dashboard.
   component: lazyRouteComponent(() => import('@/features/dashboard/DashboardPage'), 'DashboardPage'),
 })

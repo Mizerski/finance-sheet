@@ -17,7 +17,8 @@ interface FormularioCategoriaProps {
   categoria?: Categoria
   /** Tipo sugerido ao criar. */
   tipoInicial?: TipoMovimento
-  onConcluir: () => void
+  /** Recebe a categoria salva. */
+  onConcluir: (categoria: Categoria) => void
 }
 
 const OPCOES_TIPO = [
@@ -47,15 +48,15 @@ export function FormularioCategoria({ categoria, tipoInicial = 'saida', onConclu
 
   function salvar(e: FormEvent) {
     e.preventDefault()
+    // O dialog pode abrir de dentro de outro formulário (o de lançamento); o submit não deve chegar lá.
+    e.stopPropagation()
     if (validar()) {
       setTentouSalvar(true)
       return
     }
-    dispatch({
-      tipo: 'categoria/salvar',
-      categoria: { id: categoria?.id ?? crypto.randomUUID(), nome: nome.trim(), tipo, cor },
-    })
-    onConcluir()
+    const salva = { id: categoria?.id ?? crypto.randomUUID(), nome: nome.trim(), tipo, cor }
+    dispatch({ tipo: 'categoria/salvar', categoria: salva })
+    onConcluir(salva)
   }
 
   return (
