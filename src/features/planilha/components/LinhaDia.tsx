@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { DiaProjetado } from '@/features/projecao/projecao'
-import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
+import { formatarData, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/datas'
 import { cn } from '@/shared/lib/utils'
 import { Popover, PopoverAnchor, PopoverContent } from '@/shared/ui/popover'
 import { TableCell, TableRow } from '@/shared/ui/table'
@@ -14,6 +14,7 @@ interface LinhaDiaProps {
   ehHoje: boolean
   categorias: Map<string, Categoria>
   onEditar: (lancamentoId: string) => void
+  onAdicionar: (data: DataISO) => void
 }
 
 /** Véu sobre o fundo de cada célula, para destacar a linha sem perder a cor da coluna. */
@@ -23,7 +24,7 @@ const VEU = {
   hoje: 'font-medium [&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-primary)_12%,transparent)]',
 }
 
-export function LinhaDia({ dia, ehHoje, categorias, onEditar }: LinhaDiaProps) {
+export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
   const linhaRef = useRef<HTMLTableRowElement>(null)
   const fimDeSemana = dia.diaDaSemana === 0 || dia.diaDaSemana === 6
@@ -90,6 +91,10 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar }: LinhaDiaProps) {
           onEditar={(id) => {
             setAberto(false)
             onEditar(id)
+          }}
+          onAdicionar={() => {
+            setAberto(false)
+            onAdicionar(dia.data)
           }}
         />
       </PopoverContent>

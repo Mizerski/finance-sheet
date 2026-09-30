@@ -1,3 +1,4 @@
+import type { DataISO } from '@/shared/lib/datas'
 import { CAMADA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
@@ -9,9 +10,11 @@ interface DialogLancamentoProps {
   onOpenChange: (aberto: boolean) => void
   /** Ausente = novo lançamento. */
   lancamento?: Lancamento
+  /** Data sugerida para um lançamento novo (ex.: o dia clicado na planilha). */
+  dataInicial?: DataISO
 }
 
-export function DialogLancamento({ aberto, onOpenChange, lancamento }: DialogLancamentoProps) {
+export function DialogLancamento({ aberto, onOpenChange, lancamento, dataInicial }: DialogLancamentoProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent
@@ -29,7 +32,7 @@ export function DialogLancamento({ aberto, onOpenChange, lancamento }: DialogLan
           </DialogDescription>
         </DialogHeader>
         {/* O conteúdo desmonta ao fechar, então o formulário sempre abre com o estado inicial. */}
-        <FormularioLancamento lancamento={lancamento} onConcluir={() => onOpenChange(false)} />
+        <FormularioLancamento lancamento={lancamento} dataInicial={dataInicial} onConcluir={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   )

@@ -1,11 +1,12 @@
-import { Pencil } from 'lucide-react'
+import { Pencil, Plus } from 'lucide-react'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
 import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { VALOR_SALDO } from '@/shared/lib/estilos'
+import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
+import { Button } from '@/shared/ui/button'
 import { PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
 
 interface DetalheDiaProps {
@@ -13,10 +14,12 @@ interface DetalheDiaProps {
   categorias: Map<string, Categoria>
   /** Abre a edição do lançamento que gerou a ocorrência. */
   onEditar: (lancamentoId: string) => void
+  /** Abre um lançamento novo já com a data deste dia. */
+  onAdicionar: () => void
 }
 
 /** Conteúdo do popover: lançamentos de um dia da planilha. */
-export function DetalheDia({ dia, categorias, onEditar }: DetalheDiaProps) {
+export function DetalheDia({ dia, categorias, onEditar, onAdicionar }: DetalheDiaProps) {
   return (
     <>
       <PopoverHeader>
@@ -49,6 +52,13 @@ export function DetalheDia({ dia, categorias, onEditar }: DetalheDiaProps) {
             {formatarBRL(dia.saldoCentavos)}
           </span>
         </div>
+      )}
+
+      {dia.noCalculo && (
+        <Button variant="outline" className={cn(BOTAO, 'mt-1 w-full bg-card')} onClick={onAdicionar}>
+          <Plus aria-hidden className="size-4" />
+          Adicionar lançamento
+        </Button>
       )}
     </>
   )

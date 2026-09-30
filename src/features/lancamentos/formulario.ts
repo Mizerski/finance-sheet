@@ -21,7 +21,8 @@ export interface RascunhoLancamento {
 
 export type ErrosLancamento = Partial<Record<keyof RascunhoLancamento, string>>
 
-export function rascunhoVazio(hoje: DataISO): RascunhoLancamento {
+/** Rascunho de um lançamento novo na `data` (hoje, ou o dia clicado na planilha). */
+export function rascunhoVazio(data: DataISO): RascunhoLancamento {
   return {
     descricao: '',
     tipo: 'saida',
@@ -29,8 +30,8 @@ export function rascunhoVazio(hoje: DataISO): RascunhoLancamento {
     categoriaId: '',
     natureza: 'variavel',
     recorrencia: 'unica',
-    data: hoje,
-    diaDoMes: String(Number(hoje.slice(8, 10))),
+    data,
+    diaDoMes: String(Number(data.slice(8, 10))),
     apenasDiasUteis: false,
     inicio: undefined,
     fim: undefined,
