@@ -8,7 +8,7 @@ import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { useProjecoes } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
-import { formatarData, paraDataISO } from '@/shared/lib/datas'
+import { formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -18,10 +18,14 @@ import { NavegacaoMeses } from './components/NavegacaoMeses'
 import { PrimeirosPassos } from './components/PrimeirosPassos'
 import { TabelaMes } from './components/TabelaMes'
 
-/** O lançamento continua guardado ao fechar, para o conteúdo não mudar durante a animação de saída. */
+/**
+ * Sem `lancamento`, o dialog cria um novo na `data` clicada.
+ * Os campos continuam guardados ao fechar, para o conteúdo não mudar durante a animação de saída.
+ */
 interface Edicao {
   aberto: boolean
   lancamento?: Lancamento
+  data?: DataISO
 }
 
 export function PlanilhaPage() {
@@ -61,6 +65,8 @@ export function PlanilhaPage() {
     if (lancamento) setEdicao({ aberto: true, lancamento })
   }
 
+  const adicionar = (data: DataISO) => setEdicao({ aberto: true, data })
+
   // O ano na URL é o do primeiro mês visível; o ano atual fica fora da URL.
   const irPara = (absoluto: number) => {
     const novoAno = Math.floor(absoluto / 12)
@@ -84,7 +90,7 @@ export function PlanilhaPage() {
               Saldo inicial de{' '}
               <span className={`font-medium text-foreground ${VALOR_SALDO}`}>{formatarBRL(abertura.valorCentavos)}</span>{' '}
               em {formatarData(abertura.data)} · <BotaoSaldoInicial onClick={() => setEditandoSaldo(true)} /> · clique
-              em um dia para ver os lançamentos
+              em um dia para ver ou adicionar lançamentos
             </>
           ) : (
             <>
@@ -133,6 +139,7 @@ export function PlanilhaPage() {
             hoje={hoje}
             categorias={categorias}
             onEditar={editar}
+            onAdicionar={adicionar}
           />
         ))}
       </div>
@@ -140,6 +147,7 @@ export function PlanilhaPage() {
       <DialogLancamento
         aberto={edicao.aberto}
         lancamento={edicao.lancamento}
+        dataInicial={edicao.data}
         onOpenChange={(aberto) => setEdicao((e) => ({ ...e, aberto }))}
       />
 

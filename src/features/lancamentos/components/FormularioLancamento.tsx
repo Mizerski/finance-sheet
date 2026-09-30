@@ -4,7 +4,7 @@ import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { SeletorData } from '@/shared/components/SeletorData'
-import { paraDataISO } from '@/shared/lib/datas'
+import { paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { BOTAO, CAMPO, CAMPO_SELECT, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
@@ -26,6 +26,8 @@ import { ROTULO_NATUREZA, ROTULO_TIPO } from '../textos'
 interface FormularioLancamentoProps {
   /** Ausente = novo lançamento. */
   lancamento?: Lancamento
+  /** Data sugerida para um lançamento novo. Sem ela, vale hoje. */
+  dataInicial?: DataISO
   onConcluir: () => void
 }
 
@@ -41,11 +43,11 @@ const OPCOES_DIAS = [
   { valor: 'uteis' as const, rotulo: 'Dias úteis' },
 ]
 
-export function FormularioLancamento({ lancamento, onConcluir }: FormularioLancamentoProps) {
+export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: FormularioLancamentoProps) {
   const { estado, dispatch } = useFinancas()
   const [rascunho, setRascunho] = useState<RascunhoLancamento>(() => {
     const hoje = paraDataISO(new Date())
-    return lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(hoje)
+    return lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(dataInicial ?? hoje)
   })
   const [tentouSalvar, setTentouSalvar] = useState(false)
 

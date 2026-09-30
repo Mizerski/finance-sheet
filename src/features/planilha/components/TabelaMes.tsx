@@ -27,6 +27,8 @@ interface TabelaMesProps {
   categorias: Map<string, Categoria>
   /** Abre a edição de um lançamento a partir do popover do dia. */
   onEditar: (lancamentoId: string) => void
+  /** Abre um lançamento novo na data do dia clicado. */
+  onAdicionar: (data: DataISO) => void
 }
 
 /** Larguras fixas para as colunas ficarem alinhadas entre os meses lado a lado. */
@@ -41,7 +43,7 @@ const COLUNAS: { rotulo: string; curto?: string; largura: string; className: str
 /** Todo mês ocupa 31 linhas, para as tabelas terem a mesma altura. */
 const LINHAS_POR_MES = 31
 
-export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar }: TabelaMesProps) {
+export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdicionar }: TabelaMesProps) {
   const saldoInicial = resumo.saldoInicialCentavos
 
   return (
@@ -99,6 +101,7 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar }: Tab
               ehHoje={dia.data === hoje}
               categorias={categorias}
               onEditar={onEditar}
+              onAdicionar={onAdicionar}
             />
           ))}
           {Array.from({ length: LINHAS_POR_MES - dias.length }, (_, i) => (
