@@ -5,7 +5,7 @@ import { diasNoMes, type DataISO } from '@/shared/lib/datas'
 export const MESES_DA_CAPACIDADE = 12
 
 /** A sugestão é arredondada para baixo em múltiplos de R$ 10. */
-const ARREDONDAMENTO_CENTAVOS = 1000
+export const ARREDONDAMENTO_CENTAVOS = 1000
 
 /**
  * O que define a capacidade:
@@ -44,16 +44,24 @@ function indiceDoMes(data: DataISO): number {
   return Number(data.slice(0, 4)) * 12 + Number(data.slice(5, 7)) - 1
 }
 
+/** Período da capacidade: do dia 1º do mês seguinte a `hoje` até o fim do 12º mês. */
+export function periodoDaCapacidade(hoje: DataISO): { primeiroAporte: DataISO; fim: DataISO } {
+  const inicio = indiceDoMes(hoje) + 1
+  const ultimo = inicio + MESES_DA_CAPACIDADE - 1
+  return {
+    primeiroAporte: dataISO(Math.floor(inicio / 12), inicio % 12, 1),
+    fim: dataISO(Math.floor(ultimo / 12), ultimo % 12, diasNoMes(Math.floor(ultimo / 12), ultimo % 12)),
+  }
+}
+
 /**
  * Capacidade de poupança a partir de `hoje`, pelos dias projetados (de um ou mais anos, em ordem).
  * O aporte extra acumula: no n-ésimo mês já saíram n aportes, então cada dia limita o valor a saldo ÷ n.
  * Retorna null se não houver dias calculados no período (ex.: saldo inicial ainda no futuro).
  */
 export function capacidadeDePoupanca(dias: DiaProjetado[], hoje: DataISO): CapacidadePoupanca | null {
-  const inicio = indiceDoMes(hoje) + 1
-  const primeiroAporte = dataISO(Math.floor(inicio / 12), inicio % 12, 1)
-  const ultimo = inicio + MESES_DA_CAPACIDADE - 1
-  const fim = dataISO(Math.floor(ultimo / 12), ultimo % 12, diasNoMes(Math.floor(ultimo / 12), ultimo % 12))
+  const { primeiroAporte, fim } = periodoDaCapacidade(hoje)
+  const inicio = indiceDoMes(primeiroAporte)
 
   let capacidade = Infinity
   let limite: CapacidadePoupanca['limite'] = null
@@ -102,7 +110,7 @@ export function capacidadeDePoupanca(dias: DiaProjetado[], hoje: DataISO): Capac
   }
 }
 
-/** Para baixo, em múltiplos de ARREDONDAMENTO_CENTAVOS, nunca abaixo de zero. */
-function arredondar(centavos: number): number {
+/** Para baixo, em múltiplos de R$ 10, nunca abaixo de zero. */
+export function arredondar(centavos: number): number {
   return Math.max(Math.floor(centavos / ARREDONDAMENTO_CENTAVOS) * ARREDONDAMENTO_CENTAVOS, 0)
 }
