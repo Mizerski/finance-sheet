@@ -77,7 +77,7 @@ export function LancamentosPage() {
             : `${contar(total, 'lançamento cadastrado', 'lançamentos cadastrados')} · entradas e saídas que alimentam a projeção`
         }
         acoes={
-          <Button className={BOTAO} onClick={novo}>
+          <Button className={BOTAO} onClick={novo} title="Novo lançamento (atalho N)">
             <Plus />
             Novo lançamento
           </Button>

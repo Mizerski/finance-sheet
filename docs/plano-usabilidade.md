@@ -17,7 +17,7 @@ Branch `feature/melhorias-usabilidade`. Vem da revisão de design (nota 3/4). Ca
   - Campo de busca pela descrição, guardado em `?q=`.
   - No celular, os quatro filtros viram um botão "Filtros (n)".
   - A tabela precisa de ~824px e rola dentro do card entre ~770px e ~860px; ajustar colunas para caber.
-- [ ] **5. Atalhos de teclado**
+- [x] **5. Atalhos de teclado**
   - `N` novo lançamento, `T` hoje, `←`/`→` meses na Planilha, `1`–`5` abas, `/` busca, `?` lista de atalhos.
 
 Antes de fazer o merge, apague este arquivo ou marque tudo como feito.

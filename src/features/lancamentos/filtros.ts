@@ -11,6 +11,9 @@ export interface FiltrosLancamento {
   tag?: string
 }
 
+/** Id do campo de busca, focado pelo atalho `/`. */
+export const ID_BUSCA = 'busca-lancamentos'
+
 /** Filtro de tag que mostra as saídas ainda sem tag. */
 export const FILTRO_SEM_TAG = 'sem'
 

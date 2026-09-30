@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
 import { Landmark } from 'lucide-react'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
@@ -8,6 +8,7 @@ import { DialogLancamento } from '@/features/lancamentos/components/DialogLancam
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { useProjecoes } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { useAtalhos } from '@/shared/hooks/useAtalhos'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
 import { formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -93,6 +94,19 @@ export function PlanilhaPage() {
     })
   }
 
+  const irParaHoje = () => navigate({ search: { ano: undefined }, replace: true })
+
+  // A planilha continua na tela enquanto outra página carrega; aí as setas já não são dela.
+  const naPlanilha = useRouterState({ select: (s) => s.location.pathname === '/' })
+  useAtalhos(
+    {
+      ArrowLeft: () => inicio > primeiro && irPara(inicio - 1),
+      ArrowRight: () => inicio < ultimo && irPara(inicio + 1),
+      t: irParaHoje,
+    },
+    naPlanilha,
+  )
+
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina
@@ -131,7 +145,8 @@ export function PlanilhaPage() {
             <Button
               variant="outline"
               className={cn(BOTAO, 'ml-auto bg-card md:ml-0')}
-              onClick={() => navigate({ search: { ano: undefined }, replace: true })}
+              title="Voltar para hoje (atalho T)"
+              onClick={irParaHoje}
             >
               Hoje
             </Button>

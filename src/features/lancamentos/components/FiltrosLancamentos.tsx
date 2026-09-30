@@ -11,7 +11,7 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { contarFiltros, FILTRO_SEM_TAG, temFiltro, type FiltrosLancamento } from '../filtros'
+import { contarFiltros, FILTRO_SEM_TAG, ID_BUSCA, temFiltro, type FiltrosLancamento } from '../filtros'
 
 interface FiltrosLancamentosProps {
   filtros: FiltrosLancamento
@@ -96,6 +96,7 @@ function CampoBusca({ valor, onChange }: { valor: string; onChange: (q: string) 
     <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
       <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
+        id={ID_BUSCA}
         type="search"
         aria-label="Buscar lançamento pela descrição"
         placeholder="Buscar lançamento"
