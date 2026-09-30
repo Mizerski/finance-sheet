@@ -57,6 +57,8 @@ jobs:
                 '- **Instalador:** o arquivo terminado em `_x64-setup.exe` (ou o `.msi`, se preferir).',
                 '- **Aviso do SmartScreen:** o instalador não é assinado, então o Windows pode avisar na primeira vez. Clique em **Mais informações** → **Executar assim mesmo**.',
                 '',
+                'Já tem o app instalado? Ele avisa sozinho quando há versão nova; é só clicar em **Atualizar**.',
+                '',
                 'No app desktop os dados ficam só no seu computador. Use o botão de **backup** no cabeçalho para exportar uma cópia de vez em quando.',
               ].join('\n'),
             })
@@ -108,12 +110,32 @@ jobs:
 
       - run: npm ci
 
+      # Sem a chave pública no tauri.conf.json, os apps instalados não conseguiriam conferir as atualizações.
+      - name: Conferir chave do atualizador
+        shell: bash
+        run: |
+          if grep -q 'COLE_AQUI_A_CHAVE_PUBLICA' src-tauri/tauri.conf.json; then
+            echo "::error::Falta a chave pública do atualizador (plugins.updater.pubkey) em src-tauri/tauri.conf.json."
+            exit 1
+          fi
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error::Falta o secret TAURI_SIGNING_PRIVATE_KEY para assinar as atualizações."
+            exit 1
+          fi
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+
+      # tauri.release.conf.json liga a assinatura das atualizações. O tauri-action sobe o latest.json
+      # na release, e o app instalado o consulta em releases/latest/download/latest.json.
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           releaseId: ${{ needs.criar-release.outputs.id }}
-          args: ${{ matrix.args }}
+          args: --config src-tauri/tauri.release.conf.json ${{ matrix.args }}
+          updaterJsonPreferNsis: true
 
   publicar:
     name: Publicar release
