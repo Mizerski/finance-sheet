@@ -36,6 +36,7 @@ export function GraficoGastosPasta({
   return (
     <CardGrafico
       faixa="bg-foreground"
+      forma={{ forma: 'quadrado', cor: 'amarelo' }}
       titulo="Gastos por pasta"
       descricao={`Quanto cada pasta levou das saídas ${periodo}`}
       className={className}

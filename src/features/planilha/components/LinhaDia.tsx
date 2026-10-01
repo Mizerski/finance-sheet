@@ -16,6 +16,8 @@ interface LinhaDiaProps {
   onEditar: (lancamentoId: string) => void
   onAdicionar: (data: DataISO) => void
   comEconomia: boolean
+  /** O gasto de um mês, para pintar o saldo com a cor do risco; null sem projeção à frente. */
+  referenciaCentavos: number | null
 }
 
 /**
@@ -28,7 +30,7 @@ const VEU = {
   hoje: 'font-semibold [&>td]:shadow-[inset_0_2px_0_0_var(--color-foreground),inset_0_-2px_0_0_var(--color-foreground)]',
 }
 
-export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia }: LinhaDiaProps) {
+export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia, referenciaCentavos }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
   const linhaRef = useRef<HTMLTableRowElement>(null)
   const fimDeSemana = dia.diaDaSemana === 0 || dia.diaDaSemana === 6
@@ -79,7 +81,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
           <CelulaValor centavos={dia.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
           <CelulaValor centavos={dia.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
           {comEconomia && <CelulaValor centavos={dia.economiaCentavos} className={COR_COLUNA.economia} compacta />}
-          <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} />
+          <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} referenciaCentavos={referenciaCentavos} />
         </TableRow>
       </PopoverAnchor>
 
@@ -93,6 +95,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
       >
         <DetalheDia
           dia={dia}
+          referenciaCentavos={referenciaCentavos}
           categorias={categorias}
           onEditar={(id) => {
             setAberto(false)

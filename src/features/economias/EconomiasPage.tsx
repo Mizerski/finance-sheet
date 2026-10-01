@@ -2,6 +2,10 @@ import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useProjecao, useProjecoes } from '@/features/projecao/useProjecao'
+import { CardRisco } from '@/features/risco/components/CardRisco'
+import { analisarRisco, capacidadePorNivel } from '@/features/risco/risco'
+import type { ContextoRisco } from '@/features/risco/simulacao'
+import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
@@ -57,6 +61,17 @@ export function EconomiasPage() {
   // Independe do ano exibido: capacidade, reserva e gastos grandes olham os próximos meses a partir de hoje.
   const dias = useMemo(() => projecoes.flatMap((p) => p.dias), [projecoes])
   const capacidade = useMemo(() => capacidadeDePoupanca(dias, hoje), [dias, hoje])
+  const risco = useMemo(() => analisarRisco(dias, hoje), [dias, hoje])
+  const porNivel = useMemo(
+    () => risco && capacidadePorNivel(dias, hoje, risco.referenciaCentavos),
+    [dias, hoje, risco],
+  )
+  // O que dá para guardar a mais sem piorar o risco do caixa: é o valor que o app recomenda.
+  const guardarSemPiorar = risco && porNivel ? porNivel[risco.nivel] : null
+  const contextoRisco: ContextoRisco = useMemo(
+    () => ({ config: estado.config, lancamentos: estado.lancamentos, metas: estado.metas, hoje }),
+    [estado.config, estado.lancamentos, estado.metas, hoje],
+  )
   const essencial = useMemo(() => gastoEssencial(dias, estado.tags, hoje), [dias, estado.tags, hoje])
   const grandes = useMemo(() => gastosGrandes(dias, estado.lancamentos, hoje), [dias, estado.lancamentos, hoje])
   const reserva = metaDeReserva(estado.metas)
@@ -87,11 +102,20 @@ export function EconomiasPage() {
           quantidade > 0 ? (
             <>
               {quantidade} {quantidade === 1 ? 'meta' : 'metas'} ·{' '}
-              <span className="font-medium text-foreground tabular-nums">{formatarBRL(guardado)}</span> guardados de{' '}
-              {formatarBRL(alvo)} · os aportes saem do saldo na coluna Economia da planilha
+              <span className="font-semibold text-foreground tabular-nums">{formatarBRL(guardado)}</span> guardados de{' '}
+              {formatarBRL(alvo)}
             </>
           ) : (
             'Separe dinheiro todo mês para um objetivo e acompanhe quanto já guardou'
+          )
+        }
+        ajuda={
+          quantidade > 0 && (
+            <Ajuda titulo="Como as metas funcionam">
+              <p>
+                No dia combinado, o dinheiro guardado sai do saldo e aparece em amarelo na coluna Economia da planilha.
+              </p>
+            </Ajuda>
           )
         }
         acoes={
@@ -106,7 +130,7 @@ export function EconomiasPage() {
         <Card className={CARD}>
           <EstadoVazio
             titulo="Nenhuma meta de economia ainda"
-            descricao="Diga quanto quer juntar e quanto guardar por mês. O aporte é descontado do saldo e a meta mostra quanto falta."
+            descricao="Diga quanto quer juntar e quanto guardar por mês. No dia combinado, o app tira esse valor do saldo e mostra quanto falta."
             acao={
               <Button className={BOTAO} onClick={nova}>
                 <Plus />
@@ -132,16 +156,18 @@ export function EconomiasPage() {
         </div>
       )}
 
-      <CardSugestoes
-        sugestoes={sugestoes}
-        capacidade={capacidade}
-        onAplicar={(meta) => dispatch({ tipo: 'meta/salvar', meta })}
-        onNovaMeta={nova}
-      />
-
-      {capacidade && <CardCapacidade capacidade={capacidade} />}
+      {/* O risco vem antes das sugestões: nenhuma recomendação de guardar mais sem mostrar o aperto do caixa. */}
+      {risco && <CardRisco risco={risco} contexto={contextoRisco} />}
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
+        {capacidade && risco && porNivel && <CardCapacidade capacidade={capacidade} risco={risco} porNivel={porNivel} />}
+        <CardSugestoes
+          sugestoes={sugestoes}
+          risco={risco}
+          guardarSemPiorarCentavos={guardarSemPiorar}
+          onAplicar={(meta) => dispatch({ tipo: 'meta/salvar', meta })}
+          onNovaMeta={nova}
+        />
         <CardReserva
           gasto={essencial}
           meses={mesesDeReserva}
@@ -159,8 +185,8 @@ export function EconomiasPage() {
               sugestao: {
                 nome: NOME_RESERVA,
                 valorAlvoCentavos: alvoReserva,
-                // Começa pelo que cabe no fluxo; o diagnóstico do formulário confere no dia do aporte.
-                aporteMensalCentavos: Math.min(capacidade?.capacidadeCentavos ?? 0, alvoReserva),
+                // Começa pelo que cabe sem piorar o risco; o diagnóstico do formulário confere no dia do aporte.
+                aporteMensalCentavos: Math.min(guardarSemPiorar ?? 0, alvoReserva),
               },
             })
           }
@@ -168,7 +194,11 @@ export function EconomiasPage() {
             setEdicao({ aberto: true, meta, sugestao: { valorAlvoCentavos: alvoReserva } })
           }
         />
-        <CardGastosGrandes gastos={grandes} fim={periodoDaCapacidade(hoje).fim} />
+        <CardGastosGrandes
+          gastos={grandes}
+          fim={periodoDaCapacidade(hoje).fim}
+          referenciaCentavos={risco?.referenciaCentavos ?? 0}
+        />
       </div>
 
       <CardSobras ano={ano} meses={meses} />

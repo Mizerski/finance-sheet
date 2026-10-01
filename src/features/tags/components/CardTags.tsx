@@ -43,6 +43,7 @@ export function CardTags({ tags, usos, gastos, onNova, onUsarSugeridas, onEditar
         titulo="Tags"
         contagem={tags.length}
         faixa="bg-amarelo"
+        forma={{ forma: 'triangulo', cor: 'tinta' }}
         destaque={{
           rotulo: 'Evitáveis no ano',
           valor: (

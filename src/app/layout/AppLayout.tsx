@@ -41,12 +41,16 @@ export function AppLayout() {
   )
 }
 
-/** Faixa de abas com contorno preto; a ativa vira bloco preto. Cada aba abre a tela como o usuário a deixou. */
+/**
+ * Abas em blocos com contorno e sombra dura, que afundam ao clicar como os botões; a ativa fica afundada, em preto.
+ * Cada aba abre a tela como o usuário a deixou.
+ */
 function Menu() {
   const { buscaPara } = useMemoriaNavegacao()
 
   return (
-    <nav className="flex min-w-0 flex-1 overflow-x-auto border-2 border-foreground bg-card [scrollbar-width:none] min-[76rem]:flex-initial">
+    // Folga embaixo e à direita para a sombra dura não ser cortada pela rolagem do celular.
+    <nav className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto pr-[3px] pb-[3px] [scrollbar-width:none] min-[76rem]:flex-initial">
       {ITENS_MENU.map(({ to, rotulo, forma }, i) => (
         <Link
           key={to}
@@ -54,8 +58,9 @@ function Menu() {
           title={`${rotulo} (atalho ${i + 1})`}
           search={buscaPara(to)}
           activeOptions={{ exact: true, includeSearch: false }}
-          className="flex h-9 shrink-0 grow items-center justify-center gap-2 border-l-2 border-foreground px-3 text-xs font-semibold tracking-[0.06em] uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo focus-visible:bg-amarelo min-[76rem]:grow-0"
-          activeProps={{ className: 'bg-foreground text-background hover:bg-foreground focus-visible:bg-foreground' }}
+          className="flex h-9 shrink-0 grow items-center justify-center gap-2 border-2 border-foreground px-3 text-xs font-semibold tracking-[0.06em] uppercase transition-[color,background-color,box-shadow,translate] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px] min-[76rem]:grow-0"
+          inactiveProps={{ className: 'bg-card shadow-bloco-sm hover:bg-amarelo active:shadow-none' }}
+          activeProps={{ className: 'bg-foreground text-background motion-safe:translate-x-[2px] motion-safe:translate-y-[2px]' }}
         >
           <Forma {...forma} className="size-3" />
           {rotulo}

@@ -1,4 +1,6 @@
 import { Plus, RefreshCw } from 'lucide-react'
+import { DinheiroForte, Forte } from '@/features/risco/components/Destaques'
+import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -31,7 +33,32 @@ export function CardReserva({ gasto, meses, onMeses, existente, onCriar, onAtual
       <CabecalhoCard
         titulo="Reserva de emergência"
         faixa="bg-amarelo"
-        descricao="O gasto essencial de alguns meses, guardado para imprevistos"
+        forma={{ forma: 'quadrado', cor: 'tinta' }}
+        descricao="Para imprevistos"
+        ajuda={
+          <Ajuda titulo="Reserva de emergência">
+            <p>Dinheiro guardado para imprevistos: perder o emprego, uma doença, o carro quebrar.</p>
+            {essencialMensalCentavos > 0 && (
+              <p>
+                O gasto essencial é tudo o que sai nos próximos 12 meses (
+                <DinheiroForte centavos={saidas} /> por mês)
+                {evitaveis > 0 ? (
+                  <>
+                    {' '}
+                    menos os gastos evitáveis (<DinheiroForte centavos={evitaveis} />
+                    ), que numa emergência dá para cortar.
+                  </>
+                ) : (
+                  <>. Marque os gastos supérfluos com uma tag evitável para tirá-los da conta.</>
+                )}
+              </p>
+            )}
+            <p>
+              <Forte>Quantos meses guardar?</Forte> O costume é de 3 a 6 com salário fixo e de 6 a 12 com renda variável
+              (autônomo, PJ).
+            </p>
+          </Ajuda>
+        }
       />
 
       <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
@@ -53,16 +80,9 @@ export function CardReserva({ gasto, meses, onMeses, existente, onCriar, onAtual
               <span className={cn('text-[2.75rem] text-economia', VALOR_DESTAQUE)}>{formatarBRL(alvo)}</span>
               <span className={cn(ROTULO, 'text-muted-foreground')}>para {meses} meses</span>
             </p>
-            <p className="text-sm text-muted-foreground">
-              Gasto essencial de{' '}
-              <span className="font-semibold text-foreground tabular-nums">{formatarBRL(essencialMensalCentavos)}</span>{' '}
-              por mês: as saídas dos próximos 12 meses ({formatarBRL(saidas)} por mês)
-              {evitaveis > 0 ? (
-                <> menos as de tag evitável ({formatarBRL(evitaveis)}), que numa emergência dá para cortar.</>
-              ) : (
-                <>. Marque os gastos supérfluos com uma tag evitável para tirá-los da conta.</>
-              )}{' '}
-              O costume é guardar de 3 a 6 meses com renda estável e de 6 a 12 com renda variável (autônomo, PJ).
+            <p className="text-sm">
+              São {meses} meses de <Forte className="tabular-nums">{formatarBRL(essencialMensalCentavos)}</Forte>, o seu
+              gasto essencial por mês.
             </p>
           </>
         )}
@@ -103,15 +123,16 @@ function Existente({
         <span className={cn(ROTULO, 'truncate')}>{meta.nome}</span>
         <span className="text-sm text-muted-foreground tabular-nums">
           <span className="font-semibold text-foreground">{formatarBRL(resumo.guardadoCentavos)}</span> de{' '}
-          {formatarBRL(meta.valorAlvoCentavos)}
+          {formatarBRL(meta.valorAlvoCentavos)} · faltam{' '}
+          <span className="font-semibold text-foreground">{formatarBRL(resumo.faltaCentavos)}</span>
         </span>
       </div>
       <BarraProgresso percentual={resumo.percentual} rotulo={`Progresso de ${meta.nome}`} />
       {diferente && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <p className="min-w-0 flex-1 basis-60 text-sm text-muted-foreground">
-            O alvo da meta é {formatarBRL(meta.valorAlvoCentavos)}; para {meses} meses de gasto essencial, hoje seria{' '}
-            <span className="font-semibold text-foreground tabular-nums">{formatarBRL(alvo)}</span>.
+          <p className="min-w-0 flex-1 basis-60 text-sm">
+            <Forte>O alvo ficou desatualizado.</Forte> A meta pede {formatarBRL(meta.valorAlvoCentavos)}; para{' '}
+            {meses} meses de gasto essencial, hoje seriam <Forte className="tabular-nums">{formatarBRL(alvo)}</Forte>.
           </p>
           <Button variant="outline" className={cn(BOTAO, 'h-8 px-3')} onClick={() => onAtualizarAlvo(meta, alvo)}>
             <RefreshCw />

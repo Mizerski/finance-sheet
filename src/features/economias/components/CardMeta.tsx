@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { CalendarCheck, Pencil, Trash2 } from 'lucide-react'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
+import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { Forma } from '@/shared/components/Forma'
 import { BOTAO, CARD, ROTULO, TITULO_CARD, VALOR_DESTAQUE } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -26,6 +27,7 @@ interface CardMetaProps {
 export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, onExcluir }: CardMetaProps) {
   const percentual = Math.floor(resumo.percentual * 100)
   const fimDoAno = `${hoje.slice(0, 4)}-12-31`
+  const atrasada = !!meta.prazo && !resumo.concluida && !resumo.noPrazo
 
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
@@ -93,15 +95,19 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
       </dl>
 
       <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
-        <p className="text-sm text-muted-foreground">
-          <Previsao resumo={resumo} />
+        <CaixaDestaque
+          fundo={atrasada ? 'bg-saida-suave' : 'bg-economia-suave'}
+          faixa={atrasada ? 'border-l-vermelho' : 'border-l-amarelo'}
+        >
+          <p>
+            <Previsao resumo={resumo} />
+          </p>
           {meta.prazo && !resumo.concluida && (
-            <>
-              {' '}
+            <p>
               <SituacaoPrazo prazo={meta.prazo} resumo={resumo} hoje={hoje} />
-            </>
+            </p>
           )}
-        </p>
+        </CaixaDestaque>
 
         <Button variant="outline" className={cn(BOTAO, 'self-start')} onClick={onAjustar}>
           <CalendarCheck />
@@ -125,11 +131,27 @@ function Dado({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 export function Previsao({ resumo }: { resumo: ResumoMeta }) {
   const { concluida, conclusaoPrevista, conclusaoNoPlano, mediaCentavos, ritmoCentavos } = resumo
 
-  if (concluida && conclusaoPrevista) return <>Meta atingida no aporte de {formatarData(conclusaoPrevista)}.</>
-  if (!conclusaoPrevista) return <>No ritmo atual não há aportes, então a meta não tem previsão de término.</>
+  if (concluida && conclusaoPrevista) {
+    return (
+      <>
+        <strong className="font-bold text-foreground">Meta atingida!</strong> O cofrinho encheu no aporte de{' '}
+        {formatarData(conclusaoPrevista)}.
+      </>
+    )
+  }
+  if (!conclusaoPrevista) {
+    return (
+      <>
+        <strong className="font-bold text-foreground">Sem previsão de término:</strong> no ritmo atual não entra
+        dinheiro nesta meta.
+      </>
+    )
+  }
 
   const base =
-    mediaCentavos === null ? `pelo plano de ${formatarBRL(ritmoCentavos)} por mês` : `no seu ritmo de ${formatarBRL(ritmoCentavos)} por mês`
+    mediaCentavos === null
+      ? `guardando ${formatarBRL(ritmoCentavos)} por mês, como planejado`
+      : `no seu ritmo de ${formatarBRL(ritmoCentavos)} por mês`
   const plano =
     conclusaoNoPlano && conclusaoNoPlano.slice(0, 7) !== conclusaoPrevista.slice(0, 7)
       ? ` Seguindo o plano, em ${formatarMesAno(conclusaoNoPlano)}.`
@@ -137,7 +159,8 @@ export function Previsao({ resumo }: { resumo: ResumoMeta }) {
 
   return (
     <>
-      Completa em <span className="font-semibold text-foreground">{formatarMesAno(conclusaoPrevista)}</span> {base}.{plano}
+      <strong className="font-bold text-foreground">Fica completa em {formatarMesAno(conclusaoPrevista)}</strong>, {base}.
+      {plano}
     </>
   )
 }
@@ -145,22 +168,36 @@ export function Previsao({ resumo }: { resumo: ResumoMeta }) {
 /** Se o plano cumpre o prazo e, se não cumpre, de quanto precisa ser o aporte para cumprir. */
 export function SituacaoPrazo({ prazo, resumo, hoje }: { prazo: DataISO; resumo: ResumoMeta; hoje: DataISO }) {
   const quando = <span className="font-semibold text-foreground">{formatarMesAno(prazo)}</span>
+  const forte = 'font-bold text-foreground'
 
-  if (resumo.noPrazo) return <>Dentro do prazo de {quando}.</>
+  if (resumo.noPrazo) {
+    return (
+      <>
+        <strong className={forte}>Chega a tempo</strong> do prazo de {quando}.
+      </>
+    )
+  }
   if (prazo < hoje) {
     return (
       <>
-        O prazo de {quando} passou e faltam{' '}
+        <strong className={cn(forte, 'text-negativo')}>O prazo passou:</strong> era {quando} e ainda faltam{' '}
         <span className="font-semibold text-foreground tabular-nums">{formatarBRL(resumo.faltaCentavos)}</span>.
       </>
     )
   }
-  if (resumo.aporteParaOPrazoCentavos === null) return <>Não há mais dias de aporte até o prazo de {quando}.</>
+  if (resumo.aporteParaOPrazoCentavos === null) {
+    return (
+      <>
+        <strong className={cn(forte, 'text-negativo')}>Não dá mais a tempo:</strong> não há dia de aporte até o prazo
+        de {quando}.
+      </>
+    )
+  }
   return (
     <>
-      Para chegar até {quando}, o aporte precisa ser de{' '}
-      <span className="font-semibold text-economia tabular-nums">{formatarBRL(resumo.aporteParaOPrazoCentavos)}</span>{' '}
-      por mês.
+      <strong className={cn(forte, 'text-negativo')}>Está atrasada.</strong> Para chegar até {quando}, guarde{' '}
+      <span className="font-bold text-economia tabular-nums">{formatarBRL(resumo.aporteParaOPrazoCentavos)}</span> por
+      mês daqui em diante.
     </>
   )
 }

@@ -1,4 +1,9 @@
+import { COR_RISCO } from '@/features/risco/cores'
+import { DinheiroForte, Forte } from '@/features/risco/components/Destaques'
+import { Ajuda } from '@/shared/components/Ajuda'
+import { nivelDoSaldo } from '@/features/risco/risco'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
+import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO, TABELA, VALOR_SALDO } from '@/shared/lib/estilos'
@@ -10,8 +15,15 @@ import type { GastosGrandes } from '../gastos-grandes'
 /** Colunas justas no celular, para as quatro caberem em 339px. */
 const CELULA = 'px-1 py-2.5 sm:px-3'
 
-/** Gastos únicos grandes que vêm aí e se o saldo projetado os cobre no dia. */
-export function CardGastosGrandes({ gastos, fim }: { gastos: GastosGrandes; fim: DataISO }) {
+interface CardGastosGrandesProps {
+  gastos: GastosGrandes
+  fim: DataISO
+  /** O gasto de um mês, para pintar o saldo do dia com a cor do risco do caixa. */
+  referenciaCentavos: number
+}
+
+/** Gastos únicos grandes que vêm aí e se o saldo projetado os cobre no dia, na cor do risco. */
+export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGastosGrandesProps) {
   const { itens, totalCentavos, minimoCentavos } = gastos
   const descobertos = itens.filter((g) => g.saldoNoDiaCentavos < 0).length
 
@@ -20,12 +32,21 @@ export function CardGastosGrandes({ gastos, fim }: { gastos: GastosGrandes; fim:
       <CabecalhoCard
         titulo="Gastos grandes à frente"
         faixa="bg-vermelho"
+        forma={{ forma: 'triangulo', cor: 'papel' }}
         contagem={itens.length}
-        descricao={
-          <>
-            Saídas únicas até {formatarMesAno(fim, 'curto')} a partir de{' '}
-            <span className="tabular-nums">{formatarBRL(minimoCentavos)}</span> (um quarto do gasto mensal)
-          </>
+        descricao={<>Contas únicas até {formatarMesAno(fim, 'curto')}</>}
+        ajuda={
+          <Ajuda titulo="Gastos grandes à frente">
+            <p>
+              Contas que não se repetem todo mês, a partir de <DinheiroForte centavos={minimoCentavos} /> (¼ do que você
+              gasta num mês). A cor do saldo mostra o risco do caixa no dia.
+            </p>
+            <p>
+              <Forte>Não crie uma meta para eles.</Forte> A projeção já tira esses gastos do saldo no dia certo (e
+              "Quanto dá para guardar" deixa espaço para eles). Com uma meta, o dinheiro sairia duas vezes: uma para o
+              cofrinho e outra no pagamento.
+            </p>
+          </Ajuda>
         }
       />
 
@@ -56,7 +77,12 @@ export function CardGastosGrandes({ gastos, fim }: { gastos: GastosGrandes; fim:
                   {formatarBRL(g.valorCentavos)}
                 </TableCell>
                 <TableCell
-                  className={cn(CELULA, 'pr-4 text-right tabular-nums sm:pr-5', g.saldoNoDiaCentavos < 0 && 'text-negativo')}
+                  className={cn(
+                    CELULA,
+                    'pr-4 text-right font-medium tabular-nums sm:pr-5',
+                    COR_RISCO[nivelDoSaldo(g.saldoNoDiaCentavos, referenciaCentavos)].suave,
+                    g.saldoNoDiaCentavos < 0 && 'text-negativo',
+                  )}
                 >
                   <span className={VALOR_SALDO}>{formatarBRL(g.saldoNoDiaCentavos)}</span>
                 </TableCell>
@@ -77,20 +103,23 @@ export function CardGastosGrandes({ gastos, fim }: { gastos: GastosGrandes; fim:
         </Table>
       )}
 
-      {itens.length > 0 && (
-        <p className="border-t-2 border-foreground px-4 py-3 text-sm text-muted-foreground sm:px-5">
-          {descobertos > 0 ? (
-            <>
-              Em {descobertos === 1 ? 'um desses dias' : `${descobertos} desses dias`} o saldo fica negativo: antecipe
-              uma entrada ou corte gastos antes.{' '}
-            </>
-          ) : (
-            <>O saldo projetado cobre todos. </>
-          )}
-          A projeção já desconta esses gastos no dia, então "Quanto dá para guardar" deixa espaço para eles. Não crie
-          uma meta para eles: o aporte sairia do saldo e o gasto sairia de novo.
-        </p>
-      )}
+      {itens.length > 0 &&
+        (descobertos > 0 ? (
+          <div className="border-t-2 border-foreground px-4 py-4 sm:px-5">
+            <CaixaDestaque fundo="bg-negativo-suave" faixa="border-l-vermelho">
+              <p>
+                <Forte className="text-negativo">
+                  Em {descobertos === 1 ? 'um desses dias' : `${descobertos} desses dias`} falta dinheiro.
+                </Forte>{' '}
+                Antecipe uma entrada ou corte gastos antes.
+              </p>
+            </CaixaDestaque>
+          </div>
+        ) : (
+          <p className="border-t-2 border-foreground px-4 py-3 text-sm sm:px-5">
+            <Forte>O saldo cobre todos.</Forte>
+          </p>
+        ))}
     </Card>
   )
 }

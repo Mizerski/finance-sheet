@@ -9,7 +9,7 @@ export const ARREDONDAMENTO_CENTAVOS = 1000
 
 /**
  * O que define a capacidade:
- * - `negativo`: o saldo projetado já fica negativo, então não há espaço;
+ * - `negativo`: o saldo projetado já fica negativo (ou abaixo do piso), então não há espaço;
  * - `sobra`: a sobra média do mês (guardar mais consumiria o saldo que já está na conta);
  * - `saldo`: o dia mais apertado, quando o aporte extra deixaria o saldo negativo antes de a sobra render.
  */
@@ -56,10 +56,11 @@ export function periodoDaCapacidade(hoje: DataISO): { primeiroAporte: DataISO; f
 
 /**
  * Capacidade de poupança a partir de `hoje`, pelos dias projetados (de um ou mais anos, em ordem).
- * O aporte extra acumula: no n-ésimo mês já saíram n aportes, então cada dia limita o valor a saldo ÷ n.
- * Retorna null se não houver dias calculados no período (ex.: saldo inicial ainda no futuro).
+ * O aporte extra acumula: no n-ésimo mês já saíram n aportes, então cada dia limita o valor a (saldo − piso) ÷ n.
+ * `pisoCentavos` é o saldo que precisa continuar na conta todo dia (0 = só não ficar negativo; o risco do caixa usa
+ * o piso de cada nível). Retorna null se não houver dias calculados no período (ex.: saldo inicial ainda no futuro).
  */
-export function capacidadeDePoupanca(dias: DiaProjetado[], hoje: DataISO): CapacidadePoupanca | null {
+export function capacidadeDePoupanca(dias: DiaProjetado[], hoje: DataISO, pisoCentavos = 0): CapacidadePoupanca | null {
   const { primeiroAporte, fim } = periodoDaCapacidade(hoje)
   const inicio = indiceDoMes(primeiroAporte)
 
@@ -82,8 +83,9 @@ export function capacidadeDePoupanca(dias: DiaProjetado[], hoje: DataISO): Capac
     }
 
     const aportesAteODia = d.data >= primeiroAporte ? indiceDoMes(d.data) - inicio + 1 : 0
-    // Antes do primeiro aporte extra, só um saldo já negativo limita (e zera a capacidade).
-    const maximo = aportesAteODia > 0 ? saldo / aportesAteODia : saldo < 0 ? 0 : Infinity
+    // Antes do primeiro aporte extra, só um saldo já abaixo do piso limita (e zera a capacidade).
+    const folga = saldo - pisoCentavos
+    const maximo = aportesAteODia > 0 ? folga / aportesAteODia : folga < 0 ? 0 : Infinity
     if (maximo < capacidade) {
       capacidade = maximo
       limite = { data: d.data, saldoCentavos: saldo }
@@ -96,7 +98,7 @@ export function capacidadeDePoupanca(dias: DiaProjetado[], hoje: DataISO): Capac
   const pelaSobra = arredondar(sobraMedia)
   const peloSaldo = Number.isFinite(capacidade) ? arredondar(capacidade) : pelaSobra
   const motivo: MotivoCapacidade =
-    menorSaldo && menorSaldo.valorCentavos < 0 ? 'negativo' : pelaSobra <= peloSaldo ? 'sobra' : 'saldo'
+    menorSaldo && menorSaldo.valorCentavos < pisoCentavos ? 'negativo' : pelaSobra <= peloSaldo ? 'sobra' : 'saldo'
 
   return {
     primeiroAporte,

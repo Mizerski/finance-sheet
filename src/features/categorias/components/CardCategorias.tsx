@@ -35,6 +35,7 @@ export function CardCategorias({ tipo, categorias, usos, totais, onNova, onEdita
         titulo={TITULO[tipo]}
         contagem={categorias.length}
         faixa={tipo === 'entrada' ? 'bg-azul' : 'bg-vermelho'}
+        forma={tipo === 'entrada' ? { forma: 'circulo', cor: 'papel' } : { forma: 'quadrado', cor: 'papel' }}
         destaque={{ rotulo: 'Total no ano', valor: formatarBRL(totalDoTipo), className: corValor }}
       />
 

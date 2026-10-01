@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { ROTULO, TITULO_CARD } from '@/shared/lib/estilos'
+import type { FormaDaPagina } from '@/shared/lib/formas'
 import { cn } from '@/shared/lib/utils'
+import { Forma } from './Forma'
 
 interface CabecalhoCardProps {
   titulo: ReactNode
@@ -8,7 +10,11 @@ interface CabecalhoCardProps {
   contagem?: number
   /** Faixa de cor à esquerda (`bg-azul`, `bg-vermelho`…), para dizer do que o card trata. */
   faixa?: string
+  /** Forma geométrica no meio da faixa, que vira um bloco mais largo (ex.: círculo amarelo sobre o azul). */
+  forma?: FormaDaPagina
   descricao?: ReactNode
+  /** Botão "?" ao lado do título (`Ajuda`), com a explicação do card. */
+  ajuda?: ReactNode
   /** Número de destaque à direita, com o rótulo em caixa alta em cima. */
   destaque?: { rotulo: ReactNode; valor: ReactNode; className?: string }
   /** Controles à direita (no lugar do destaque ou depois dele). */
@@ -16,20 +22,34 @@ interface CabecalhoCardProps {
 }
 
 /** Cabeçalho de card: faixa de cor, título em caixa alta, destaque ou ações à direita e régua preta embaixo. */
-export function CabecalhoCard({ titulo, contagem, faixa, descricao, destaque, acoes }: CabecalhoCardProps) {
+export function CabecalhoCard({ titulo, contagem, faixa, forma, descricao, ajuda, destaque, acoes }: CabecalhoCardProps) {
   return (
     <header className="flex items-stretch border-b-2 border-foreground">
-      {faixa && <span aria-hidden className={cn('w-3 shrink-0 border-r-2 border-foreground sm:w-4', faixa)} />}
+      {faixa && (
+        <span
+          aria-hidden
+          className={cn(
+            'flex shrink-0 items-center justify-center overflow-hidden border-r-2 border-foreground',
+            forma ? 'w-10 sm:w-12' : 'w-3 sm:w-4',
+            faixa,
+          )}
+        >
+          {forma && <Forma {...forma} className="size-5 sm:size-6" />}
+        </span>
+      )}
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className={cn(TITULO_CARD, 'flex flex-wrap items-center gap-2')}>
-            {titulo}
-            {contagem !== undefined && (
-              <span className="bg-foreground px-1.5 py-1 font-sans text-xs leading-none font-semibold text-background tabular-nums">
-                {contagem}
-              </span>
-            )}
-          </h2>
+          <div className="flex items-center gap-1">
+            <h2 className={cn(TITULO_CARD, 'flex flex-wrap items-center gap-2')}>
+              {titulo}
+              {contagem !== undefined && (
+                <span className="bg-foreground px-1.5 py-1 font-sans text-xs leading-none font-semibold text-background tabular-nums">
+                  {contagem}
+                </span>
+              )}
+            </h2>
+            {ajuda}
+          </div>
           {descricao && <p className="text-sm text-muted-foreground">{descricao}</p>}
         </div>
         {(destaque || acoes) && (

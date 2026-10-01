@@ -49,6 +49,7 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
     <CardGrafico
       titulo={`Saldo no fim de ${cada}`}
       faixa="bg-foreground"
+      forma={{ forma: 'quarto', cor: 'vermelho' }}
       descricao={`Quanto sobra na conta ${noFim}`}
       className={className}
       tabela={

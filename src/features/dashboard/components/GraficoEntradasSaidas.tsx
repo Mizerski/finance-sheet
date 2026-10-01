@@ -17,6 +17,7 @@ export function GraficoEntradasSaidas({ dados, unidade }: { dados: DadoPeriodo[]
     <CardGrafico
       titulo="Entradas vs saídas"
       faixa="bg-azul"
+      forma={{ forma: 'quadrado', cor: 'vermelho' }}
       descricao={`Total que entra, sai e vai para as metas de economia em ${NOME_UNIDADE[unidade].cada}`}
       tabela={
         <TabelaPeriodos

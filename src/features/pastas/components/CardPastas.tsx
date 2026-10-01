@@ -30,6 +30,7 @@ export function CardPastas({ pastas, grupos, onNova, onEditar, onExcluir }: Card
         titulo="Pastas"
         contagem={pastas.length}
         faixa="bg-foreground"
+        forma={{ forma: 'quadrado', cor: 'amarelo' }}
         destaque={{ rotulo: 'Sem pasta', valor: `${semPasta} ${semPasta === 1 ? 'lançamento' : 'lançamentos'}` }}
       />
 
