@@ -38,6 +38,7 @@ export function CardMetaPrincipal({ principal, totalDeMetas, hoje }: CardMetaPri
         <CabecalhoCard
           titulo="Meta principal"
           faixa="bg-amarelo"
+          forma={{ forma: 'semicirculo', cor: 'tinta' }}
           descricao={
             totalDeMetas > 0
               ? 'Todas as metas foram atingidas. Crie uma nova para continuar guardando.'
@@ -61,6 +62,7 @@ export function CardMetaPrincipal({ principal, totalDeMetas, hoje }: CardMetaPri
           </>
         }
         faixa="bg-amarelo"
+        forma={{ forma: 'semicirculo', cor: 'tinta' }}
         descricao="A próxima a terminar entre as metas em andamento"
         acoes={irParaEconomias}
       />

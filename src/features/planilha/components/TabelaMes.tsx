@@ -1,4 +1,6 @@
 import type { Categoria } from '@/features/categorias/categoria'
+import { QuadradoRisco } from '@/features/risco/components/SeloRisco'
+import { NIVEL, nivelDoSaldo } from '@/features/risco/risco'
 import type { DiaProjetado, ResumoMes } from '@/features/projecao/projecao'
 import type { DataISO } from '@/shared/lib/datas'
 import { nomeDoMes } from '@/shared/lib/datas'
@@ -31,6 +33,8 @@ interface TabelaMesProps {
   onAdicionar: (data: DataISO) => void
   /** Mostra a coluna Economia (quando há metas de economia). */
   comEconomia: boolean
+  /** O gasto de um mês, régua do risco do caixa; null sem projeção à frente. */
+  referenciaCentavos: number | null
 }
 
 interface Coluna {
@@ -62,9 +66,23 @@ const COLUNAS_COM_ECONOMIA: Coluna[] = [
 /** Todo mês ocupa 31 linhas, para as tabelas terem a mesma altura. */
 const LINHAS_POR_MES = 31
 
-export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdicionar, comEconomia }: TabelaMesProps) {
+export function TabelaMes({
+  ano,
+  resumo,
+  dias,
+  hoje,
+  categorias,
+  onEditar,
+  onAdicionar,
+  comEconomia,
+  referenciaCentavos,
+}: TabelaMesProps) {
   const saldoInicial = resumo.saldoInicialCentavos
   const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
+  // Risco do mês: o nível do dia mais apertado.
+  const saldos = dias.flatMap((d) => (d.saldoCentavos === null ? [] : [d.saldoCentavos]))
+  const nivelDoMes =
+    referenciaCentavos !== null && saldos.length > 0 ? nivelDoSaldo(Math.min(...saldos), referenciaCentavos) : null
 
   return (
     <Card className={CARD}>
@@ -77,9 +95,18 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdi
           >
             {String(resumo.mes + 1).padStart(2, '0')}
           </span>
-          <h2 className={cn(TITULO_CARD, 'self-center px-3 text-xl sm:px-4 sm:text-2xl')}>
-            {nomeDoMes(resumo.mes)} <span className="font-light">{ano}</span>
-          </h2>
+          <div className="flex flex-col justify-center gap-1 px-3 py-2 sm:px-4">
+            <h2 className={cn(TITULO_CARD, 'text-xl sm:text-2xl')}>
+              {nomeDoMes(resumo.mes)} <span className="font-light">{ano}</span>
+            </h2>
+            {nivelDoMes && (
+              <span className="flex items-center gap-1.5 text-[0.7rem] leading-none" title={NIVEL[nivelDoMes].significado}>
+                <QuadradoRisco nivel={nivelDoMes} className="size-2.5" />
+                <span className="text-muted-foreground">Caixa:</span>
+                <strong className="font-semibold">{NIVEL[nivelDoMes].nome}</strong>
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex flex-col items-end justify-center gap-1 py-2.5 pr-3 text-right sm:pr-4">
           <span className={cn(ROTULO, 'text-muted-foreground')}>Saldo inicial</span>
@@ -132,6 +159,7 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdi
               onEditar={onEditar}
               onAdicionar={onAdicionar}
               comEconomia={comEconomia}
+              referenciaCentavos={referenciaCentavos}
             />
           ))}
           {Array.from({ length: LINHAS_POR_MES - dias.length }, (_, i) => (
@@ -148,7 +176,11 @@ export function TabelaMes({ ano, resumo, dias, hoje, categorias, onEditar, onAdi
             <CelulaValor centavos={resumo.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
             <CelulaValor centavos={resumo.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
             {comEconomia && <CelulaValor centavos={resumo.economiaCentavos} className={COR_COLUNA.economia} compacta />}
-            <CelulaSaldo centavos={resumo.saldoFinalCentavos} compacta={comEconomia} />
+            <CelulaSaldo
+              centavos={resumo.saldoFinalCentavos}
+              compacta={comEconomia}
+              referenciaCentavos={referenciaCentavos}
+            />
           </TableRow>
         </TableFooter>
       </Table>

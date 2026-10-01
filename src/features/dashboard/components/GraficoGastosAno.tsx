@@ -32,6 +32,7 @@ export function GraficoGastosAno({ dados, series, destaque, anoAtual, onAno }: G
       className="lg:col-span-2"
       titulo="Gastos por ano"
       faixa="bg-azul"
+      forma={{ forma: 'quarto', cor: 'amarelo' }}
       descricao={`Saídas por categoria de ${dados[0].ano} a ${dados[dados.length - 1].ano} · clique em um ano para abri-lo`}
       tabela={<TabelaGastosAno dados={dados} series={series} destaque={(d) => destaque(d.numero)} />}
     >

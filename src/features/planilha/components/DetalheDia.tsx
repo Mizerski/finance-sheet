@@ -3,6 +3,8 @@ import { Pencil, PiggyBank, Plus } from 'lucide-react'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import type { Aporte } from '@/features/economias/aportes'
 import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
+import { SeloRisco } from '@/features/risco/components/SeloRisco'
+import { NIVEL, nivelDoSaldo } from '@/features/risco/risco'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -19,10 +21,15 @@ interface DetalheDiaProps {
   onEditar: (lancamentoId: string) => void
   /** Abre um lançamento novo já com a data deste dia. */
   onAdicionar: () => void
+  /** O gasto de um mês, para dizer o risco do caixa no dia; null sem projeção à frente. */
+  referenciaCentavos?: number | null
 }
 
 /** Conteúdo do popover: lançamentos de um dia da planilha. */
-export function DetalheDia({ dia, categorias, onEditar, onAdicionar }: DetalheDiaProps) {
+export function DetalheDia({ dia, categorias, onEditar, onAdicionar, referenciaCentavos }: DetalheDiaProps) {
+  const nivel =
+    dia.saldoCentavos !== null && referenciaCentavos != null ? nivelDoSaldo(dia.saldoCentavos, referenciaCentavos) : null
+
   return (
     <>
       <PopoverHeader>
@@ -58,6 +65,12 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar }: DetalheDi
             {formatarBRL(dia.saldoCentavos)}
           </span>
         </div>
+      )}
+
+      {nivel && (
+        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+          Caixa no dia: <SeloRisco nivel={nivel} /> <span>{NIVEL[nivel].significado}</span>
+        </p>
       )}
 
       {dia.noCalculo && (

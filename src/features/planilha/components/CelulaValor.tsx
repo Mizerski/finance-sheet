@@ -1,3 +1,5 @@
+import { COR_RISCO } from '@/features/risco/cores'
+import { nivelDoSaldo } from '@/features/risco/risco'
 import { cn } from '@/shared/lib/utils'
 import { formatarBRL, formatarBRLSemSimbolo } from '@/shared/lib/dinheiro'
 import { VALOR_SALDO } from '@/shared/lib/estilos'
@@ -32,13 +34,24 @@ export function CelulaValor({ centavos, className, compacta }: CelulaProps & { c
   )
 }
 
-export function CelulaSaldo({ centavos, className, compacta }: CelulaProps & { centavos: number | null }) {
+/**
+ * Célula de saldo. Com `referenciaCentavos` (o gasto de um mês), o fundo ganha a cor do risco do caixa no dia;
+ * o saldo negativo continua em vermelho.
+ */
+export function CelulaSaldo({
+  centavos,
+  className,
+  compacta,
+  referenciaCentavos,
+}: CelulaProps & { centavos: number | null; referenciaCentavos?: number | null }) {
   const cor =
     centavos === null
       ? COR_COLUNA.foraDoCalculo
       : centavos < 0
         ? COR_COLUNA.saldoNegativo
-        : COR_COLUNA.saldo
+        : referenciaCentavos != null
+          ? cn('text-saldo', COR_RISCO[nivelDoSaldo(centavos, referenciaCentavos)].suave)
+          : COR_COLUNA.saldo
 
   return (
     <TableCell className={cn(CELULA, 'text-right tabular-nums', cor, className)}>

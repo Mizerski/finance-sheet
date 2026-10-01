@@ -8,11 +8,13 @@ interface CabecalhoPaginaProps {
   /** Forma da tela (`FORMA_PAGINA`), a mesma do menu. */
   forma: FormaDaPagina
   descricao?: ReactNode
+  /** Botão "?" depois da descrição (`Ajuda`). */
+  ajuda?: ReactNode
   acoes?: ReactNode
 }
 
 /** Título de cartaz com a forma da tela, descrição embaixo, ações à direita e régua preta fechando o bloco. */
-export function CabecalhoPagina({ titulo, forma, descricao, acoes }: CabecalhoPaginaProps) {
+export function CabecalhoPagina({ titulo, forma, descricao, ajuda, acoes }: CabecalhoPaginaProps) {
   return (
     // O título não fica mais estreito que 16rem: sem espaço, as ações descem para a linha de baixo.
     <div className="flex flex-col gap-4 border-b-2 border-foreground pb-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
@@ -21,7 +23,12 @@ export function CabecalhoPagina({ titulo, forma, descricao, acoes }: CabecalhoPa
         <div className="flex min-w-0 flex-col gap-2">
           {/* A parte secundária do título (ano, contexto) vem num span e fica em peso leve. */}
           <h1 className={`${TITULO_PAGINA} [&>span]:font-light`}>{titulo}</h1>
-          {descricao && <p className="text-sm text-muted-foreground">{descricao}</p>}
+          {(descricao || ajuda) && (
+            <div className="flex items-center gap-1">
+              {descricao && <p className="text-sm text-muted-foreground">{descricao}</p>}
+              {ajuda}
+            </div>
+          )}
         </div>
       </div>
       {acoes}

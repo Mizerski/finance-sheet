@@ -14,7 +14,7 @@ interface GraficoGastosTagProps {
 
 export function GraficoGastosTag({ gastos, temTags, noPeriodo: periodo }: GraficoGastosTagProps) {
   return (
-    <CardGrafico faixa="bg-amarelo" titulo="Gastos por tag" descricao={`Quanto das saídas ${periodo} era necessário ou evitável`}>
+    <CardGrafico faixa="bg-amarelo" forma={{ forma: 'triangulo', cor: 'tinta' }} titulo="Gastos por tag" descricao={`Quanto das saídas ${periodo} era necessário ou evitável`}>
       {!temTags ? (
         <EstadoVazio
           titulo="Nenhuma tag ainda"

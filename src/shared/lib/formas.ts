@@ -1,7 +1,7 @@
 export type TipoForma = 'quadrado' | 'circulo' | 'triangulo' | 'semicirculo' | 'quarto'
 
-/** `tinta` usa a cor do texto em volta: fica preta no papel e vira papel no item ativo (preto). */
-export type CorForma = 'vermelho' | 'azul' | 'amarelo' | 'tinta'
+/** `papel` é o quase branco, para formas sobre blocos escuros. `tinta` usa a cor do texto em volta: fica preta no papel e vira papel no item ativo (preto). */
+export type CorForma = 'vermelho' | 'azul' | 'amarelo' | 'papel' | 'tinta'
 
 export interface FormaDaPagina {
   forma: TipoForma

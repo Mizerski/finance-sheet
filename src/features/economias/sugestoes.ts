@@ -1,6 +1,7 @@
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import type { Configuracao } from '@/features/projecao/configuracao'
 import type { Projecao } from '@/features/projecao/projecao'
+import { nivelDoSaldo, referenciaDoRisco, type NivelRisco } from '@/features/risco/risco'
 import type { DataISO } from '@/shared/lib/datas'
 import { resumirMeta, type ResumoMeta } from './aportes'
 import { menorSaldo, type Saldo } from './avaliacao'
@@ -27,6 +28,8 @@ export interface EfeitoNaMeta {
   conclusaoDepois: DataISO | null
   /** Dia mais apertado nos próximos 12 meses com a sugestão aplicada. */
   menorSaldo: Saldo | null
+  /** Risco do caixa com a sugestão aplicada. */
+  nivel: NivelRisco | null
 }
 
 /** Sem efeito: não há meta principal, ou ela termina antes do evento (o nome dela vem em `terminaAntes`). */
@@ -58,6 +61,7 @@ export function montarSugestoes(ctx: ContextoSugestoes): Sugestao[] {
   const { config, lancamentos, metas, projecoes, resumos, hoje } = ctx
   const dias = projecoes.flatMap((p) => p.dias)
   const principal = metaPrincipal(metas, resumos)
+  const referencia = referenciaDoRisco(dias, hoje)
   const sugestoes: Sugestao[] = []
 
   const resumo = resumoNovoMes(projecoes, hoje)
@@ -67,13 +71,15 @@ export function montarSugestoes(ctx: ContextoSugestoes): Sugestao[] {
     if (!principal) return { efeito: null }
     if (!nova) return { efeito: null, terminaAntes: principal.nome }
     const outras = metas.filter((m) => m.id !== principal.id)
+    const saldo = menorSaldo({ config, lancamentos, outrasMetas: outras, hoje }, [...outras, nova])
     return {
       efeito: {
         meta: principal,
         nova,
         conclusaoAntes: resumos.get(principal.id)?.conclusaoNoPlano ?? null,
         conclusaoDepois: resumirMeta(nova, hoje).conclusaoNoPlano,
-        menorSaldo: menorSaldo({ config, lancamentos, outrasMetas: outras, hoje }, [...outras, nova]),
+        menorSaldo: saldo,
+        nivel: saldo && nivelDoSaldo(saldo.valorCentavos, referencia),
       },
     }
   }

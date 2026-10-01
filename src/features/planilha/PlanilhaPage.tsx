@@ -7,6 +7,9 @@ import { useAno } from '@/features/projecao/useAno'
 import { DialogLancamento } from '@/features/lancamentos/components/DialogLancamento'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { useProjecoes } from '@/features/projecao/useProjecao'
+import { ResumoRiscoPlanilha } from '@/features/risco/components/ResumoRiscoPlanilha'
+import { useRisco } from '@/features/risco/useRisco'
+import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { useAtalhos } from '@/shared/hooks/useAtalhos'
@@ -48,6 +51,7 @@ export function PlanilhaPage() {
   const { estado } = useFinancas()
   const { ano, anoAtual, intervalo } = useAno()
   const projecoes = useProjecoes()
+  const risco = useRisco()
   const search = useSearch({ from: '/' })
   const navigate = useNavigate({ from: '/' })
   const [edicao, setEdicao] = useState<Edicao>({ aberto: false })
@@ -122,8 +126,7 @@ export function PlanilhaPage() {
             <>
               Saldo inicial de{' '}
               <span className={`font-medium text-foreground ${VALOR_SALDO}`}>{formatarBRL(abertura.valorCentavos)}</span>{' '}
-              em {formatarData(abertura.data)} · <BotaoSaldoInicial onClick={() => setEditandoSaldo(true)} /> · clique
-              em um dia para ver ou adicionar lançamentos
+              em {formatarData(abertura.data)} · <BotaoSaldoInicial onClick={() => setEditandoSaldo(true)} />
             </>
           ) : (
             <>
@@ -131,6 +134,17 @@ export function PlanilhaPage() {
               <BotaoSaldoInicial onClick={() => setEditandoSaldo(true)} />
             </>
           )
+        }
+        ajuda={
+          <Ajuda titulo="Como usar a planilha">
+            <p>
+              <strong className="font-semibold">Clique em um dia</strong> para ver ou adicionar lançamentos.
+            </p>
+            <p>
+              No teclado, <kbd className="font-semibold">←</kbd> e <kbd className="font-semibold">→</kbd> trocam de mês
+              e <kbd className="font-semibold">T</kbd> volta para hoje.
+            </p>
+          </Ajuda>
         }
         acoes={
           // No celular: ano e "Hoje" numa linha, meses na linha de baixo com a largura toda.
@@ -168,6 +182,13 @@ export function PlanilhaPage() {
         onDefinirSaldo={() => setEditandoSaldo(true)}
       />
 
+      {risco && estado.lancamentos.length > 0 && (
+        <ResumoRiscoPlanilha
+          risco={risco}
+          onMes={(mes) => irPara(Number(mes.slice(0, 4)) * 12 + Number(mes.slice(5, 7)) - 1)}
+        />
+      )}
+
       <div className={cn('grid items-start gap-4', layout.grade)}>
         {visiveis.map(({ projecao, resumo }) => (
           <TabelaMes
@@ -180,6 +201,7 @@ export function PlanilhaPage() {
             onEditar={editar}
             onAdicionar={adicionar}
             comEconomia={comEconomia}
+            referenciaCentavos={risco?.referenciaCentavos ?? null}
           />
         ))}
       </div>

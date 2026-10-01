@@ -11,7 +11,8 @@ A direção veio da skill [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui
 3. **Blocos retos, contorno preto, sombra dura.** Cantos a 0, borda de 2px em preto e sombra deslocada sem desfoque, como papel recortado. Círculo só em forma geométrica, ponto de cor e botão só com ícone.
 4. **Cartaz, não planilha cinza.** Títulos grandes em caixa alta na geométrica pesada; rótulos pequenos em caixa alta com espaçamento; réguas pretas separando cabeçalho e conteúdo.
 5. **Limpar sem cortar.** Ao reduzir a poluição visual, reorganize, abrevie ou suavize, mas **nunca remova informação** que já aparece na tela.
-6. **Sempre tokens.** Cores vêm dos tokens de `src/index.css` via classes do Tailwind. Nunca use a paleta padrão do Tailwind (`emerald-*`, `red-*`, `slate-*`…) nem hex solto no JSX. A única exceção é a cor de uma categoria, tag ou pasta, que é dado do usuário.
+6. **Pouca carga visual.** A tela mostra de cara só a conclusão e o número principal de cada card; explicações ficam a um clique (veja *Divulgação progressiva*). Pense em quem tem TDAH: um bloco de texto a menos vale mais que uma explicação a mais.
+7. **Sempre tokens.** Cores vêm dos tokens de `src/index.css` via classes do Tailwind. Nunca use a paleta padrão do Tailwind (`emerald-*`, `red-*`, `slate-*`…) nem hex solto no JSX. A única exceção é a cor de uma categoria, tag ou pasta, que é dado do usuário.
 
 ## Cores
 
@@ -56,6 +57,22 @@ Texto sobre bloco vermelho ou azul é `text-papel`; sobre amarelo é `text-foreg
 - Na planilha, as combinações ficam em `COR_COLUNA` (`src/features/planilha/cores.ts`). Reaproveite essas constantes.
 - Seletores de tipo (Saída/Entrada) pintam a opção ativa com `COR_ATIVA_TIPO` (`src/features/lancamentos/cores.ts`).
 
+### Risco do caixa
+
+Cinco níveis, do mais tranquilo ao mais arriscado, numa escala que sai do azul, passa pelo amarelo e chega ao vermelho. Tokens `--risco-N`, `--risco-N-suave` e `--risco-N-texto` (N de 1 a 5), com as classes em `COR_RISCO` (`src/features/risco/cores.ts`).
+
+| Nível | Bloco forte | Fundo suave | Texto sobre o bloco |
+|---|---|---|---|
+| 1 Tranquilo | azul | azul claro | papel |
+| 2 Estável | azul-claro | ciano claro | preto |
+| 3 Atenção | amarelo | amarelo claro | preto |
+| 4 Risco alto | laranja | laranja claro | preto |
+| 5 Risco muito alto | vermelho | vermelho claro (= `negativo-suave`) | papel |
+
+- É a única escala além de entrada/saída/economia. Use só para risco do caixa, sempre com o nome do nível escrito ao lado (`SeloRisco`, `NomeNivel`), para a cor nunca ser a única pista.
+- Na planilha, o fundo da célula de saldo ganha o tom suave do nível do dia; o saldo negativo continua `text-negativo`.
+- `-texto` passa de 4,5:1 sobre o fundo suave e o card.
+
 ### Gráficos
 
 - Entradas, saídas e economia usam `--grafico-entrada` (azul), `--grafico-saida` (vermelho) e `--grafico-economia` (amarelo). Saldo e sobra usam `--grafico-saldo` (preto).
@@ -66,16 +83,17 @@ Texto sobre bloco vermelho ou azul é `text-papel`; sobre amarelo é `text-foreg
 
 ### Cores de categoria
 
-São dados e ficam em hex. A lista oferecida no seletor fica em `GRUPOS_CORES_CATEGORIA` (`src/features/categorias/cores.ts`), dividida por família. Uma cor nova precisa de:
+São dados e ficam em hex. A paleta Bauhaus oferecida no seletor fica em `GRUPOS_CORES_CATEGORIA` (`src/features/categorias/cores.ts`): Primárias (vermelho, azul, amarelo, preto), Quentes, Frias e Neutras.
 
-- contraste de pelo menos 3:1 com o card, para funcionar como marca em gráficos e mostrar o ✓ do seletor;
-- distância de pelo menos ~8 (ΔE OKLab ×100) de todas as outras da lista.
+- O `SeletorCor` mostra quadradinhos com contorno preto e sombra dura; a cor escolhida fica afundada com ✓ (preto nas cores marcadas `clara`, papel nas outras). Uma cor salva que não está mais na paleta aparece no grupo "Atual" e continua disponível.
+- Toda cor de usuário aparece com contorno preto: `PontoCor` é um quadradinho com borda de 1,5px, e as legendas, barras e fatias levam `CONTORNO`. Por isso a paleta pode ter cores claras (amarelo, rosa, areia).
+- Uma cor nova precisa de distância de pelo menos ~8 (ΔE OKLab ×100) de todas as outras da lista e da cor "sem categoria".
 
 Sem categoria: `#a39a8e`.
 
 ## Formas
 
-- Componente `Forma` (`src/shared/components/Forma.tsx`): `quadrado`, `circulo`, `triangulo`, `semicirculo` e `quarto`, nas cores `vermelho`, `azul`, `amarelo` ou `tinta` (cor do texto em volta).
+- Componente `Forma` (`src/shared/components/Forma.tsx`): `quadrado`, `circulo`, `triangulo`, `semicirculo` e `quarto`, nas cores `vermelho`, `azul`, `amarelo`, `papel` (sobre blocos escuros) ou `tinta` (cor do texto em volta).
 - Cada tela tem uma forma em `FORMA_PAGINA` (`src/shared/lib/formas.ts`), usada no menu e ao lado do título:
 
 | Tela | Forma |
@@ -85,6 +103,21 @@ Sem categoria: `#a39a8e`.
 | Organização | triângulo preto |
 | Economias | meia-lua amarela |
 | Dashboard | quarto de círculo azul |
+
+- **Cards:** o `CabecalhoCard` aceita `forma`; a faixa de cor vira um bloco com a forma no meio, como o card de cada meta. Combine primária sobre primária (círculo amarelo no azul, triângulo papel no vermelho) ou `tinta` sobre o amarelo. O mesmo assunto usa a mesma forma em todas as telas:
+
+| Assunto | Bloco e forma |
+|---|---|
+| Risco do caixa (Economias e Planilha) | bloco na cor do nível, triângulo |
+| Metas, sobras | amarelo, meia-lua |
+| Quanto dá para guardar | amarelo, quarto de círculo |
+| Reserva de emergência | amarelo, quadrado |
+| Sugestões | azul, círculo amarelo |
+| Gastos grandes | vermelho, triângulo papel |
+| Categorias de entrada / saída, gastos por categoria | azul com círculo papel / vermelho com quadrado papel |
+| Tags | amarelo, triângulo |
+| Pastas | preto, quadrado amarelo |
+| Entradas vs saídas · gastos no ano · saldo | azul com quadrado vermelho · azul com quarto amarelo · preto com quarto vermelho |
 
 - A marca (`Marca`) é quadrado vermelho, círculo azul e triângulo amarelo, com o nome em duas linhas.
 - `Composicao` é a grade 4×4 de cartaz das telas avulsas (login, carregamento). `EstadoVazio` mostra três formas soltas.
@@ -97,6 +130,7 @@ Sem categoria: `#a39a8e`.
 - **Constantes** em `src/shared/lib/estilos.ts`: `TITULO_PAGINA`, `TITULO_CARD`, `TITULO_DIALOG`, `VALOR_DESTAQUE` e `ROTULO`. Use-as em vez de repetir as classes.
 - **Caixa alta:** títulos, rótulos, cabeçalhos de coluna, botões com texto, itens de menu e de controle segmentado. Texto corrido, descrições e células ficam em caixa normal.
 - **Pesos:** títulos `font-extrabold`/`font-bold`; a parte secundária do título (ano, contexto) em `font-light`, dentro de um `<span>`. Na Inter, `font-normal`, `font-medium` e `font-semibold` (valores e totais).
+- **Textos para o usuário:** linguagem simples, sem termos técnicos ("cabe no seu bolso", "sobram R$ 48 na conta", não "fluxo" ou "capacidade"). A conclusão abre a frase em negrito ("**Vai faltar dinheiro:** …"), e datas, valores e nomes de nível também vão em negrito (`Forte`, `DataForte`, `SaldoForte`, `DinheiroForte`, `NomeNivel` em `src/features/risco/components/Destaques.tsx`).
 - **Números:** todo valor numérico em tabela, card ou lista usa `tabular-nums`. Dinheiro sempre com `formatarBRL`, datas com `formatarData` e nomes de mês e dia com `nomeDoMes` e `nomeDoDiaDaSemana`.
 
 | Papel | Classes |
@@ -126,18 +160,19 @@ Sem categoria: `#a39a8e`.
 | Elemento | Classes |
 |---|---|
 | Card de conteúdo | `CARD` — `rounded-none border-2 border-foreground shadow-bloco` |
-| Cabeçalho de card | `CabecalhoCard` (faixa de cor opcional à esquerda, contagem em bloco preto, destaque à direita) |
+| Cabeçalho de card | `CabecalhoCard` (faixa de cor opcional à esquerda, que vira bloco com forma quando há `forma`; contagem em bloco preto, destaque à direita) |
+| Mensagem principal de um card | `CaixaDestaque`: contorno preto, faixa grossa de cor à esquerda (`border-l-8`) e fundo suave da cor do assunto (economia, risco, saída); texto em preto, não cinza |
 | Popover, Dialog | `CAMADA` — `border-2 border-foreground shadow-bloco-lg`; todo dialog tem a faixa vermelho/azul/amarelo no topo |
 | Campo (input, select) | `CAMPO`, `CAMPO_SELECT` — `h-10`, borda preta de 2px; foco com sombra azul deslocada |
 | Botão com texto | `Button` + `BOTAO`; principal preto com sombra vermelha, secundário (`outline`) papel com sombra preta e hover amarelo |
 | Botão só com ícone | `variant="ghost" size="icon" className="rounded-full"` (círculo), com `aria-label` |
 | Grupo de controles (‹ 2026 ›) | `GRUPO` no contêiner e `BOTAO_GRUPO` nos botões, com divisórias `border-x-2` |
 | Controle segmentado | `ControleSegmentado`: faixa com contorno, divisórias, ativa em bloco preto (ou `corAtiva`) |
-| Menu | faixa com contorno; aba ativa em bloco preto, hover amarelo |
+| Menu | abas em blocos separados com contorno e sombra dura, que afundam ao clicar; a ativa fica afundada (preta, deslocada 2px, sem sombra); hover amarelo |
 | Badge | canto reto, borda de 1,5px, caixa alta |
 
 - Sombras: `shadow-bloco-sm` (3px, botões e grupos), `shadow-bloco` (4px, cards e popovers), `shadow-bloco-lg` (6px, dialogs e avisos). Nunca sombra com desfoque.
-- Botões com sombra "afundam" ao clicar (`translate` de 2px e sombra zerada), exceto com `prefers-reduced-motion`.
+- Botões com sombra "afundam" ao clicar (`translate` de 2px e sombra zerada), exceto com `prefers-reduced-motion`. Vale para todo controle em bloco com sombra: botões, abas do menu e quadradinhos do seletor de cor. O item escolhido de um grupo (aba ativa, cor escolhida) pode ficar afundado de vez.
 - Header fixo: `sticky top-0 bg-background border-b-2 border-foreground`.
 
 ## Tabelas
@@ -156,6 +191,23 @@ Sem categoria: `#a39a8e`.
   - período selecionado (dashboard): 30% de amarelo
 - **Cabeçalho do mês na planilha:** número do mês em bloco preto, nome em caixa alta.
 - **Grupo de pasta:** linha `bg-muted` com régua preta embaixo e nome em caixa alta.
+
+## Divulgação progressiva
+
+Cada card responde uma pergunta de relance (regra `progressive-disclosure` da ui-ux-pro-max: não sobrecarregar logo de início). O resto continua lá, a um clique:
+
+| O que é | Onde fica |
+|---|---|
+| Conclusão e número principal | Na tela, em `CaixaDestaque` ou número grande |
+| Como o cálculo funciona, período, régua, legenda, conselhos gerais ("não crie meta para isso", "quantos meses guardar") | `Ajuda`: botão "?" ao lado do título (prop `ajuda` de `CabecalhoCard` e `CabecalhoPagina`) que abre um popover por clique, toque ou teclado |
+| Detalhe secundário do próprio card (valores por nível, limites) | `MaisDetalhes`: "ver …" que abre e fecha no lugar |
+| Ferramenta que só serve quando a pessoa quer (simulador) | Recolhida numa linha com o resultado de hoje e um botão para abrir |
+
+- Descrição de cabeçalho de card tem no máximo uma linha curta ("Para imprevistos"); o resto vai para o `Ajuda`.
+- Números que se comparam (entrou, saiu, metas) aparecem lado a lado com rótulo, não dentro de uma frase.
+- Caixa colorida só para mensagem que pede atenção; um "está tudo certo" curto fica em texto simples.
+- A mesma informação não aparece duas vezes no mesmo card (ex.: legenda e faixa dos meses).
+- Nunca esconda um alerta (falta dinheiro, caixa aperta, prazo perdido): alerta fica sempre visível.
 
 ## Estados e interação
 
@@ -185,7 +237,8 @@ Sem categoria: `#a39a8e`.
   - `CabecalhoPagina`: forma, título, descrição e ações de toda página.
   - `CabecalhoCard`: cabeçalho de card com faixa, contagem, destaque e ações.
   - `Forma`, `Marca`, `Composicao`: a linguagem geométrica.
-  - `ControleSegmentado`, `EstadoVazio`, `TelaCentralizada`, `AvisoErro`, `PontoCor`.
+  - `ControleSegmentado`, `EstadoVazio`, `TelaCentralizada`, `AvisoErro`, `PontoCor`, `CaixaDestaque`.
+  - `Ajuda` (botão "?" com popover) e `MaisDetalhes` (abre e fecha no lugar): divulgação progressiva.
 - **Constantes de estilo** de uma feature ficam num arquivo próprio (ex.: `cores.ts`), não dentro de componentes, por causa do Fast Refresh.
 
 ## Checklist antes de entregar uma tela
@@ -198,3 +251,4 @@ Sem categoria: `#a39a8e`.
 - [ ] Tabelas com colunas alinhadas, alturas iguais e réguas pretas no cabeçalho e rodapé.
 - [ ] Testado em 375px, ~1100px e 1440px, sem rolagem horizontal da página nem texto cortado.
 - [ ] Nenhuma informação que já existia foi removida.
+- [ ] Cada card mostra de cara só a conclusão e o número; explicações no `Ajuda` ou em `MaisDetalhes`.

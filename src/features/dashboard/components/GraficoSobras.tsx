@@ -22,6 +22,7 @@ export function GraficoSobras({ dados, unidade }: { dados: DadoPeriodo[]; unidad
     <CardGrafico
       titulo="Sobras"
       faixa="bg-amarelo"
+      forma={{ forma: 'semicirculo', cor: 'tinta' }}
       descricao={`Quanto sobrou em ${NOME_UNIDADE[unidade].cada}: entradas menos saídas${temEconomia ? ' e economia' : ''}`}
       tabela={
         <TabelaPeriodos

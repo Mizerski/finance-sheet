@@ -1,25 +1,32 @@
 import type { ReactNode } from 'react'
 import { Plus, Sparkles } from 'lucide-react'
+import { COR_RISCO } from '@/features/risco/cores'
+import { DataForte, Forte, NomeNivel, SaldoForte } from '@/features/risco/components/Destaques'
+import type { AnaliseRisco } from '@/features/risco/risco'
+import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
+import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { formatarData, formatarMesAno, nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CARD, ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
+import { BOTAO, CARD, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
-import type { CapacidadePoupanca } from '../capacidade'
 import type { MetaEconomia } from '../meta'
 import type { EfeitoNaMeta, Sugestao } from '../sugestoes'
 
 interface CardSugestoesProps {
   sugestoes: Sugestao[]
-  capacidade: CapacidadePoupanca | null
+  /** Risco do caixa hoje, para dizer se a sugestão o piora. */
+  risco: AnaliseRisco | null
+  /** Quanto dá para guardar a mais por mês sem piorar o risco do caixa. */
+  guardarSemPiorarCentavos: number | null
   onAplicar: (meta: MetaEconomia) => void
   onNovaMeta: () => void
 }
 
 /** Momentos bons para guardar mais: começo de mês, aumento de entrada e dinheiro extra. */
-export function CardSugestoes({ sugestoes, capacidade, onAplicar, onNovaMeta }: CardSugestoesProps) {
+export function CardSugestoes({ sugestoes, risco, guardarSemPiorarCentavos, onAplicar, onNovaMeta }: CardSugestoesProps) {
   if (sugestoes.length === 0) return null
 
   return (
@@ -27,19 +34,38 @@ export function CardSugestoes({ sugestoes, capacidade, onAplicar, onNovaMeta }: 
       <CabecalhoCard
         titulo="Sugestões"
         faixa="bg-azul"
+        forma={{ forma: 'circulo', cor: 'amarelo' }}
         contagem={sugestoes.length}
-        descricao="Momentos em que guardar mais pesa menos, calculados pelos seus lançamentos"
+        ajuda={
+          <Ajuda titulo="Sugestões">
+            <p>Momentos em que guardar mais pesa menos no seu bolso:</p>
+            <ul className="flex list-disc flex-col gap-1.5 pl-4">
+              <li>
+                <Forte>Novo mês:</Forte> começo de mês é uma boa hora para rever as metas.
+              </li>
+              <li>
+                <Forte>Aumento de entrada:</Forte> guardar metade do aumento não pesa, porque o que você já recebe
+                continua igual.
+              </li>
+              <li>
+                <Forte>Dinheiro extra:</Forte> guardar metade no aporte seguinte faz esse dinheiro virar progresso em vez
+                de sumir no mês.
+              </li>
+            </ul>
+            <p className="text-muted-foreground">Cada sugestão diz também o que acontece com o risco do caixa.</p>
+          </Ajuda>
+        }
       />
       <ul className="flex flex-col">
         {sugestoes.map((s) => (
           <li
             key={s.tipo === 'novo-mes' ? 'novo-mes' : s.tipo === 'aumento' ? `aumento-${s.aumento.mes}` : `extra-${s.entrada.lancamentoId}`}
-            className="flex flex-col gap-2 border-b border-border px-4 py-4 last:border-b-0 sm:px-5"
+            className="flex flex-col gap-2.5 border-b-2 border-foreground px-4 py-4 last:border-b-0 sm:px-5"
           >
             {s.tipo === 'novo-mes' ? (
-              <NovoMes sugestao={s} capacidade={capacidade} />
+              <NovoMes sugestao={s} guardarSemPiorarCentavos={guardarSemPiorarCentavos} risco={risco} />
             ) : (
-              <Evento sugestao={s} onAplicar={onAplicar} onNovaMeta={onNovaMeta} />
+              <Evento sugestao={s} risco={risco} onAplicar={onAplicar} onNovaMeta={onNovaMeta} />
             )}
           </li>
         ))}
@@ -52,56 +78,83 @@ function Titulo({ children }: { children: ReactNode }) {
   return <h3 className={cn(ROTULO, 'flex items-center gap-1.5 text-foreground')}>{children}</h3>
 }
 
+/** Número curto com rótulo, para ler de relance em vez de numa frase. */
+function Numero({ rotulo, centavos, className }: { rotulo: string; centavos: number; className: string }) {
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <dt className={cn(ROTULO, 'text-foreground/70')}>{rotulo}</dt>
+      <dd>
+        <Valor centavos={centavos} className={className} />
+      </dd>
+    </div>
+  )
+}
+
 function Valor({ centavos, className }: { centavos: number; className?: string }) {
-  return <span className={cn('font-semibold tabular-nums', className ?? 'text-foreground')}>{formatarBRL(centavos)}</span>
+  return <strong className={cn('font-bold tabular-nums', className ?? 'text-foreground')}>{formatarBRL(centavos)}</strong>
 }
 
 function NovoMes({
   sugestao: { resumo },
-  capacidade,
+  guardarSemPiorarCentavos,
+  risco,
 }: {
   sugestao: Extract<Sugestao, { tipo: 'novo-mes' }>
-  capacidade: CapacidadePoupanca | null
+  guardarSemPiorarCentavos: number | null
+  risco: AnaliseRisco | null
 }) {
   const mes = nomeDoMes(resumo.mes)
+  const positiva = resumo.sobraCentavos >= 0
   return (
     <>
       <Titulo>
         <Sparkles className="size-3.5" aria-hidden />
         Novo mês
       </Titulo>
-      <p className="text-sm text-muted-foreground">
-        <span className="capitalize">{mes}</span> fechou com sobra de{' '}
-        <Valor centavos={resumo.sobraCentavos} className={resumo.sobraCentavos < 0 ? 'text-negativo' : undefined} />:
-        entraram <Valor centavos={resumo.entradasCentavos} className="text-entrada" />, saíram{' '}
-        <Valor centavos={resumo.saidasCentavos} className="text-saida" /> e{' '}
-        <Valor centavos={resumo.economiaCentavos} className="text-economia" /> foram para as metas.
+      <CaixaDestaque fundo={positiva ? 'bg-entrada-suave' : 'bg-negativo-suave'} faixa={positiva ? 'border-l-azul' : 'border-l-vermelho'}>
+        <p>
+          <Forte>
+            <span className="capitalize">{mes}</span> fechou {positiva ? 'sobrando' : 'no vermelho:'}{' '}
+            <Valor centavos={resumo.sobraCentavos} className={positiva ? undefined : 'text-negativo'} />.
+          </Forte>
+        </p>
+        <dl className="flex flex-wrap gap-x-5 gap-y-1">
+          <Numero rotulo="Entrou" centavos={resumo.entradasCentavos} className="text-entrada" />
+          <Numero rotulo="Saiu" centavos={resumo.saidasCentavos} className="text-saida" />
+          <Numero rotulo="Para as metas" centavos={resumo.economiaCentavos} className="text-economia" />
+        </dl>
         {resumo.anoFechado && (
-          <>
-            {' '}
-            Em {resumo.ano}, a sobra somou <Valor centavos={resumo.anoFechado.sobraCentavos} /> e as metas guardaram{' '}
+          <p>
+            Em {resumo.ano}, sobraram <Valor centavos={resumo.anoFechado.sobraCentavos} /> e as metas guardaram{' '}
             <Valor centavos={resumo.anoFechado.economiaCentavos} className="text-economia" />.
-          </>
-        )}{' '}
-        Começo de mês é uma boa hora para rever as metas
-        {capacidade && capacidade.capacidadeCentavos > 0 ? (
-          <>
-            : cabem <Valor centavos={capacidade.capacidadeCentavos} className="text-economia" /> a mais por mês.
-          </>
-        ) : (
-          '.'
+          </p>
         )}
-      </p>
+        {guardarSemPiorarCentavos !== null && guardarSemPiorarCentavos > 0 && risco ? (
+          <p>
+            Dá para guardar <Valor centavos={guardarSemPiorarCentavos} className="text-economia" /> a mais por mês e o
+            caixa continua <NomeNivel nivel={risco.nivel} />.
+          </p>
+        ) : (
+          risco &&
+          risco.nivel >= 3 && (
+            <p>
+              O caixa está em <NomeNivel nivel={risco.nivel} />: antes de guardar mais, garanta a folga da conta.
+            </p>
+          )
+        )}
+      </CaixaDestaque>
     </>
   )
 }
 
 function Evento({
   sugestao: s,
+  risco,
   onAplicar,
   onNovaMeta,
 }: {
   sugestao: Exclude<Sugestao, { tipo: 'novo-mes' }>
+  risco: AnaliseRisco | null
   onAplicar: (meta: MetaEconomia) => void
   onNovaMeta: () => void
 }) {
@@ -112,20 +165,20 @@ function Evento({
       {s.tipo === 'aumento' ? (
         <>
           <Titulo>Aumento de entrada</Titulo>
-          <p className="text-sm text-muted-foreground">
-            Em <span className="font-semibold text-foreground">{formatarMesAno(`${s.aumento.mes}-01`)}</span> as
-            entradas mensais sobem de <Valor centavos={s.aumento.antesCentavos} /> para{' '}
-            <Valor centavos={s.aumento.depoisCentavos} className="text-entrada" />. Combine agora guardar metade do
-            aumento ({guardar} por mês) a partir desse mês: o que você já recebe continua igual, então não pesa.
+          <p className="text-sm">
+            <Forte>Em {formatarMesAno(`${s.aumento.mes}-01`)} você passa a receber mais:</Forte> de{' '}
+            <Valor centavos={s.aumento.antesCentavos} /> para{' '}
+            <Valor centavos={s.aumento.depoisCentavos} className="text-entrada" /> por mês. Que tal guardar{' '}
+            <Forte>metade do aumento</Forte> ({guardar} por mês) a partir daí?
           </p>
         </>
       ) : (
         <>
-          <Titulo>Entrada extra</Titulo>
-          <p className="text-sm text-muted-foreground">
-            Em <span className="font-semibold text-foreground">{formatarData(s.entrada.data)}</span> entra{' '}
-            <Valor centavos={s.entrada.valorCentavos} className="text-entrada" /> ({s.entrada.descricao}). Guardar
-            metade ({guardar}) no aporte seguinte faz esse dinheiro virar progresso em vez de sumir no mês.
+          <Titulo>Dinheiro extra</Titulo>
+          <p className="text-sm">
+            <Forte>Em {formatarData(s.entrada.data)} entra um dinheiro a mais:</Forte>{' '}
+            <Valor centavos={s.entrada.valorCentavos} className="text-entrada" /> ({s.entrada.descricao}). Que tal guardar{' '}
+            <Forte>metade</Forte> ({guardar}) no aporte seguinte?
           </p>
         </>
       )}
@@ -133,6 +186,7 @@ function Evento({
       {s.efeito ? (
         <Efeito
           efeito={s.efeito}
+          risco={risco}
           rotulo={s.tipo === 'aumento' ? `+ ${formatarBRL(s.guardarCentavos)} por mês` : `Guardar ${formatarBRL(s.guardarCentavos)}`}
           onAplicar={onAplicar}
         />
@@ -158,52 +212,66 @@ function Evento({
   )
 }
 
-/** O que muda na meta principal e o atalho para aplicar. */
+/** O que muda na meta principal e no risco do caixa, e o atalho para aplicar. */
 function Efeito({
   efeito,
+  risco,
   rotulo,
   onAplicar,
 }: {
   efeito: EfeitoNaMeta
+  risco: AnaliseRisco | null
   rotulo: string
   onAplicar: (meta: MetaEconomia) => void
 }) {
-  const { meta, nova, conclusaoAntes, conclusaoDepois, menorSaldo } = efeito
+  const { meta, nova, conclusaoAntes, conclusaoDepois, menorSaldo, nivel } = efeito
   const negativo = menorSaldo !== null && menorSaldo.valorCentavos < 0
+  const piora = !!risco && nivel !== null && nivel > risco.nivel
+  const arriscado = negativo || (piora && nivel >= 4)
+  const cores = nivel ? COR_RISCO[nivel] : null
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <p className="min-w-0 flex-1 basis-60 text-sm text-muted-foreground">
-        Em <span className="font-semibold text-foreground">{meta.nome}</span>
-        {conclusaoDepois ? (
-          <>
-            , a meta fica completa em <span className="font-semibold text-foreground">{formatarMesAno(conclusaoDepois)}</span>
-            {conclusaoAntes && conclusaoAntes.slice(0, 7) !== conclusaoDepois.slice(0, 7) && (
-              <> em vez de {formatarMesAno(conclusaoAntes)}</>
-            )}
-            .
-          </>
-        ) : (
-          '.'
-        )}
-        {negativo && menorSaldo && (
-          <>
-            {' '}
-            <span className="font-semibold text-negativo">Atenção:</span> com isso o saldo fica em{' '}
-            <span className={cn('font-semibold text-negativo tabular-nums', VALOR_SALDO)}>
-              {formatarBRL(menorSaldo.valorCentavos)}
-            </span>{' '}
-            em {formatarData(menorSaldo.data)}.
-          </>
-        )}
-      </p>
-      <Button
-        variant={negativo ? 'outline' : 'default'}
-        className={cn(BOTAO, 'h-8 px-3')}
-        onClick={() => onAplicar(nova)}
-      >
-        {rotulo}
-      </Button>
-    </div>
+    <CaixaDestaque fundo={cores?.suave ?? 'bg-economia-suave'} faixa={cores?.faixa ?? 'border-l-amarelo'}>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <p className="min-w-0 flex-1 basis-60">
+          Em <Forte>{meta.nome}</Forte>
+          {conclusaoDepois ? (
+            <>
+              , a meta fica completa em <Forte>{formatarMesAno(conclusaoDepois)}</Forte>
+              {conclusaoAntes && conclusaoAntes.slice(0, 7) !== conclusaoDepois.slice(0, 7) && (
+                <> em vez de {formatarMesAno(conclusaoAntes)}</>
+              )}
+              .
+            </>
+          ) : (
+            '.'
+          )}{' '}
+          {negativo && menorSaldo ? (
+            <>
+              <Forte className="text-negativo">Cuidado:</Forte> com isso falta dinheiro, e o saldo fica em{' '}
+              <SaldoForte centavos={menorSaldo.valorCentavos} /> em <DataForte data={menorSaldo.data} />.
+            </>
+          ) : piora && risco && menorSaldo ? (
+            <>
+              <Forte>O caixa aperta:</Forte> passa de <NomeNivel nivel={risco.nivel} /> para <NomeNivel nivel={nivel} />{' '}
+              (em <DataForte data={menorSaldo.data} /> sobram <SaldoForte centavos={menorSaldo.valorCentavos} />).
+            </>
+          ) : (
+            nivel && (
+              <>
+                Seu caixa continua <NomeNivel nivel={nivel} />.
+              </>
+            )
+          )}
+        </p>
+        <Button
+          variant={arriscado ? 'outline' : 'default'}
+          className={cn(BOTAO, 'h-8 px-3', arriscado && 'bg-card')}
+          onClick={() => onAplicar(nova)}
+        >
+          {rotulo}
+        </Button>
+      </div>
+    </CaixaDestaque>
   )
 }

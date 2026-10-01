@@ -59,6 +59,21 @@
     --color-azul: var(--azul);
     --color-amarelo: var(--amarelo);
     --color-papel: var(--papel);
+    --color-risco-1: var(--risco-1);
+    --color-risco-1-suave: var(--risco-1-suave);
+    --color-risco-1-texto: var(--risco-1-texto);
+    --color-risco-2: var(--risco-2);
+    --color-risco-2-suave: var(--risco-2-suave);
+    --color-risco-2-texto: var(--risco-2-texto);
+    --color-risco-3: var(--risco-3);
+    --color-risco-3-suave: var(--risco-3-suave);
+    --color-risco-3-texto: var(--risco-3-texto);
+    --color-risco-4: var(--risco-4);
+    --color-risco-4-suave: var(--risco-4-suave);
+    --color-risco-4-texto: var(--risco-4-texto);
+    --color-risco-5: var(--risco-5);
+    --color-risco-5-suave: var(--risco-5-suave);
+    --color-risco-5-texto: var(--risco-5-texto);
     /* Sombras duras, sem desfoque: o bloco parece recortado e colado sobre o papel. */
     --shadow-bloco-sm: 3px 3px 0 0 var(--foreground);
     --shadow-bloco: 4px 4px 0 0 var(--foreground);
@@ -128,6 +143,27 @@
     --grafico-saida: oklch(0.57 0.2 27);
     --grafico-economia: oklch(0.84 0.16 88);
     --grafico-saldo: oklch(0.2 0.006 80);
+
+    /*
+     * Risco do caixa, do mais tranquilo (1) ao mais arriscado (5): azul, azul-claro, amarelo, laranja e vermelho.
+     * `-suave` é o fundo (célula de saldo, caixas de texto); `-texto` passa de 4,5:1 sobre o fundo suave e o card.
+     * Texto sobre o bloco forte: papel no 1 e no 5, preto nos outros.
+     */
+    --risco-1: oklch(0.45 0.2 264);
+    --risco-1-suave: oklch(0.915 0.055 264);
+    --risco-1-texto: oklch(0.45 0.2 264);
+    --risco-2: oklch(0.74 0.11 215);
+    --risco-2-suave: oklch(0.95 0.045 205);
+    --risco-2-texto: oklch(0.47 0.11 235);
+    --risco-3: oklch(0.84 0.16 88);
+    --risco-3-suave: oklch(0.955 0.07 95);
+    --risco-3-texto: oklch(0.5 0.1 75);
+    --risco-4: oklch(0.72 0.16 55);
+    --risco-4-suave: oklch(0.935 0.05 60);
+    --risco-4-texto: oklch(0.5 0.14 45);
+    --risco-5: oklch(0.57 0.2 27);
+    --risco-5-suave: oklch(0.9 0.05 27);
+    --risco-5-texto: oklch(0.5 0.19 27);
 
     --sidebar: oklch(0.992 0.003 90);
     --sidebar-foreground: oklch(0.2 0.006 80);

@@ -4,6 +4,7 @@ import { nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO, TABELA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
+import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
@@ -40,7 +41,12 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
           </>
         }
         faixa="bg-amarelo"
-        descricao="O que fica na conta a cada mês: entradas menos saídas e economia"
+        forma={{ forma: 'semicirculo', cor: 'tinta' }}
+        ajuda={
+          <Ajuda titulo="Sobras">
+            <p>O que fica na conta a cada mês: o que entra, menos o que sai, menos o que vai para as metas.</p>
+          </Ajuda>
+        }
         acoes={<SeletorAno />}
       />
 

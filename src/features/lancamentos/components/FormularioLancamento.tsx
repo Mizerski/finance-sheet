@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import type { Categoria } from '@/features/categorias/categoria'
 import { DialogCategoria } from '@/features/categorias/components/DialogCategoria'
+import { EfeitoNoCaixa } from '@/features/risco/components/EfeitoNoCaixa'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
@@ -95,6 +96,18 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   /** Original que termina na véspera de `aPartirDe`, quando a mudança vale daqui para frente. */
   const dividirDe = perguntarVigencia && vigencia === 'daqui' ? lancamento : undefined
   const erroVigencia = tentouSalvar && dividirDe ? validarVigencia(dividirDe, aPartirDe) : undefined
+
+  // O que seria salvo, para mostrar o efeito no caixa antes de salvar. Descrição e categoria não mudam a conta.
+  const faltaNaConta = Object.keys(validarLancamento(rascunho, idsValidos)).some(
+    (campo) => campo !== 'descricao' && campo !== 'categoriaId',
+  )
+  const simulados = faltaNaConta
+    ? null
+    : dividirDe && editado
+      ? validarVigencia(dividirDe, aPartirDe)
+        ? null
+        : dividirEm(dividirDe, editado, aPartirDe, 'simulado')
+      : [editado ?? paraLancamento(rascunho, 'simulado')]
 
   function alterar<K extends keyof RascunhoLancamento>(campo: K, valor: RascunhoLancamento[K]) {
     setRascunho((r) => ({ ...r, [campo]: valor }))
@@ -446,6 +459,8 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           )}
         </Field>
       )}
+
+      <EfeitoNoCaixa simulados={simulados} substitui={lancamento?.id} tipo={rascunho.tipo} />
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>

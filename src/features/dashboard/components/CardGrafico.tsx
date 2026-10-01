@@ -3,6 +3,7 @@ import { ChartColumn, Table2 } from 'lucide-react'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { CARD } from '@/shared/lib/estilos'
+import type { FormaDaPagina } from '@/shared/lib/formas'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 
@@ -12,6 +13,8 @@ interface CardGraficoProps {
   titulo: string
   /** Faixa de cor à esquerda do título (`bg-azul`, `bg-vermelho`…). */
   faixa?: string
+  /** Forma geométrica no bloco da faixa. */
+  forma?: FormaDaPagina
   descricao?: ReactNode
   /** Controles que afetam só este gráfico (ex.: filtro de mês). */
   acoes?: ReactNode
@@ -42,7 +45,7 @@ const OPCOES_VISAO = [
   },
 ]
 
-export function CardGrafico({ titulo, faixa, descricao, acoes, tabela, className, children }: CardGraficoProps) {
+export function CardGrafico({ titulo, faixa, forma, descricao, acoes, tabela, className, children }: CardGraficoProps) {
   const [visao, setVisao] = useState<Visao>('grafico')
 
   return (
@@ -50,6 +53,7 @@ export function CardGrafico({ titulo, faixa, descricao, acoes, tabela, className
       <CabecalhoCard
         titulo={titulo}
         faixa={faixa}
+        forma={forma}
         descricao={descricao}
         acoes={
           (acoes || tabela) && (
