@@ -6,7 +6,8 @@ import { CARD, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 import { COR_RISCO } from '../cores'
-import { NIVEL, percentualDoMes, type AnaliseRisco } from '../risco'
+import { NIVEL, percentualDoMes } from '../risco'
+import type { RiscoDaVisao } from '../risco-por-conta'
 import type { ContextoRisco } from '../simulacao'
 import { DinheiroForte, Forte } from './Destaques'
 import { FaixaMeses } from './FaixaMeses'
@@ -16,7 +17,7 @@ import { SeloRisco } from './SeloRisco'
 import { SimuladorConta } from './SimuladorConta'
 
 interface CardRiscoProps {
-  risco: AnaliseRisco
+  risco: RiscoDaVisao
   /** Os dados atuais, para simular uma conta nova. */
   contexto: ContextoRisco
 }
@@ -34,6 +35,8 @@ export function CardRisco({ risco, contexto }: CardRiscoProps) {
     <Card className={cn(CARD, 'overflow-hidden')}>
       <CabecalhoCard
         titulo="Risco do caixa"
+        // Em "Todos" com várias contas, o card fala da conta mais apertada (e o simulador roda nela).
+        descricao={risco.caixa && `A conta mais apertada: ${risco.caixa.nome}`}
         faixa={cores.bloco}
         forma={{ forma: 'triangulo', cor: 'tinta' }}
         ajuda={

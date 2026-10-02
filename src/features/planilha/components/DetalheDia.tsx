@@ -4,7 +4,7 @@ import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/ca
 import type { Aporte } from '@/features/economias/aportes'
 import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
-import { NIVEL, nivelDoSaldo } from '@/features/risco/risco'
+import { NIVEL, type NivelRisco } from '@/features/risco/risco'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -21,14 +21,12 @@ interface DetalheDiaProps {
   onEditar: (lancamentoId: string) => void
   /** Abre um lançamento novo já com a data deste dia. */
   onAdicionar: () => void
-  /** O gasto de um mês, para dizer o risco do caixa no dia; null sem projeção à frente. */
-  referenciaCentavos?: number | null
+  /** Risco do caixa no dia; null sem risco (benefício, dia fora do cálculo). */
+  nivel?: NivelRisco | null
 }
 
 /** Conteúdo do popover: lançamentos de um dia da planilha. */
-export function DetalheDia({ dia, categorias, onEditar, onAdicionar, referenciaCentavos }: DetalheDiaProps) {
-  const nivel =
-    dia.saldoCentavos !== null && referenciaCentavos != null ? nivelDoSaldo(dia.saldoCentavos, referenciaCentavos) : null
+export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = null }: DetalheDiaProps) {
 
   return (
     <>

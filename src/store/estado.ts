@@ -1,3 +1,4 @@
+import { contaPrincipal, type Caixa } from '@/features/caixas/caixa'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
@@ -10,14 +11,14 @@ import type { Tag } from '@/features/tags/tag'
  * Versão 4: recorrência semanal. Os dados da versão 3 continuam válidos, sem conversão; o número novo
  * só impede que um app antigo, que não conhece a recorrência semanal, importe um backup novo.
  * Versão 5: prazo opcional nas metas de economia. Também sem conversão (meta sem prazo continua válida).
+ * Versão 6: caixas. O saldo inicial (`config`) vira a "Conta principal" e todo lançamento e meta ganha `caixaId`.
  */
-export const VERSAO_DADOS = 5
+export const VERSAO_DADOS = 6
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {
-  config: Configuracao
-  /** false enquanto o usuário não salvou um saldo inicial (vale o padrão: R$ 0 em 1º de janeiro). */
-  configDefinida: boolean
+  /** Contas e benefícios, cada um com o próprio saldo inicial (a partir da versão 6 dos dados). */
+  caixas: Caixa[]
   categorias: Categoria[]
   lancamentos: Lancamento[]
   /** Metas de economia (a partir da versão 2 dos dados). */
@@ -28,19 +29,50 @@ export interface DadosFinancas {
   pastas: Pasta[]
 }
 
+/** Dados das versões 3 a 5: um único saldo inicial, sem caixas. */
+export interface DadosFinancasV5 {
+  config: Configuracao
+  /** false enquanto o usuário não salvou um saldo inicial (vale o padrão: R$ 0 em 1º de janeiro). */
+  configDefinida: boolean
+  categorias: Categoria[]
+  lancamentos: Omit<Lancamento, 'caixaId' | 'caixaDestinoId'>[]
+  metas: Omit<MetaEconomia, 'caixaId'>[]
+  tags: Tag[]
+  pastas: Pasta[]
+}
+
 /** Dados da versão 2, antes das tags e das pastas. */
-export type DadosFinancasV2 = Omit<DadosFinancas, 'tags' | 'pastas'>
+export type DadosFinancasV2 = Omit<DadosFinancasV5, 'tags' | 'pastas'>
 
 /** Dados da versão 1, antes das metas de economia. */
 export type DadosFinancasV1 = Omit<DadosFinancasV2, 'metas'>
 
-/** Converte dados salvos em versões anteriores para o formato atual. */
-export function atualizarDados(dados: DadosFinancas | DadosFinancasV2 | DadosFinancasV1): DadosFinancas {
+export type DadosFinancasSalvos = DadosFinancas | DadosFinancasV5 | DadosFinancasV2 | DadosFinancasV1
+
+/**
+ * Converte dados salvos em versões anteriores para o formato atual.
+ * Até a versão 5, o saldo inicial vira a "Conta principal", e todos os lançamentos e metas passam a ser dela.
+ * Sem nenhum caixa (arquivo novo), cria a Conta principal com o saldo padrão.
+ */
+export function atualizarDados(dados: DadosFinancasSalvos, novoId: () => string = () => crypto.randomUUID()): DadosFinancas {
+  const tags = 'tags' in dados && Array.isArray(dados.tags) ? dados.tags : []
+  const pastas = 'pastas' in dados && Array.isArray(dados.pastas) ? dados.pastas : []
+
+  if ('caixas' in dados && Array.isArray(dados.caixas)) {
+    const caixas = dados.caixas.length ? dados.caixas : [contaPrincipal(novoId())]
+    return { ...dados, caixas, tags, pastas }
+  }
+
+  const v5 = dados as DadosFinancasV5 | DadosFinancasV2 | DadosFinancasV1
+  const principal = contaPrincipal(novoId(), v5.config, v5.configDefinida)
+  const metas = 'metas' in v5 && Array.isArray(v5.metas) ? v5.metas : []
   return {
-    ...dados,
-    metas: 'metas' in dados && Array.isArray(dados.metas) ? dados.metas : [],
-    tags: 'tags' in dados && Array.isArray(dados.tags) ? dados.tags : [],
-    pastas: 'pastas' in dados && Array.isArray(dados.pastas) ? dados.pastas : [],
+    caixas: [principal],
+    categorias: v5.categorias,
+    lancamentos: v5.lancamentos.map((l) => ({ ...l, caixaId: principal.id })),
+    metas: metas.map((m) => ({ ...m, caixaId: principal.id })),
+    tags,
+    pastas,
   }
 }
 
@@ -53,7 +85,10 @@ export type AcaoFinancas =
   | { tipo: 'dados/carregar'; dados: DadosFinancas }
   /** Troca tudo pelo conteúdo de um backup (só no desktop). Ao contrário de carregar, é salvo. */
   | { tipo: 'dados/importar'; dados: DadosFinancas }
-  | { tipo: 'config/atualizar'; config: Partial<Configuracao> }
+  /** Cria ou altera um caixa, inclusive o saldo inicial dele. */
+  | { tipo: 'caixa/salvar'; caixa: Caixa }
+  /** Só para caixa sem lançamentos nem metas (os outros são arquivados). */
+  | { tipo: 'caixa/excluir'; id: string }
   | { tipo: 'categoria/salvar'; categoria: Categoria }
   | { tipo: 'categoria/excluir'; id: string }
   | { tipo: 'lancamento/salvar'; lancamento: Lancamento }
@@ -78,8 +113,10 @@ export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): Est
     case 'dados/carregar':
     case 'dados/importar':
       return { ...estado, ...acao.dados }
-    case 'config/atualizar':
-      return { ...estado, config: { ...estado.config, ...acao.config }, configDefinida: true }
+    case 'caixa/salvar':
+      return { ...estado, caixas: salvar(estado.caixas, acao.caixa) }
+    case 'caixa/excluir':
+      return { ...estado, caixas: estado.caixas.filter((c) => c.id !== acao.id) }
     case 'categoria/salvar':
       return { ...estado, categorias: salvar(estado.categorias, acao.categoria) }
     case 'categoria/excluir':
@@ -131,8 +168,7 @@ export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): Est
 /** Estado antes de carregar os dados do usuário. */
 export function estadoVazio(): EstadoFinancas {
   return {
-    config: { saldoInicialCentavos: 0, dataSaldoInicial: `${new Date().getFullYear()}-01-01` },
-    configDefinida: false,
+    caixas: [],
     categorias: [],
     lancamentos: [],
     metas: [],

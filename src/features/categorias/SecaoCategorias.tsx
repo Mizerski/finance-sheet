@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { TipoMovimento } from '@/features/lancamentos/lancamento'
 import { totalPorCategoria } from '@/features/projecao/projecao'
-import { useProjecao } from '@/features/projecao/useProjecao'
+import { useDiasDosCaixas } from '@/features/projecao/projecoes-por-caixa'
+import { useAno } from '@/features/projecao/useAno'
 import { CabecalhoOrganizacao } from '@/features/organizacao/components/CabecalhoOrganizacao'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO } from '@/shared/lib/estilos'
@@ -22,7 +23,9 @@ interface Selecao {
 /** Aba Categorias da tela Organização. */
 export function SecaoCategorias() {
   const { estado, dispatch } = useFinancas()
-  const { ano, dias } = useProjecao()
+  // Categorias, tags e pastas valem para todos os caixas: os totais também.
+  const { ano } = useAno()
+  const dias = useDiasDosCaixas(ano)
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
 

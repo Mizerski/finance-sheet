@@ -117,6 +117,7 @@ Sem categoria: `#a39a8e`.
 | Categorias de entrada / saída, gastos por categoria | azul com círculo papel / vermelho com quadrado papel |
 | Tags | amarelo, triângulo |
 | Pastas | preto, quadrado amarelo |
+| Caixas | preto, círculo amarelo |
 | Entradas vs saídas · gastos no ano · saldo | azul com quadrado vermelho · azul com quarto amarelo · preto com quarto vermelho |
 
 - A marca (`Marca`) é quadrado vermelho, círculo azul e triângulo amarelo, com o nome em duas linhas.

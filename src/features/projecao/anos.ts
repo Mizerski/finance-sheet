@@ -1,5 +1,4 @@
-import { anoDe } from '@/shared/lib/datas'
-import type { Configuracao } from './configuracao'
+import { anoDe, type DataISO } from '@/shared/lib/datas'
 
 /** Quantos anos depois do atual dá para projetar. */
 const ANOS_A_FRENTE = 10
@@ -9,9 +8,12 @@ export interface IntervaloAnos {
   max: number
 }
 
-/** Do ano do saldo inicial (antes dele não há dados) até ANOS_A_FRENTE depois do ano atual. */
-export function intervaloDeAnos(config: Configuracao, anoAtual: number): IntervaloAnos {
-  return { min: Math.min(anoDe(config.dataSaldoInicial), anoAtual), max: anoAtual + ANOS_A_FRENTE }
+/**
+ * Do ano do saldo inicial mais antigo entre os caixas (antes dele não há dados) até ANOS_A_FRENTE depois do ano atual.
+ * Vale para todos os caixas, para o intervalo não mudar ao trocar de caixa.
+ */
+export function intervaloDeAnos(primeiraData: DataISO | null, anoAtual: number): IntervaloAnos {
+  return { min: Math.min(primeiraData ? anoDe(primeiraData) : anoAtual, anoAtual), max: anoAtual + ANOS_A_FRENTE }
 }
 
 export function limitarAno(ano: number, { min, max }: IntervaloAnos): number {

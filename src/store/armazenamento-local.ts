@@ -6,8 +6,7 @@ import {
   financasReducer,
   VERSAO_DADOS,
   type DadosFinancas,
-  type DadosFinancasV1,
-  type DadosFinancasV2,
+  type DadosFinancasSalvos,
   type EstadoFinancas,
 } from './estado'
 
@@ -19,8 +18,8 @@ import {
 export const ARQUIVO_DADOS = 'financas.json'
 
 function soDados(estado: EstadoFinancas): DadosFinancas {
-  const { config, configDefinida, categorias, lancamentos, metas, tags, pastas } = estado
-  return { config, configDefinida, categorias, lancamentos, metas, tags, pastas }
+  const { caixas, categorias, lancamentos, metas, tags, pastas } = estado
+  return { caixas, categorias, lancamentos, metas, tags, pastas }
 }
 
 export function criarArmazenamentoLocal(): Armazenamento {
@@ -35,8 +34,9 @@ export function criarArmazenamentoLocal(): Armazenamento {
     async carregar() {
       const store = await abrir()
       // Arquivos de versões anteriores são convertidos aqui e regravados no formato atual na próxima ação.
-      const lido = await store.get<DadosFinancas | DadosFinancasV2 | DadosFinancasV1>('dados')
-      salvo = lido ? atualizarDados(lido) : soDados(estadoVazio())
+      // Sem arquivo, a Conta principal é criada com o saldo padrão.
+      const lido = await store.get<DadosFinancasSalvos>('dados')
+      salvo = atualizarDados(lido ?? soDados(estadoVazio()))
       return salvo
     },
     gravacao(acao) {

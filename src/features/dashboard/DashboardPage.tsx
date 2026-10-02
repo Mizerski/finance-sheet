@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useVisao } from '@/features/caixas/useVisao'
 import { resumirMeta } from '@/features/economias/aportes'
 import { CardMetaPrincipal } from '@/features/economias/components/CardMetaPrincipal'
 import { metaPrincipal, progressoDaMeta } from '@/features/economias/marcos'
 import { diasDaPasta, gastosPorCategoria, gastosPorPasta, gastosPorTag, resumirAno, totalEvitavel } from '@/features/projecao/projecao'
 import { useAno } from '@/features/projecao/useAno'
-import { useProjecoes } from '@/features/projecao/useProjecao'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { anoDe, formatarData, paraDataISO } from '@/shared/lib/datas'
@@ -35,9 +35,10 @@ import {
 import { agrupamentoPara, agrupar, diasNoPeriodo } from './relatorio'
 
 export function DashboardPage() {
+  // Categorias, tags e pastas são de todos os caixas; saldos, metas e gastos são do que a tela mostra.
   const { estado } = useFinancas()
+  const { projecoes, projecoesDoRelatorio, metas, dataInicial, ehBeneficio } = useVisao()
   const { ano, anoAtual, intervalo } = useAno()
-  const projecoes = useProjecoes()
   const search = useSearch({ from: '/dashboard' })
   const navigate = useNavigate({ from: '/dashboard' })
   const [hoje] = useState(() => paraDataISO(new Date()))
@@ -55,40 +56,49 @@ export function DashboardPage() {
   const dias = useMemo(() => diasNoPeriodo(projecoes, periodo), [projecoes, periodo])
   const resumo = useMemo(() => resumirAno(dias), [dias])
   const grupos = useMemo(() => agrupar(dias, unidade), [dias, unidade])
-  const anuais = useMemo(() => gastosPorAno(projecoes, estado.categorias), [projecoes, estado.categorias])
-  const gastos = useMemo(() => gastosPorCategoria(dias, estado.categorias), [dias, estado.categorias])
-  const porTag = useMemo(() => gastosPorTag(dias, estado.tags), [dias, estado.tags])
-  const porPasta = useMemo(() => gastosPorPasta(dias, estado.pastas), [dias, estado.pastas])
+  // Gastos por categoria, tag e pasta: ver `projecoesDoRelatorio` (hoje, os mesmos caixas dos saldos).
+  const diasGastos = useMemo(
+    () => (projecoesDoRelatorio === projecoes ? dias : diasNoPeriodo(projecoesDoRelatorio, periodo)),
+    [projecoesDoRelatorio, projecoes, dias, periodo],
+  )
+  const resumoGastos = useMemo(() => (diasGastos === dias ? resumo : resumirAno(diasGastos)), [diasGastos, dias, resumo])
+  const anuais = useMemo(
+    () => gastosPorAno(projecoesDoRelatorio, estado.categorias),
+    [projecoesDoRelatorio, estado.categorias],
+  )
+  const gastos = useMemo(() => gastosPorCategoria(diasGastos, estado.categorias), [diasGastos, estado.categorias])
+  const porTag = useMemo(() => gastosPorTag(diasGastos, estado.tags), [diasGastos, estado.tags])
+  const porPasta = useMemo(() => gastosPorPasta(diasGastos, estado.pastas), [diasGastos, estado.pastas])
   // Sem ?pasta= (ou com uma pasta excluída), detalha a pasta que mais gastou no período.
   const pasta =
     estado.pastas.find((p) => p.id === search.pasta) ??
     estado.pastas.find((p) => p.id === porPasta.find((g) => g.pastaId)?.pastaId) ??
     estado.pastas[0]
   const categoriasDaPasta = useMemo(
-    () => (pasta ? gastosPorCategoria(diasDaPasta(dias, pasta.id, estado.pastas), estado.categorias) : []),
-    [pasta, dias, estado.pastas, estado.categorias],
+    () => (pasta ? gastosPorCategoria(diasDaPasta(diasGastos, pasta.id, estado.pastas), estado.categorias) : []),
+    [pasta, diasGastos, estado.pastas, estado.categorias],
   )
   const evitaveis = useMemo(() => {
     // Só compara com o período anterior se ele foi todo calculado (sem dias antes do saldo inicial).
     const anterior = deslocar(periodo, -1)
-    const diasAnteriores = diasNoPeriodo(projecoes, anterior)
+    const diasAnteriores = diasNoPeriodo(projecoesDoRelatorio, anterior)
     const comparavel =
       diasAnteriores.length === diasDoPeriodo(anterior) && diasAnteriores.every((d) => d.noCalculo)
     return {
       temTagEvitavel: estado.tags.some((t) => t.evitavel),
       totalCentavos: totalEvitavel(porTag),
-      saidasCentavos: resumo.totalSaidasCentavos,
+      saidasCentavos: resumoGastos.totalSaidasCentavos,
       anteriorCentavos: comparavel ? totalEvitavel(gastosPorTag(diasAnteriores, estado.tags)) : null,
     }
-  }, [periodo, projecoes, porTag, resumo, estado.tags])
+  }, [periodo, projecoesDoRelatorio, porTag, resumoGastos, estado.tags])
   const abertura = resumo.saldoInicial
 
   // A meta em destaque olha para hoje, não para o período do relatório.
   const principal = useMemo(() => {
-    const resumos = new Map(estado.metas.map((m) => [m.id, resumirMeta(m, hoje)]))
-    const meta = metaPrincipal(estado.metas, resumos)
+    const resumos = new Map(metas.map((m) => [m.id, resumirMeta(m, hoje)]))
+    const meta = metaPrincipal(metas, resumos)
     return meta && { meta, resumo: resumos.get(meta.id)!, progresso: progressoDaMeta(meta, hoje) }
-  }, [estado.metas, hoje])
+  }, [metas, hoje])
 
   // O ano das outras telas acompanha o início do período.
   const irPara = (novo: Periodo) =>
@@ -116,7 +126,7 @@ export function DashboardPage() {
               {diasDoPeriodo(periodo) === 1 ? 'dia' : 'dias'})
             </>
           ) : (
-            `Sem dados antes de ${formatarData(estado.config.dataSaldoInicial)}`
+            `Sem dados antes de ${formatarData(dataInicial)}`
           )
         }
         acoes={<SeletorPeriodo periodo={periodo} intervalo={intervalo} hoje={hoje} onChange={irPara} />}
@@ -124,7 +134,8 @@ export function DashboardPage() {
 
       <Indicadores resumo={resumo} evitaveis={evitaveis} periodo={periodo} />
 
-      <CardMetaPrincipal principal={principal} totalDeMetas={estado.metas.length} hoje={hoje} />
+      {/* Benefício não tem metas: o card só convidaria a criar uma no lugar errado. */}
+      {!ehBeneficio && <CardMetaPrincipal principal={principal} totalDeMetas={metas.length} hoje={hoje} />}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Saldo na largura toda: com o gráfico de tags, a grade fica sem buracos. */}

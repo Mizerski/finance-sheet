@@ -10,6 +10,7 @@ const OPCOES_ABA = [
   { valor: 'categorias' as const, rotulo: 'Categorias' },
   { valor: 'tags' as const, rotulo: 'Tags' },
   { valor: 'pastas' as const, rotulo: 'Pastas' },
+  { valor: 'caixas' as const, rotulo: 'Caixas' },
 ]
 
 interface CabecalhoOrganizacaoProps {

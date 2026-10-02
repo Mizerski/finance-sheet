@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
+import type { Caixa } from '@/features/caixas/caixa'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import { CabecalhoGrupo } from '@/features/pastas/components/CabecalhoGrupo'
 import { MoverParaPasta } from '@/features/pastas/components/MoverParaPasta'
@@ -25,6 +26,8 @@ interface TabelaLancamentosProps {
   grupos: GrupoPasta[]
   categorias: Map<string, Categoria>
   tags: Map<string, Tag>
+  /** Caixas pelo id, para a bolinha da cor do caixa; ausente com um caixa só (nada novo na tela). */
+  caixas?: Map<string, Caixa>
   /** Sem pastas cadastradas, a lista é uma só, sem cabeçalhos de grupo nem o botão de mover. */
   pastas: Pasta[]
   /** Chaves dos grupos fechados. */
@@ -41,6 +44,7 @@ export function TabelaLancamentos({
   grupos,
   categorias,
   tags,
+  caixas,
   pastas,
   fechadas,
   ano,
@@ -58,6 +62,7 @@ export function TabelaLancamentos({
         lancamento={l}
         categoria={categorias.get(l.categoriaId) ?? CATEGORIA_DESCONHECIDA}
         tag={l.tagId ? tags.get(l.tagId) : undefined}
+        caixa={caixas?.get(l.caixaId)}
         mover={
           agrupar && (
             <MoverParaPasta
@@ -115,13 +120,15 @@ interface LinhaLancamentoProps {
   lancamento: Lancamento
   categoria: Pick<Categoria, 'nome' | 'cor'>
   tag?: Tag
+  /** Caixa do lançamento, quando há mais de um. */
+  caixa?: Caixa
   /** Botão de mudar de pasta, quando há pastas. */
   mover?: ReactNode
   onEditar: () => void
   onExcluir: () => void
 }
 
-function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExcluir }: LinhaLancamentoProps) {
+function LinhaLancamento({ lancamento: l, categoria, tag, caixa, mover, onEditar, onExcluir }: LinhaLancamentoProps) {
   const entrada = l.tipo === 'entrada'
   const recorrencia = descreverRecorrencia(l)
   const periodo = descreverPeriodo(l)
@@ -130,7 +137,16 @@ function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExc
     <TableRow className={TABELA.linha}>
       <TableCell className={cn(TABELA.celula, TABELA.primeira, 'whitespace-normal')}>
         <div className="flex flex-col gap-1">
-          <span className="font-medium">{l.descricao}</span>
+          <span className="flex items-center gap-1.5 font-medium">
+            {/* Bolinha (não quadradinho, que é a categoria) na cor do caixa. */}
+            {caixa && (
+              <span title={caixa.nome} className="flex">
+                <PontoCor cor={caixa.cor} className="rounded-full" />
+                <span className="sr-only">{caixa.nome}:</span>
+              </span>
+            )}
+            {l.descricao}
+          </span>
           {/* No celular, categoria, tag, natureza e recorrência vêm empilhadas sob a descrição. */}
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground lg:hidden">
             <PontoCor cor={categoria.cor} />

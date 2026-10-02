@@ -1,16 +1,11 @@
+import type { Caixa } from '@/features/caixas/caixa'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import type { Pasta } from '@/features/pastas/pasta'
 import type { Tag } from '@/features/tags/tag'
 import { paraDataISO, type DataISO } from '@/shared/lib/datas'
-import {
-  atualizarDados,
-  VERSAO_DADOS,
-  type DadosFinancas,
-  type DadosFinancasV1,
-  type DadosFinancasV2,
-} from '@/store/estado'
+import { atualizarDados, VERSAO_DADOS, type DadosFinancas, type DadosFinancasSalvos } from '@/store/estado'
 
 /* Arquivo de backup do app desktop: os mesmos dados do arquivo local, com a identificação do app. */
 
@@ -27,10 +22,10 @@ export function nomeDoBackup(hoje: Date): string {
 }
 
 export function gerarBackup(
-  { config, configDefinida, categorias, lancamentos, metas, tags, pastas }: DadosFinancas,
+  { caixas, categorias, lancamentos, metas, tags, pastas }: DadosFinancas,
   agora: Date,
 ): string {
-  const dados: DadosFinancas = { config, configDefinida, categorias, lancamentos, metas, tags, pastas }
+  const dados: DadosFinancas = { caixas, categorias, lancamentos, metas, tags, pastas }
   return JSON.stringify({ app: APP, versao: VERSAO_DADOS, exportadoEm: paraDataISO(agora), dados }, null, 2)
 }
 
@@ -41,6 +36,7 @@ const ehTexto = (v: unknown): v is string => typeof v === 'string'
 const ehData = (v: unknown): v is DataISO => ehTexto(v) && /^\d{4}-\d{2}-\d{2}$/.test(v)
 const ehCentavos = (v: unknown): v is number => Number.isSafeInteger(v)
 const ehTipo = (v: unknown) => v === 'entrada' || v === 'saida'
+const ehCor = (v: unknown) => ehTexto(v) && /^#[0-9a-f]{6}$/i.test(v)
 
 function ehRecorrencia(r: unknown): boolean {
   if (!ehObjeto(r)) return false
@@ -62,19 +58,45 @@ function ehRecorrencia(r: unknown): boolean {
   }
 }
 
+function ehCaixa(c: unknown): c is Caixa {
+  return (
+    ehObjeto(c) &&
+    ehTexto(c.id) &&
+    ehTexto(c.nome) &&
+    ehCor(c.cor) &&
+    (c.tipo === 'conta' || c.tipo === 'beneficio') &&
+    ehCentavos(c.saldoInicialCentavos) &&
+    ehData(c.dataSaldoInicial) &&
+    typeof c.saldoDefinido === 'boolean' &&
+    typeof c.entraNoTotal === 'boolean' &&
+    Number.isInteger(c.ordem) &&
+    (c.arquivado === undefined || typeof c.arquivado === 'boolean')
+  )
+}
+
 function ehCategoria(c: unknown): c is Categoria {
-  return ehObjeto(c) && ehTexto(c.id) && ehTexto(c.nome) && ehTexto(c.cor) && /^#[0-9a-f]{6}$/i.test(c.cor) && ehTipo(c.tipo)
+  return ehObjeto(c) && ehTexto(c.id) && ehTexto(c.nome) && ehCor(c.cor) && ehTipo(c.tipo)
 }
 
 function ehTag(t: unknown): t is Tag {
-  return ehObjeto(t) && ehTexto(t.id) && ehTexto(t.nome) && ehTexto(t.cor) && /^#[0-9a-f]{6}$/i.test(t.cor) && typeof t.evitavel === 'boolean'
+  return ehObjeto(t) && ehTexto(t.id) && ehTexto(t.nome) && ehCor(t.cor) && typeof t.evitavel === 'boolean'
 }
 
 function ehPasta(p: unknown): p is Pasta {
-  return ehObjeto(p) && ehTexto(p.id) && ehTexto(p.nome) && ehTexto(p.cor) && /^#[0-9a-f]{6}$/i.test(p.cor)
+  return ehObjeto(p) && ehTexto(p.id) && ehTexto(p.nome) && ehCor(p.cor)
 }
 
-function ehLancamento(l: unknown): l is Lancamento {
+/** A partir da versão 6, todo lançamento e meta tem `caixaId` de um caixa do backup. */
+function ehDoCaixa(item: Objeto, versao: number, caixas: Set<string>): boolean {
+  if (versao < 6) return true
+  return (
+    ehTexto(item.caixaId) &&
+    caixas.has(item.caixaId) &&
+    (item.caixaDestinoId === undefined || (ehTexto(item.caixaDestinoId) && caixas.has(item.caixaDestinoId)))
+  )
+}
+
+function ehLancamento(l: unknown): l is Omit<Lancamento, 'caixaId'> {
   return (
     ehObjeto(l) &&
     ehTexto(l.id) &&
@@ -92,7 +114,7 @@ function ehLancamento(l: unknown): l is Lancamento {
   )
 }
 
-function ehMeta(m: unknown): m is MetaEconomia {
+function ehMeta(m: unknown): m is Omit<MetaEconomia, 'caixaId'> {
   return (
     ehObjeto(m) &&
     ehTexto(m.id) &&
@@ -105,24 +127,29 @@ function ehMeta(m: unknown): m is MetaEconomia {
     (m.diaDoMes as number) >= 1 &&
     (m.diaDoMes as number) <= 31 &&
     ehData(m.inicio) &&
+    (m.prazo === undefined || ehData(m.prazo)) &&
     ehObjeto(m.ajustes) &&
     Object.entries(m.ajustes).every(([mes, v]) => /^\d{4}-\d{2}$/.test(mes) && ehCentavos(v) && v >= 0)
   )
 }
 
-/** Dados da versão 1 (sem metas), da 2 (sem tags e pastas) ou da atual. */
-function ehDados(d: unknown, versao: number): d is DadosFinancas | DadosFinancasV2 | DadosFinancasV1 {
+/** Dados da versão 1 (sem metas), da 2 (sem tags e pastas), de 3 a 5 (sem caixas) ou da atual. */
+function ehDados(d: unknown, versao: number): d is DadosFinancasSalvos {
+  if (!ehObjeto(d)) return false
+  const caixas = versao >= 6 && Array.isArray(d.caixas) && d.caixas.every(ehCaixa) ? d.caixas : null
+  const idsCaixas = new Set(caixas?.map((c) => c.id))
   return (
-    ehObjeto(d) &&
-    ehObjeto(d.config) &&
-    ehCentavos(d.config.saldoInicialCentavos) &&
-    ehData(d.config.dataSaldoInicial) &&
-    typeof d.configDefinida === 'boolean' &&
+    (versao >= 6
+      ? caixas !== null && caixas.length > 0
+      : ehObjeto(d.config) &&
+        ehCentavos(d.config.saldoInicialCentavos) &&
+        ehData(d.config.dataSaldoInicial) &&
+        typeof d.configDefinida === 'boolean') &&
     Array.isArray(d.categorias) &&
     d.categorias.every(ehCategoria) &&
     Array.isArray(d.lancamentos) &&
-    d.lancamentos.every(ehLancamento) &&
-    (versao < 2 || (Array.isArray(d.metas) && d.metas.every(ehMeta))) &&
+    d.lancamentos.every((l) => ehLancamento(l) && ehDoCaixa(l, versao, idsCaixas)) &&
+    (versao < 2 || (Array.isArray(d.metas) && d.metas.every((m) => ehMeta(m) && ehDoCaixa(m, versao, idsCaixas)))) &&
     (versao < 3 ||
       (Array.isArray(d.tags) && d.tags.every(ehTag) && Array.isArray(d.pastas) && d.pastas.every(ehPasta)))
   )
@@ -156,21 +183,36 @@ export function lerBackup(texto: string): Backup {
     throw new Error('O backup está incompleto ou foi alterado e não pode ser importado.')
   }
 
+  // Versões anteriores à 6 ganham a Conta principal, com o saldo inicial do backup.
   const atual = atualizarDados(d)
   return {
     exportadoEm: arquivo.exportadoEm,
     dados: {
-      config: { saldoInicialCentavos: d.config.saldoInicialCentavos, dataSaldoInicial: d.config.dataSaldoInicial },
-      configDefinida: d.configDefinida,
-      categorias: d.categorias.map(({ id, nome, cor, tipo }) => ({ id, nome, cor, tipo })),
-      lancamentos: d.lancamentos,
-      metas: atual.metas.map(({ id, nome, valorAlvoCentavos, aporteMensalCentavos, diaDoMes, inicio, ajustes }) => ({
+      caixas: atual.caixas.map(
+        ({ id, nome, cor, tipo, saldoInicialCentavos, dataSaldoInicial, saldoDefinido, entraNoTotal, ordem, arquivado }) => ({
+          id,
+          nome,
+          cor,
+          tipo,
+          saldoInicialCentavos,
+          dataSaldoInicial,
+          saldoDefinido,
+          entraNoTotal,
+          ordem,
+          ...(arquivado && { arquivado: true }),
+        }),
+      ),
+      categorias: atual.categorias.map(({ id, nome, cor, tipo }) => ({ id, nome, cor, tipo })),
+      lancamentos: atual.lancamentos,
+      metas: atual.metas.map(({ id, caixaId, nome, valorAlvoCentavos, aporteMensalCentavos, diaDoMes, inicio, prazo, ajustes }) => ({
         id,
+        caixaId,
         nome,
         valorAlvoCentavos,
         aporteMensalCentavos,
         diaDoMes,
         inicio,
+        ...(prazo && { prazo }),
         ajustes: { ...ajustes },
       })),
       tags: atual.tags.map(({ id, nome, cor, evitavel }) => ({ id, nome, cor, evitavel })),

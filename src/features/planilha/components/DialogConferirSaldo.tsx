@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
+import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
+import { useVisao } from '@/features/caixas/useVisao'
 import { lancamentoDeAjuste } from '@/features/lancamentos/ajuste'
-import { useProjecoes } from '@/features/projecao/useProjecao'
+import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
@@ -26,7 +28,7 @@ interface DialogConferirSaldoProps {
   onOpenChange: (aberto: boolean) => void
 }
 
-/** Compara o saldo do banco com o da planilha e lança a diferença como ajuste. */
+/** Compara o saldo do banco com o do caixa na planilha e lança a diferença como ajuste nele. */
 export function DialogConferirSaldo({ aberto, onOpenChange }: DialogConferirSaldoProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
@@ -51,7 +53,11 @@ const OPCOES_SINAL = [
 
 function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   const { dispatch } = useFinancas()
-  const projecoes = useProjecoes()
+  const { caixaPadrao } = useVisao()
+  const { porCaixa } = useProjecoesDosCaixas()
+  // O caixa da tela (em "Todos", a primeira conta); o ajuste é sempre de um caixa, nunca da soma.
+  const [caixaId, setCaixaId] = useState(caixaPadrao?.id ?? '')
+  const projecoes = porCaixa.get(caixaId) ?? []
   const [data, setData] = useState<DataISO>(() => paraDataISO(new Date()))
   const [centavos, setCentavos] = useState(0)
   const [sinal, setSinal] = useState<'positivo' | 'negativo'>('positivo')
@@ -65,13 +71,15 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   function salvar(e: FormEvent) {
     e.preventDefault()
     if (!pronto || projetado === null) return
-    const ajuste = lancamentoDeAjuste(real, projetado, data, crypto.randomUUID())
+    const ajuste = lancamentoDeAjuste(real, projetado, data, crypto.randomUUID(), caixaId)
     if (ajuste) dispatch({ tipo: 'lancamento/salvar', lancamento: ajuste })
     onConcluir()
   }
 
   return (
     <form noValidate onSubmit={salvar} className="flex flex-col gap-4">
+      <CampoCaixa id="conferir-caixa" valor={caixaId} onChange={setCaixaId} />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="conferir-valor">Saldo no banco</FieldLabel>

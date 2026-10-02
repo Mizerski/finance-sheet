@@ -3,7 +3,9 @@ import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { agruparPorPasta } from '@/features/pastas/grupos'
 import { totalPorLancamento } from '@/features/projecao/projecao'
-import { useProjecao } from '@/features/projecao/useProjecao'
+import { useVisao } from '@/features/caixas/useVisao'
+import { useDiasDosCaixas } from '@/features/projecao/projecoes-por-caixa'
+import { useAno } from '@/features/projecao/useAno'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
@@ -35,17 +37,25 @@ export function LancamentosPage() {
   const { estado, dispatch } = useFinancas()
   const { fechadas, ...filtros } = useSearch({ from: '/lancamentos' })
   const navigate = useNavigate({ from: '/lancamentos' })
-  const { ano, dias } = useProjecao()
+  // A lista é do caixa escolhido ou, em "Todos", de todos os caixas (inclusive os que não entram no total).
+  const { caixa, lancamentosDaLista } = useVisao()
+  const { ano } = useAno()
+  const dias = useDiasDosCaixas(ano, caixa?.id)
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
   const [hoje] = useState(() => paraDataISO(new Date()))
 
   const categorias = useMemo(() => new Map(estado.categorias.map((c) => [c.id, c])), [estado.categorias])
   const tags = useMemo(() => new Map(estado.tags.map((t) => [t.id, t])), [estado.tags])
+  // Com mais de um caixa (inclusive arquivados, que têm histórico), cada lançamento mostra a cor do seu.
+  const caixas = useMemo(
+    () => (estado.caixas.length > 1 ? new Map(estado.caixas.map((c) => [c.id, c])) : undefined),
+    [estado.caixas],
+  )
   const totalNoAno = useMemo(() => totalPorLancamento(dias), [dias])
-  const visiveis = filtrarLancamentos(estado.lancamentos, filtros, new Set(tags.keys()))
+  const visiveis = filtrarLancamentos(lancamentosDaLista, filtros, new Set(tags.keys()))
   const grupos = agruparPorPasta(visiveis, estado.pastas, totalNoAno)
-  const total = estado.lancamentos.length
+  const total = lancamentosDaLista.length
   const filtrando = temFiltro(filtros)
 
   // Os grupos fechados continuam fechados ao trocar ou limpar os filtros.
@@ -99,6 +109,7 @@ export function LancamentosPage() {
             grupos={grupos}
             categorias={categorias}
             tags={tags}
+            caixas={caixas}
             pastas={estado.pastas}
             fechadas={new Set(fechadas)}
             ano={ano}

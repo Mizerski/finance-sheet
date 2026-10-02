@@ -7,6 +7,7 @@ import {
   redirect,
   retainSearchParams,
 } from '@tanstack/react-router'
+import { validarCaixa } from '@/features/caixas/busca'
 import { validarBuscaEconomias } from '@/features/economias/busca'
 import { EconomiasPage } from '@/features/economias/EconomiasPage'
 import { validarBusca } from '@/features/lancamentos/filtros'
@@ -20,9 +21,9 @@ import { AppLayout } from './layout/AppLayout'
 
 const rootRoute = createRootRoute({
   component: AppLayout,
-  // Ano exibido em todas as telas; continua na URL ao trocar de página.
-  validateSearch: validarAno,
-  search: { middlewares: [retainSearchParams(['ano'])] },
+  // Ano e caixa exibidos em todas as telas; continuam na URL ao trocar de página.
+  validateSearch: (search: Record<string, unknown>) => ({ ...validarAno(search), ...validarCaixa(search) }),
+  search: { middlewares: [retainSearchParams(['ano', 'caixa'])] },
   notFoundComponent: () => (
     <p className="text-muted-foreground">
       Página não encontrada.{' '}
@@ -62,7 +63,7 @@ const lancamentosRoute = createRoute({
 const organizacaoRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/organizacao',
-  // Aba aberta (?aba=tags ou ?aba=pastas); sem ela, categorias.
+  // Aba aberta (?aba=tags, pastas ou caixas); sem ela, categorias.
   validateSearch: validarAba,
   component: OrganizacaoPage,
 })

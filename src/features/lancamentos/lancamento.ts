@@ -13,6 +13,13 @@ export type Recorrencia =
 
 export interface Lancamento {
   id: string
+  /** Caixa do lançamento (na transferência, a origem). */
+  caixaId: string
+  /**
+   * Caixa que recebe o valor numa transferência: saída em `caixaId` e entrada aqui.
+   * Ainda sem interface; o modelo já aceita para não mudar o formato depois.
+   */
+  caixaDestinoId?: string
   descricao: string
   tipo: TipoMovimento
   /** Sempre inteiro, em centavos. */

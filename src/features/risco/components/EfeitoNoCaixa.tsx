@@ -1,12 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { Lancamento, TipoMovimento } from '@/features/lancamentos/lancamento'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
-import { paraDataISO } from '@/shared/lib/datas'
 import { ROTULO } from '@/shared/lib/estilos'
-import { useFinancas } from '@/store/financas-context'
 import { COR_RISCO } from '../cores'
 import { naoPiora, riscoCom } from '../simulacao'
-import { useRisco } from '../useRisco'
+import { useRiscoDaConta } from '../useRisco'
 import { DataForte, Forte, NomeNivel, SaldoForte } from './Destaques'
 import { DesdeQuando, FraseFalta } from './MensagemRisco'
 import { SeloRisco } from './SeloRisco'
@@ -17,27 +15,28 @@ interface EfeitoNoCaixaProps {
   /** O lançamento em edição, que os simulados substituem. */
   substitui?: string
   tipo: TipoMovimento
+  /** Caixa do lançamento: o efeito é no risco dele (benefício não tem risco). */
+  caixaId: string
 }
 
 /**
  * O que o lançamento do formulário faz com o risco do caixa nos próximos 12 meses, antes de salvar.
  * Saídas sempre mostram o efeito; entradas, só quando melhoram o nível.
  */
-export function EfeitoNoCaixa({ simulados, substitui, tipo }: EfeitoNoCaixaProps) {
-  const { estado } = useFinancas()
-  const atual = useRisco()
-  const [hoje] = useState(() => paraDataISO(new Date()))
-  const { config, lancamentos, metas } = estado
+export function EfeitoNoCaixa({ simulados, substitui, tipo, caixaId }: EfeitoNoCaixaProps) {
+  const daConta = useRiscoDaConta(caixaId)
+  const contexto = daConta?.contexto
   // O formulário recria os lançamentos a cada tecla; em texto, só recalcula quando a conta muda.
   const chave = simulados && JSON.stringify(simulados)
 
   const depois = useMemo(() => {
-    if (!chave) return null
+    if (!chave || !contexto) return null
     const novos: Lancamento[] = JSON.parse(chave)
-    const lista = [...lancamentos.filter((l) => l.id !== substitui), ...novos]
-    return riscoCom({ config, lancamentos, metas, hoje }, lista)
-  }, [chave, substitui, config, lancamentos, metas, hoje])
+    const lista = [...contexto.lancamentos.filter((l) => l.id !== substitui), ...novos]
+    return riscoCom(contexto, lista)
+  }, [chave, substitui, contexto])
 
+  const atual = daConta?.atual
   if (!atual || !depois) return null
   const saldo = depois.menorSaldo
   const falta = saldo.valorCentavos < 0

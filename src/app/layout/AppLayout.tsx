@@ -1,5 +1,6 @@
 import { Link, Outlet } from '@tanstack/react-router'
 import { BotaoSair } from '@/features/autenticacao/components/BotaoSair'
+import { BarraCaixas } from '@/features/caixas/components/BarraCaixas'
 import { BotaoBackup } from '@/features/backup/components/BotaoBackup'
 import { BotaoLembrete } from '@/features/lembrete/components/BotaoLembrete'
 import { SaldoProjetado } from '@/features/projecao/components/SaldoProjetado'
@@ -29,6 +30,8 @@ export function AppLayout() {
               <BotaoSair />
             </div>
           </div>
+          {/* Escolha do caixa, só com 2 ou mais caixas ativos. */}
+          <BarraCaixas />
         </header>
 
         <main className="px-4 pt-5 pb-8">

@@ -1,9 +1,25 @@
+import { caixasAtivos } from '@/features/caixas/caixa'
 import { CAMADA, ROTULO, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
+import { useFinancas } from '@/store/financas-context'
 import { ITENS_MENU } from '../layout/itens-menu'
 
-const GRUPOS: { titulo: string; atalhos: { teclas: string[]; acao: string }[] }[] = [
+interface Grupo {
+  titulo: string
+  atalhos: { teclas: string[]; acao: string }[]
+}
+
+/** Só com 2 ou mais caixas ativos, como o seletor. */
+const GRUPO_CAIXAS: Grupo = {
+  titulo: 'Caixas',
+  atalhos: [
+    { teclas: ['Alt', '0'], acao: 'Ver todos os caixas' },
+    { teclas: ['Alt', '1…9'], acao: 'Ver o caixa nessa posição' },
+  ],
+}
+
+const GRUPOS: Grupo[] = [
   {
     titulo: 'Em qualquer tela',
     atalhos: [
@@ -32,6 +48,9 @@ interface DialogAtalhosProps {
 }
 
 export function DialogAtalhos({ aberto, onOpenChange }: DialogAtalhosProps) {
+  const { estado } = useFinancas()
+  const grupos = caixasAtivos(estado.caixas).length >= 2 ? [GRUPOS[0], GRUPO_CAIXAS, ...GRUPOS.slice(1)] : GRUPOS
+
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-md')}>
@@ -39,7 +58,7 @@ export function DialogAtalhos({ aberto, onOpenChange }: DialogAtalhosProps) {
           <DialogTitle className={TITULO_DIALOG}>Atalhos de teclado</DialogTitle>
           <DialogDescription>Funcionam fora de campos de texto.</DialogDescription>
         </DialogHeader>
-        {GRUPOS.map((g) => (
+        {grupos.map((g) => (
           <section key={g.titulo} className="flex flex-col gap-2">
             <h3 className={cn(ROTULO, 'border-b-2 border-foreground pb-1')}>{g.titulo}</h3>
             <dl className="flex flex-col gap-2 text-sm">

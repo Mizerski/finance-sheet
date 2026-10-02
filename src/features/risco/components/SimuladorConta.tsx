@@ -35,7 +35,7 @@ export function SimuladorConta({ risco, contexto }: { risco: AnaliseRisco; conte
   const [data, setData] = useState(contexto.hoje)
 
   const simulado = useMemo(
-    () => (valor > 0 ? riscoCom(contexto, [...contexto.lancamentos, contaSimulada(valor, frequencia, data)]) : null),
+    () => (valor > 0 ? riscoCom(contexto, [...contexto.lancamentos, contaSimulada(valor, frequencia, data, contexto.caixa.id)]) : null),
     [contexto, valor, frequencia, data],
   )
   // Não depende do valor digitado: só da frequência e da data.

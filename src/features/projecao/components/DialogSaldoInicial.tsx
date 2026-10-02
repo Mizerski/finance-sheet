@@ -1,4 +1,7 @@
 import { useState, type FormEvent } from 'react'
+import type { Caixa } from '@/features/caixas/caixa'
+import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
+import { useVisao } from '@/features/caixas/useVisao'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
@@ -44,9 +47,29 @@ const OPCOES_SINAL = [
   { valor: 'negativo' as const, rotulo: 'Negativo' },
 ]
 
+/** O caixa da tela (em "Todos", a primeira conta), que pode ser trocado quando há mais de um. */
 function FormularioSaldoInicial({ onConcluir }: { onConcluir: () => void }) {
-  const { estado, dispatch } = useFinancas()
-  const { saldoInicialCentavos, dataSaldoInicial } = estado.config
+  const { estado } = useFinancas()
+  const { caixaPadrao } = useVisao()
+  const [caixaId, setCaixaId] = useState(caixaPadrao?.id ?? '')
+  const caixa = estado.caixas.find((c) => c.id === caixaId)
+  if (!caixa) return null
+
+  return (
+    // Trocar de caixa recomeça o formulário com o saldo salvo dele.
+    <FormularioDoCaixa key={caixa.id} caixa={caixa} onTrocarCaixa={setCaixaId} onConcluir={onConcluir} />
+  )
+}
+
+interface FormularioDoCaixaProps {
+  caixa: Caixa
+  onTrocarCaixa: (id: string) => void
+  onConcluir: () => void
+}
+
+function FormularioDoCaixa({ caixa, onTrocarCaixa, onConcluir }: FormularioDoCaixaProps) {
+  const { dispatch } = useFinancas()
+  const { saldoInicialCentavos, dataSaldoInicial } = caixa
   const [centavos, setCentavos] = useState(Math.abs(saldoInicialCentavos))
   const [sinal, setSinal] = useState<'positivo' | 'negativo'>(saldoInicialCentavos < 0 ? 'negativo' : 'positivo')
   const [data, setData] = useState(dataSaldoInicial)
@@ -54,14 +77,21 @@ function FormularioSaldoInicial({ onConcluir }: { onConcluir: () => void }) {
   function salvar(e: FormEvent) {
     e.preventDefault()
     dispatch({
-      tipo: 'config/atualizar',
-      config: { saldoInicialCentavos: sinal === 'negativo' ? -centavos : centavos, dataSaldoInicial: data },
+      tipo: 'caixa/salvar',
+      caixa: {
+        ...caixa,
+        saldoInicialCentavos: sinal === 'negativo' ? -centavos : centavos,
+        dataSaldoInicial: data,
+        saldoDefinido: true,
+      },
     })
     onConcluir()
   }
 
   return (
     <form noValidate onSubmit={salvar} className="flex flex-col gap-4">
+      <CampoCaixa id="saldo-caixa" valor={caixa.id} onChange={onTrocarCaixa} />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="saldo-valor">Valor</FieldLabel>
