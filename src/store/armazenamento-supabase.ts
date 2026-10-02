@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { contaPrincipal, type Caixa, type TipoCaixa } from '@/features/caixas/caixa'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from '@/features/lancamentos/lancamento'
@@ -6,7 +7,6 @@ import type { Pasta } from '@/features/pastas/pasta'
 import type { Tag } from '@/features/tags/tag'
 import type { Armazenamento } from './armazenamento'
 import type { AcaoFinancas, DadosFinancas, EstadoFinancas } from './estado'
-import { estadoVazio } from './estado'
 
 /* Tradução entre o estado do app (camelCase) e as tabelas do Supabase (snake_case). */
 
@@ -17,8 +17,23 @@ interface LinhaCategoria {
   tipo: TipoMovimento
 }
 
+interface LinhaCaixa {
+  id: string
+  nome: string
+  cor: string
+  tipo: TipoCaixa
+  saldo_inicial_centavos: number
+  data_saldo_inicial: string
+  saldo_definido: boolean
+  entra_no_total: boolean
+  ordem: number
+  arquivado: boolean
+}
+
 interface LinhaLancamento {
   id: string
+  caixa_id: string
+  caixa_destino_id: string | null
   descricao: string
   tipo: TipoMovimento
   valor_centavos: number
@@ -33,6 +48,7 @@ interface LinhaLancamento {
 
 interface LinhaMeta {
   id: string
+  caixa_id: string
   nome: string
   valor_alvo_centavos: number
   aporte_mensal_centavos: number
@@ -42,13 +58,19 @@ interface LinhaMeta {
   ajustes: Record<string, number>
 }
 
-interface LinhaConfiguracao {
-  saldo_inicial_centavos: number
-  data_saldo_inicial: string
-}
+const COLUNAS_CAIXA =
+  'id, nome, cor, tipo, saldo_inicial_centavos, data_saldo_inicial, saldo_definido, entra_no_total, ordem, arquivado'
+const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
+const COLUNAS_META = 'id, caixa_id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, prazo, ajustes'
 
-const COLUNAS_LANCAMENTO = 'id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
-const COLUNAS_META = 'id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, prazo, ajustes'
+/** Gravações em lote vão em partes: a exclusão leva os ids na URL, que tem limite de tamanho. */
+const TAMANHO_LOTE = 100
+
+function emLotes<T>(itens: T[]): T[][] {
+  return Array.from({ length: Math.ceil(itens.length / TAMANHO_LOTE) }, (_, i) =>
+    itens.slice(i * TAMANHO_LOTE, (i + 1) * TAMANHO_LOTE),
+  )
+}
 
 /** O PostgREST devolve no máximo 1000 linhas por consulta; busca página por página. */
 const TAMANHO_PAGINA = 1000
@@ -68,9 +90,41 @@ async function selecionarTodas<T>(supabase: SupabaseClient, tabela: string, colu
   }
 }
 
+function deLinhaCaixa(c: LinhaCaixa): Caixa {
+  return {
+    id: c.id,
+    nome: c.nome,
+    cor: c.cor,
+    tipo: c.tipo,
+    saldoInicialCentavos: c.saldo_inicial_centavos,
+    dataSaldoInicial: c.data_saldo_inicial,
+    saldoDefinido: c.saldo_definido,
+    entraNoTotal: c.entra_no_total,
+    ordem: c.ordem,
+    ...(c.arquivado && { arquivado: true }),
+  }
+}
+
+function paraLinhaCaixa(c: Caixa): LinhaCaixa {
+  return {
+    id: c.id,
+    nome: c.nome,
+    cor: c.cor,
+    tipo: c.tipo,
+    saldo_inicial_centavos: c.saldoInicialCentavos,
+    data_saldo_inicial: c.dataSaldoInicial,
+    saldo_definido: c.saldoDefinido,
+    entra_no_total: c.entraNoTotal,
+    ordem: c.ordem,
+    arquivado: c.arquivado ?? false,
+  }
+}
+
 function deLinhaLancamento(l: LinhaLancamento): Lancamento {
   return {
     id: l.id,
+    caixaId: l.caixa_id,
+    ...(l.caixa_destino_id && { caixaDestinoId: l.caixa_destino_id }),
     descricao: l.descricao,
     tipo: l.tipo,
     valorCentavos: l.valor_centavos,
@@ -94,6 +148,8 @@ interface IdsValidos {
 function paraLinhaLancamento(l: Lancamento, ids: IdsValidos): LinhaLancamento {
   return {
     id: l.id,
+    caixa_id: l.caixaId,
+    caixa_destino_id: l.caixaDestinoId ?? null,
     descricao: l.descricao,
     tipo: l.tipo,
     valor_centavos: l.valorCentavos,
@@ -110,6 +166,7 @@ function paraLinhaLancamento(l: Lancamento, ids: IdsValidos): LinhaLancamento {
 function deLinhaMeta(m: LinhaMeta): MetaEconomia {
   return {
     id: m.id,
+    caixaId: m.caixa_id,
     nome: m.nome,
     valorAlvoCentavos: m.valor_alvo_centavos,
     aporteMensalCentavos: m.aporte_mensal_centavos,
@@ -123,6 +180,7 @@ function deLinhaMeta(m: LinhaMeta): MetaEconomia {
 function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
   return {
     id: m.id,
+    caixa_id: m.caixaId,
     nome: m.nome,
     valor_alvo_centavos: m.valorAlvoCentavos,
     aporte_mensal_centavos: m.aporteMensalCentavos,
@@ -134,23 +192,18 @@ function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
 }
 
 /** Carrega tudo o que é do usuário logado (o RLS filtra por ele). */
-async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
-  const [categorias, tags, pastas, lancamentos, metas, configuracao] = await Promise.all([
+async function carregarDados(supabase: SupabaseClient, usuarioId: string): Promise<DadosFinancas> {
+  const [caixas, categorias, tags, pastas, lancamentos, metas] = await Promise.all([
+    selecionarTodas<LinhaCaixa>(supabase, 'caixas', COLUNAS_CAIXA),
     selecionarTodas<LinhaCategoria>(supabase, 'categorias', 'id, nome, cor, tipo'),
     selecionarTodas<Tag>(supabase, 'tags', 'id, nome, cor, evitavel'),
     selecionarTodas<Pasta>(supabase, 'pastas', 'id, nome, cor'),
     selecionarTodas<LinhaLancamento>(supabase, 'lancamentos', COLUNAS_LANCAMENTO),
     selecionarTodas<LinhaMeta>(supabase, 'metas_economia', COLUNAS_META),
-    supabase.from('configuracoes').select('saldo_inicial_centavos, data_saldo_inicial').maybeSingle<LinhaConfiguracao>(),
   ])
-  if (configuracao.error) throw configuracao.error
 
-  const cfg = configuracao.data
   return {
-    config: cfg
-      ? { saldoInicialCentavos: cfg.saldo_inicial_centavos, dataSaldoInicial: cfg.data_saldo_inicial }
-      : estadoVazio().config,
-    configDefinida: cfg !== null,
+    caixas: caixas.length ? caixas.map(deLinhaCaixa) : [await criarContaPrincipal(supabase, usuarioId)],
     categorias: categorias.map((c): Categoria => ({ id: c.id, nome: c.nome, cor: c.cor, tipo: c.tipo })),
     lancamentos: lancamentos.map(deLinhaLancamento),
     metas: metas.map(deLinhaMeta),
@@ -159,13 +212,20 @@ async function carregarDados(supabase: SupabaseClient): Promise<DadosFinancas> {
   }
 }
 
+/** Usuário novo (a migração dos caixas já criou a Conta principal de quem existia). */
+async function criarContaPrincipal(supabase: SupabaseClient, usuarioId: string): Promise<Caixa> {
+  const caixa = contaPrincipal(crypto.randomUUID())
+  const { error } = await supabase.from('caixas').insert({ ...paraLinhaCaixa(caixa), user_id: usuarioId })
+  if (error) throw error
+  return caixa
+}
+
 /**
  * Grava no banco o efeito de uma ação já aplicada na tela.
  * `antes` é o estado anterior à ação. Devolve null para ações que não são salvas.
  */
 function persistir(
   supabase: SupabaseClient,
-  usuarioId: string,
   acao: AcaoFinancas,
   antes: EstadoFinancas,
 ): (() => Promise<void>) | null {
@@ -176,17 +236,10 @@ function persistir(
   }
 
   switch (acao.tipo) {
-    case 'config/atualizar': {
-      const config = { ...antes.config, ...acao.config }
-      return rodar(() =>
-        supabase.from('configuracoes').upsert({
-          user_id: usuarioId,
-          saldo_inicial_centavos: config.saldoInicialCentavos,
-          data_saldo_inicial: config.dataSaldoInicial,
-          atualizado_em: new Date().toISOString(),
-        }),
-      )
-    }
+    case 'caixa/salvar':
+      return rodar(() => supabase.from('caixas').upsert(paraLinhaCaixa(acao.caixa)))
+    case 'caixa/excluir':
+      return rodar(() => supabase.from('caixas').delete().eq('id', acao.id))
     case 'categoria/salvar': {
       const { id, nome, cor, tipo } = acao.categoria
       return rodar(() => supabase.from('categorias').upsert({ id, nome, cor, tipo }))
@@ -203,6 +256,23 @@ function persistir(
     }
     case 'lancamento/excluir':
       return rodar(() => supabase.from('lancamentos').delete().eq('id', acao.id))
+    case 'lancamento/salvarVarios': {
+      const ids = {
+        categorias: new Set(antes.categorias.map((c) => c.id)),
+        tags: new Set(antes.tags.map((t) => t.id)),
+        pastas: new Set(antes.pastas.map((p) => p.id)),
+      }
+      const lotes = emLotes(acao.lancamentos.map((l) => paraLinhaLancamento(l, ids)))
+      return async () => {
+        for (const linhas of lotes) await rodar(() => supabase.from('lancamentos').upsert(linhas))()
+      }
+    }
+    case 'lancamento/excluirVarios': {
+      const lotes = emLotes(acao.ids)
+      return async () => {
+        for (const ids of lotes) await rodar(() => supabase.from('lancamentos').delete().in('id', ids))()
+      }
+    }
     case 'meta/salvar':
       return rodar(() => supabase.from('metas_economia').upsert(paraLinhaMeta(acao.meta)))
     case 'meta/excluir':
@@ -233,7 +303,7 @@ function persistir(
 /** Web: os dados do usuário logado, no Supabase. */
 export function criarArmazenamentoSupabase(supabase: SupabaseClient, usuarioId: string): Armazenamento {
   return {
-    carregar: () => carregarDados(supabase),
-    gravacao: (acao, antes) => persistir(supabase, usuarioId, acao, antes),
+    carregar: () => carregarDados(supabase, usuarioId),
+    gravacao: (acao, antes) => persistir(supabase, acao, antes),
   }
 }

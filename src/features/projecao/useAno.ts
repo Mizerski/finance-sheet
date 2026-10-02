@@ -1,4 +1,5 @@
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { primeiraData } from '@/features/caixas/caixa'
 import { useFinancas } from '@/store/financas-context'
 import { intervaloDeAnos, limitarAno, type IntervaloAnos } from './anos'
 
@@ -17,7 +18,7 @@ export function useAno(): AnoSelecionado {
   const { estado } = useFinancas()
   const busca = useSearch({ from: '__root__' })
   const navigate = useNavigate()
-  const intervalo = intervaloDeAnos(estado.config, ANO_ATUAL)
+  const intervalo = intervaloDeAnos(primeiraData(estado.caixas), ANO_ATUAL)
 
   return {
     ano: limitarAno(busca.ano ?? ANO_ATUAL, intervalo),

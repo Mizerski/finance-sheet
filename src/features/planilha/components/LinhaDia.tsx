@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { DiaProjetado } from '@/features/projecao/projecao'
+import type { NivelRisco } from '@/features/risco/risco'
 import { formatarData, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/datas'
 import { cn } from '@/shared/lib/utils'
 import { Popover, PopoverAnchor, PopoverContent } from '@/shared/ui/popover'
@@ -16,8 +17,8 @@ interface LinhaDiaProps {
   onEditar: (lancamentoId: string) => void
   onAdicionar: (data: DataISO) => void
   comEconomia: boolean
-  /** O gasto de um mês, para pintar o saldo com a cor do risco; null sem projeção à frente. */
-  referenciaCentavos: number | null
+  /** Nível de risco do dia, para pintar o saldo; null sem risco. */
+  nivel: NivelRisco | null
 }
 
 /**
@@ -30,17 +31,30 @@ const VEU = {
   hoje: 'font-semibold [&>td]:shadow-[inset_0_2px_0_0_var(--color-foreground),inset_0_-2px_0_0_var(--color-foreground)]',
 }
 
-export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia, referenciaCentavos }: LinhaDiaProps) {
+/** Espaço que um dia cheio pede abaixo da linha; com menos que isso, o popover abre para cima se lá couber mais. */
+const ALTURA_CONFORTAVEL = 420
+
+export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia, nivel }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
+  const [lado, setLado] = useState<'top' | 'bottom'>('bottom')
   const linhaRef = useRef<HTMLTableRowElement>(null)
   const fimDeSemana = dia.diaDaSemana === 0 || dia.diaDaSemana === 6
+
+  const alternar = () => {
+    const linha = linhaRef.current?.getBoundingClientRect()
+    if (linha && !aberto) {
+      const abaixo = window.innerHeight - linha.bottom
+      setLado(abaixo < ALTURA_CONFORTAVEL && linha.top > abaixo ? 'top' : 'bottom')
+    }
+    setAberto((a) => !a)
+  }
 
   return (
     <Popover open={aberto} onOpenChange={setAberto}>
       <PopoverAnchor asChild>
         <TableRow
           ref={linhaRef}
-          onClick={() => setAberto((a) => !a)}
+          onClick={alternar}
           className={cn(
             'group cursor-pointer border-b-border/70 hover:bg-transparent has-aria-expanded:bg-transparent',
             VEU.hover,
@@ -81,11 +95,12 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
           <CelulaValor centavos={dia.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
           <CelulaValor centavos={dia.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
           {comEconomia && <CelulaValor centavos={dia.economiaCentavos} className={COR_COLUNA.economia} compacta />}
-          <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} referenciaCentavos={referenciaCentavos} />
+          <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} nivel={nivel} />
         </TableRow>
       </PopoverAnchor>
 
       <PopoverContent
+        side={lado}
         align="start"
         className="w-80 rounded-none border-2 border-foreground p-4 shadow-bloco-lg ring-0"
         // Clicar na própria linha alterna o popover em vez de fechar e reabrir.
@@ -95,7 +110,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
       >
         <DetalheDia
           dia={dia}
-          referenciaCentavos={referenciaCentavos}
+          nivel={nivel}
           categorias={categorias}
           onEditar={(id) => {
             setAberto(false)

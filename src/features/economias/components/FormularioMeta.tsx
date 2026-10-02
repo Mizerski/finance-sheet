@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
+import { useVisao } from '@/features/caixas/useVisao'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { SeletorData } from '@/shared/components/SeletorData'
 import { formatarMesAno, paraDataISO, type DataISO } from '@/shared/lib/datas'
@@ -29,7 +31,9 @@ type Erros = Partial<Record<'nome' | 'alvo' | 'aporte' | 'dia' | 'inicio' | 'pra
 
 export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaProps) {
   const { dispatch } = useFinancas()
+  const { contaPadrao } = useVisao()
   const [hoje] = useState(() => paraDataISO(new Date()))
+  const [caixaId, setCaixaId] = useState(meta?.caixaId ?? contaPadrao?.id ?? '')
   const [nome, setNome] = useState(sugestao?.nome ?? meta?.nome ?? '')
   const [alvo, setAlvo] = useState(sugestao?.valorAlvoCentavos ?? meta?.valorAlvoCentavos ?? 0)
   const [aporte, setAporte] = useState(sugestao?.aporteMensalCentavos ?? meta?.aporteMensalCentavos ?? 0)
@@ -46,6 +50,7 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
     alvo > 0 && diaValido && inicio
       ? {
           id: meta?.id ?? '',
+          caixaId,
           nome: '',
           valorAlvoCentavos: alvo,
           aporteMensalCentavos: aporte,
@@ -107,6 +112,14 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
         />
         <FieldError>{erros.nome}</FieldError>
       </Field>
+
+      <CampoCaixa
+        id="meta-caixa"
+        valor={caixaId}
+        onChange={setCaixaId}
+        filtro={(c) => c.tipo === 'conta'}
+        descricao="Conta de onde sai o dinheiro guardado."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field data-invalid={!!erros.alvo || undefined}>

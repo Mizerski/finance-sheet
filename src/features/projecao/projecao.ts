@@ -5,6 +5,7 @@ import type { Lancamento, Natureza, TipoMovimento } from '@/features/lancamentos
 import { SEM_PASTA, type Pasta } from '@/features/pastas/pasta'
 import { SEM_TAG, type Tag } from '@/features/tags/tag'
 import { anoDe, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
+import type { Periodo } from '@/shared/lib/periodo'
 import type { Configuracao } from './configuracao'
 
 export interface Ocorrencia {
@@ -33,6 +34,11 @@ export interface DiaProjetado {
   /** Aportes das metas de economia no dia (descontados do saldo, como uma saída). */
   aportes: Aporte[]
   economiaCentavos: number
+  /**
+   * No Total: saldo inicial de um caixa que começa neste dia, depois dos outros. Soma no saldo, mas não é entrada.
+   * Num caixa só, sempre 0 (o saldo inicial fica antes do primeiro dia).
+   */
+  aberturaCentavos: number
   /** Saldo acumulado ao fim do dia; null fora do cálculo. */
   saldoCentavos: number | null
 }
@@ -178,6 +184,7 @@ function projetarDias(
         saidasVariaveisCentavos: 0,
         aportes: [],
         economiaCentavos: 0,
+        aberturaCentavos: 0,
         saldoCentavos: null,
       }
     }
@@ -199,14 +206,23 @@ function projetarDias(
       saidasVariaveisCentavos: variaveis,
       aportes: doDia,
       economiaCentavos: economia,
+      aberturaCentavos: 0,
       saldoCentavos: saldo,
     }
   })
 }
 
+/** Saldo antes do dia: sem o movimento do dia nem o saldo inicial de um caixa que começa nele. */
 function saldoAntesDoDia(d: DiaProjetado): number | null {
   if (d.saldoCentavos === null) return null
-  return d.saldoCentavos - d.entradasCentavos + d.saidasFixasCentavos + d.saidasVariaveisCentavos + d.economiaCentavos
+  return (
+    d.saldoCentavos -
+    d.aberturaCentavos -
+    d.entradasCentavos +
+    d.saidasFixasCentavos +
+    d.saidasVariaveisCentavos +
+    d.economiaCentavos
+  )
 }
 
 export function agregarPorMes(dias: DiaProjetado[]): ResumoMes[] {
@@ -311,6 +327,25 @@ export function totalEvitavel(gastos: GastoTag[]): number {
   return gastos.reduce((t, g) => (g.evitavel ? t + g.totalCentavos : t), 0)
 }
 
+/** Dias projetados dentro do período, atravessando quantos anos forem preciso. */
+export function diasNoPeriodo(projecoes: Projecao[], { de, ate }: Periodo): DiaProjetado[] {
+  return projecoes
+    .filter((p) => p.ano >= anoDe(de) && p.ano <= anoDe(ate))
+    .flatMap((p) => p.dias.filter((d) => d.data >= de && d.data <= ate))
+}
+
+/** Quantas vezes cada lançamento acontece nos dias e quanto isso soma, pelo id (só os que acontecem). */
+export function ocorrenciasPorLancamento(dias: DiaProjetado[]): Map<string, { vezes: number; totalCentavos: number }> {
+  const porId = new Map<string, { vezes: number; totalCentavos: number }>()
+  for (const d of dias) {
+    for (const o of d.ocorrencias) {
+      const atual = porId.get(o.lancamentoId) ?? { vezes: 0, totalCentavos: 0 }
+      porId.set(o.lancamentoId, { vezes: atual.vezes + 1, totalCentavos: atual.totalCentavos + o.valorCentavos })
+    }
+  }
+  return porId
+}
+
 /** Total projetado nos dias (todas as ocorrências somadas) de cada lançamento, pelo id. */
 export function totalPorLancamento(dias: DiaProjetado[]): Map<string, number> {
   const totais = new Map<string, number>()
@@ -387,6 +422,55 @@ export function projetarAnos(
     const dias = projetarDias(config, indice, aportes, ano, saldo)
     saldo = dias.at(-1)?.saldoCentavos ?? config.saldoInicialCentavos
     if (ano >= de) projecoes.push({ ano, dias, meses: agregarPorMes(dias), resumo: resumirAno(dias) })
+  }
+  return projecoes
+}
+
+/**
+ * Total: a soma dia a dia das projeções de vários caixas (cada um com o próprio saldo inicial, lançamentos e metas),
+ * não uma projeção nova com tudo misturado. Todas as listas cobrem os mesmos anos, de `de` a `ate`.
+ * O saldo inicial de um caixa que começa depois dos outros entra no dia em `aberturaCentavos`, fora das entradas.
+ * Com um caixa só, devolve a própria projeção dele.
+ */
+export function somarProjecoes(porCaixa: Projecao[][], de: number, ate: number): Projecao[] {
+  if (porCaixa.length === 1) return porCaixa[0]
+
+  const iniciados = porCaixa.map(() => false)
+  let somaIniciada = false
+  const projecoes: Projecao[] = []
+
+  for (let ano = de; ano <= ate; ano++) {
+    const doAno = porCaixa.map((p) => p[ano - de].dias)
+    const dias = diasDoAno(ano).map((dia, i): DiaProjetado => {
+      const doDia = doAno.map((d) => d[i])
+      let abertura = 0
+      doDia.forEach((d, c) => {
+        if (!d.noCalculo || iniciados[c]) return
+        iniciados[c] = true
+        if (somaIniciada) abertura += saldoAntesDoDia(d)!
+      })
+      const calculados = doDia.filter((d) => d.noCalculo)
+      const noCalculo = calculados.length > 0
+      somaIniciada ||= noCalculo
+      const somar = (campo: (d: DiaProjetado) => number) => calculados.reduce((t, d) => t + campo(d), 0)
+
+      return {
+        data: dia.data,
+        mes: dia.mes,
+        dia: dia.dia,
+        diaDaSemana: dia.diaDaSemana,
+        noCalculo,
+        ocorrencias: calculados.flatMap((d) => d.ocorrencias),
+        entradasCentavos: somar((d) => d.entradasCentavos),
+        saidasFixasCentavos: somar((d) => d.saidasFixasCentavos),
+        saidasVariaveisCentavos: somar((d) => d.saidasVariaveisCentavos),
+        aportes: calculados.flatMap((d) => d.aportes),
+        economiaCentavos: somar((d) => d.economiaCentavos),
+        aberturaCentavos: abertura + somar((d) => d.aberturaCentavos),
+        saldoCentavos: noCalculo ? somar((d) => d.saldoCentavos!) : null,
+      }
+    })
+    projecoes.push({ ano, dias, meses: agregarPorMes(dias), resumo: resumirAno(dias) })
   }
   return projecoes
 }

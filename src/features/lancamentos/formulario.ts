@@ -6,6 +6,7 @@ import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from './lancame
  * para nada se perder ao alternar entre única, semanal, mensal e diária.
  */
 export interface RascunhoLancamento {
+  caixaId: string
   descricao: string
   tipo: TipoMovimento
   valorCentavos: number
@@ -27,9 +28,10 @@ export interface RascunhoLancamento {
 
 export type ErrosLancamento = Partial<Record<keyof RascunhoLancamento, string>>
 
-/** Rascunho de um lançamento novo na `data` (hoje, ou o dia clicado na planilha). */
-export function rascunhoVazio(data: DataISO): RascunhoLancamento {
+/** Rascunho de um lançamento novo na `data` (hoje, ou o dia clicado na planilha), no caixa padrão. */
+export function rascunhoVazio(data: DataISO, caixaId: string): RascunhoLancamento {
   return {
+    caixaId,
     descricao: '',
     tipo: 'saida',
     valorCentavos: 0,
@@ -50,7 +52,7 @@ export function rascunhoVazio(data: DataISO): RascunhoLancamento {
 export function rascunhoDe(l: Lancamento, hoje: DataISO): RascunhoLancamento {
   const r = l.recorrencia
   return {
-    ...rascunhoVazio(hoje),
+    ...rascunhoVazio(hoje, l.caixaId),
     descricao: l.descricao,
     tipo: l.tipo,
     valorCentavos: l.valorCentavos,
@@ -92,7 +94,7 @@ export function validarLancamento(r: RascunhoLancamento, categoriasValidas: Set<
 }
 
 /** Converte um rascunho já validado em lançamento. */
-export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
+export function paraLancamento(r: RascunhoLancamento, id: string, original?: Lancamento): Lancamento {
   const recorrencia: Recorrencia =
     r.recorrencia === 'unica'
       ? { tipo: 'unica', data: r.data! }
@@ -106,6 +108,9 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
 
   return {
     id,
+    caixaId: r.caixaId,
+    // A transferência ainda não tem interface: ao editar, o destino continua o mesmo.
+    ...(original?.caixaDestinoId && { caixaDestinoId: original.caixaDestinoId }),
     descricao: r.descricao.trim(),
     tipo: r.tipo,
     valorCentavos: r.valorCentavos,

@@ -1,6 +1,6 @@
 import type { Categoria } from '@/features/categorias/categoria'
 import { QuadradoRisco } from '@/features/risco/components/SeloRisco'
-import { NIVEL, nivelDoSaldo } from '@/features/risco/risco'
+import { NIVEL, type NivelRisco } from '@/features/risco/risco'
 import type { DiaProjetado, ResumoMes } from '@/features/projecao/projecao'
 import type { DataISO } from '@/shared/lib/datas'
 import { nomeDoMes } from '@/shared/lib/datas'
@@ -33,8 +33,8 @@ interface TabelaMesProps {
   onAdicionar: (data: DataISO) => void
   /** Mostra a coluna Economia (quando há metas de economia). */
   comEconomia: boolean
-  /** O gasto de um mês, régua do risco do caixa; null sem projeção à frente. */
-  referenciaCentavos: number | null
+  /** Nível de risco do caixa no dia; null sem risco (benefício, sem projeção à frente). */
+  nivelDoDia: ((dia: DiaProjetado) => NivelRisco | null) | null
 }
 
 interface Coluna {
@@ -75,14 +75,14 @@ export function TabelaMes({
   onEditar,
   onAdicionar,
   comEconomia,
-  referenciaCentavos,
+  nivelDoDia,
 }: TabelaMesProps) {
   const saldoInicial = resumo.saldoInicialCentavos
   const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
   // Risco do mês: o nível do dia mais apertado.
-  const saldos = dias.flatMap((d) => (d.saldoCentavos === null ? [] : [d.saldoCentavos]))
-  const nivelDoMes =
-    referenciaCentavos !== null && saldos.length > 0 ? nivelDoSaldo(Math.min(...saldos), referenciaCentavos) : null
+  const niveis = dias.map((d) => nivelDoDia?.(d) ?? null)
+  const doMes = niveis.filter((n): n is NivelRisco => n !== null)
+  const nivelDoMes = doMes.length > 0 ? (Math.max(...doMes) as NivelRisco) : null
 
   return (
     <Card className={CARD}>
@@ -150,7 +150,7 @@ export function TabelaMes({
         </TableHeader>
 
         <TableBody>
-          {dias.map((dia) => (
+          {dias.map((dia, i) => (
             <LinhaDia
               key={dia.data}
               dia={dia}
@@ -159,7 +159,7 @@ export function TabelaMes({
               onEditar={onEditar}
               onAdicionar={onAdicionar}
               comEconomia={comEconomia}
-              referenciaCentavos={referenciaCentavos}
+              nivel={niveis[i]}
             />
           ))}
           {Array.from({ length: LINHAS_POR_MES - dias.length }, (_, i) => (
@@ -179,7 +179,7 @@ export function TabelaMes({
             <CelulaSaldo
               centavos={resumo.saldoFinalCentavos}
               compacta={comEconomia}
-              referenciaCentavos={referenciaCentavos}
+              nivel={niveis.at(-1) ?? null}
             />
           </TableRow>
         </TableFooter>

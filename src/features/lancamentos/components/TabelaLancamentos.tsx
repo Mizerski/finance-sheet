@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
+import type { Caixa } from '@/features/caixas/caixa'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import { CabecalhoGrupo } from '@/features/pastas/components/CabecalhoGrupo'
 import { MoverParaPasta } from '@/features/pastas/components/MoverParaPasta'
@@ -13,6 +14,7 @@ import { TABELA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
+import { Checkbox } from '@/shared/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import type { Lancamento } from '../lancamento'
 import { descreverPeriodo, descreverRecorrencia, ROTULO_NATUREZA } from '../textos'
@@ -20,36 +22,61 @@ import { descreverPeriodo, descreverRecorrencia, ROTULO_NATUREZA } from '../text
 /** Descrição, categoria, tag, natureza, recorrência, valor e ações. */
 const COLUNAS = 7
 
+/** Seleção em lote (só em telas largas). */
+export interface SelecaoTabela {
+  ids: Set<string>
+  /** Marca ou desmarca um lançamento; com Shift, também os que estão entre ele e o último clicado. */
+  onAlternar: (id: string, intervalo: boolean) => void
+  /** Marca (true) ou desmarca vários de uma vez (cabeçalho e grupos). */
+  onDefinir: (ids: string[], marcar: boolean) => void
+}
+
 interface TabelaLancamentosProps {
   /** Lançamentos visíveis, separados por pasta. */
   grupos: GrupoPasta[]
   categorias: Map<string, Categoria>
   tags: Map<string, Tag>
+  /** Caixas pelo id, para a bolinha da cor do caixa; ausente com um caixa só (nada novo na tela). */
+  caixas?: Map<string, Caixa>
   /** Sem pastas cadastradas, a lista é uma só, sem cabeçalhos de grupo nem o botão de mover. */
   pastas: Pasta[]
   /** Chaves dos grupos fechados. */
   fechadas: Set<string>
-  /** Ano dos totais projetados nos cabeçalhos de grupo. */
-  ano: number
+  /** Complemento dos totais dos grupos: "em 2026" ou o período do filtro de data. */
+  quando: string
+  /** Com filtro de data: quantas vezes cada lançamento acontece no período e quanto soma. */
+  noPeriodo?: Map<string, { vezes: number; totalCentavos: number }>
+  selecao?: SelecaoTabela
   onAlternarGrupo: (chave: string) => void
   onMover: (l: Lancamento, pastaId: string | undefined) => void
   onEditar: (l: Lancamento) => void
   onExcluir: (l: Lancamento) => void
 }
 
+/** Estado de um checkbox que representa vários: todos, alguns ou nenhum marcado. */
+function marcacao(ids: string[], selecionados: Set<string>): boolean | 'indeterminate' {
+  const quantos = ids.filter((id) => selecionados.has(id)).length
+  return quantos === 0 ? false : quantos === ids.length ? true : 'indeterminate'
+}
+
 export function TabelaLancamentos({
   grupos,
   categorias,
   tags,
+  caixas,
   pastas,
   fechadas,
-  ano,
+  quando,
+  noPeriodo,
+  selecao,
   onAlternarGrupo,
   onMover,
   onEditar,
   onExcluir,
 }: TabelaLancamentosProps) {
   const agrupar = pastas.length > 0
+  const colunas = COLUNAS + (selecao ? 1 : 0)
+  const todos = grupos.flatMap((g) => g.lancamentos.map((l) => l.id))
 
   const linhas = (lancamentos: Lancamento[]) =>
     lancamentos.map((l) => (
@@ -58,6 +85,10 @@ export function TabelaLancamentos({
         lancamento={l}
         categoria={categorias.get(l.categoriaId) ?? CATEGORIA_DESCONHECIDA}
         tag={l.tagId ? tags.get(l.tagId) : undefined}
+        caixa={caixas?.get(l.caixaId)}
+        noPeriodo={noPeriodo && (noPeriodo.get(l.id) ?? { vezes: 0, totalCentavos: 0 })}
+        selecionado={selecao?.ids.has(l.id)}
+        onSelecionar={selecao && ((intervalo) => selecao.onAlternar(l.id, intervalo))}
         mover={
           agrupar && (
             <MoverParaPasta
@@ -73,11 +104,23 @@ export function TabelaLancamentos({
       />
     ))
 
+  const marcarTodos = selecao && marcacao(todos, selecao.ids)
+
   return (
     <Table className={TABELA.tabela}>
       <TableHeader>
         <TableRow className={TABELA.linhaCabecalho}>
-          <TableHead className={cn(TABELA.cabecalho, TABELA.primeira)}>Descrição</TableHead>
+          {selecao && (
+            <TableHead className={cn(TABELA.cabecalho, TABELA.primeira, 'w-0 pr-0')}>
+              <Checkbox
+                checked={marcarTodos}
+                onCheckedChange={() => selecao.onDefinir(todos, marcarTodos !== true)}
+                aria-label={marcarTodos === true ? 'Desmarcar todos' : `Selecionar os ${todos.length} lançamentos da lista`}
+                title={marcarTodos === true ? 'Desmarcar todos' : `Selecionar os ${todos.length} da lista`}
+              />
+            </TableHead>
+          )}
+          <TableHead className={cn(TABELA.cabecalho, selecao ? 'pl-2' : TABELA.primeira)}>Descrição</TableHead>
           <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Categoria</TableHead>
           <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Tag</TableHead>
           <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Natureza</TableHead>
@@ -91,14 +134,17 @@ export function TabelaLancamentos({
       {agrupar ? (
         grupos.map((g) => {
           const aberto = !fechadas.has(g.chave)
+          const ids = g.lancamentos.map((l) => l.id)
+          const marcado = selecao && marcacao(ids, selecao.ids)
           return (
             <TableBody key={g.chave}>
               <CabecalhoGrupo
                 grupo={g}
                 aberto={aberto}
-                ano={ano}
-                colunas={COLUNAS}
+                quando={quando}
+                colunas={colunas}
                 onAlternar={() => onAlternarGrupo(g.chave)}
+                selecao={selecao && { marcado: marcado!, onAlternar: () => selecao.onDefinir(ids, marcado !== true) }}
               />
               {aberto && linhas(g.lancamentos)}
             </TableBody>
@@ -115,22 +161,73 @@ interface LinhaLancamentoProps {
   lancamento: Lancamento
   categoria: Pick<Categoria, 'nome' | 'cor'>
   tag?: Tag
+  /** Caixa do lançamento, quando há mais de um. */
+  caixa?: Caixa
+  /** Com filtro de data: vezes e total no período. */
+  noPeriodo?: { vezes: number; totalCentavos: number }
+  selecionado?: boolean
+  /** Seleção em lote; `intervalo` com Shift. */
+  onSelecionar?: (intervalo: boolean) => void
   /** Botão de mudar de pasta, quando há pastas. */
   mover?: ReactNode
   onEditar: () => void
   onExcluir: () => void
 }
 
-function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExcluir }: LinhaLancamentoProps) {
+function LinhaLancamento({
+  lancamento: l,
+  categoria,
+  tag,
+  caixa,
+  noPeriodo,
+  selecionado,
+  onSelecionar,
+  mover,
+  onEditar,
+  onExcluir,
+}: LinhaLancamentoProps) {
   const entrada = l.tipo === 'entrada'
   const recorrencia = descreverRecorrencia(l)
   const periodo = descreverPeriodo(l)
+  const selecionar = (e: MouseEvent) => {
+    e.stopPropagation()
+    onSelecionar?.(e.shiftKey)
+  }
 
   return (
-    <TableRow className={TABELA.linha}>
-      <TableCell className={cn(TABELA.celula, TABELA.primeira, 'whitespace-normal')}>
+    <TableRow
+      data-state={selecionado ? 'selected' : undefined}
+      className={cn(TABELA.linha, 'data-[state=selected]:bg-amarelo/30 data-[state=selected]:hover:bg-amarelo/40')}
+    >
+      {onSelecionar && (
+        // A célula inteira marca (alvo maior que o quadradinho); Shift marca o intervalo.
+        <TableCell
+          className={cn(TABELA.celula, TABELA.primeira, 'w-0 cursor-pointer pr-0 select-none')}
+          onClick={selecionar}
+          onMouseDown={(e) => e.shiftKey && e.preventDefault()}
+        >
+          <Checkbox
+            checked={!!selecionado}
+            onClick={selecionar}
+            aria-label={`Selecionar ${l.descricao}`}
+          />
+        </TableCell>
+      )}
+      {/* Palavra longa quebra no celular, para a tabela caber no card (os botões da linha ocupam espaço fixo). */}
+      <TableCell
+        className={cn(TABELA.celula, onSelecionar ? 'pl-2' : TABELA.primeira, 'whitespace-normal [overflow-wrap:anywhere]')}
+      >
         <div className="flex flex-col gap-1">
-          <span className="font-medium">{l.descricao}</span>
+          <span className="flex items-center gap-1.5 font-medium">
+            {/* Bolinha (não quadradinho, que é a categoria) na cor do caixa. */}
+            {caixa && (
+              <span title={caixa.nome} className="flex">
+                <PontoCor cor={caixa.cor} className="rounded-full" />
+                <span className="sr-only">{caixa.nome}:</span>
+              </span>
+            )}
+            {l.descricao}
+          </span>
           {/* No celular, categoria, tag, natureza e recorrência vêm empilhadas sob a descrição. */}
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground lg:hidden">
             <PontoCor cor={categoria.cor} />
@@ -167,6 +264,12 @@ function LinhaLancamento({ lancamento: l, categoria, tag, mover, onEditar, onExc
       </TableCell>
       <TableCell className={cn(TABELA.celula, 'text-right font-semibold tabular-nums', entrada ? 'text-entrada' : 'text-saida')}>
         {entrada ? '+' : '−'} {formatarBRL(l.valorCentavos)}
+        {/* Com filtro de data, o recorrente diz quantas vezes acontece no período e quanto soma. */}
+        {noPeriodo && noPeriodo.vezes > 1 && (
+          <span className="block text-[0.7rem] font-normal text-muted-foreground">
+            {noPeriodo.vezes}× · {formatarBRL(noPeriodo.totalCentavos)}
+          </span>
+        )}
       </TableCell>
       <TableCell className={cn(TABELA.celula, TABELA.ultima)}>
         <div className="flex justify-end">

@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
+import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
+import { useVisao } from '@/features/caixas/useVisao'
 import type { Categoria } from '@/features/categorias/categoria'
 import { DialogCategoria } from '@/features/categorias/components/DialogCategoria'
 import { EfeitoNoCaixa } from '@/features/risco/components/EfeitoNoCaixa'
@@ -69,9 +71,10 @@ const OPCOES_VIGENCIA = [
 
 export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: FormularioLancamentoProps) {
   const { estado, dispatch } = useFinancas()
+  const { caixaPadrao } = useVisao()
   const [hoje] = useState(() => paraDataISO(new Date()))
   const [rascunho, setRascunho] = useState<RascunhoLancamento>(() =>
-    lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(dataInicial ?? hoje),
+    lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(dataInicial ?? hoje, caixaPadrao?.id ?? ''),
   )
   const [tentouSalvar, setTentouSalvar] = useState(false)
   const [vigencia, setVigencia] = useState<Vigencia>('daqui')
@@ -85,7 +88,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
   // Recorrente que já aconteceu: pergunta se a mudança vale para os meses que passaram.
   // Quem mexe no início ou no fim já está cuidando do período, então não pergunta.
-  const editado = lancamento && paraLancamento(rascunho, lancamento.id)
+  const editado = lancamento && paraLancamento(rascunho, lancamento.id, lancamento)
   const perguntarVigencia =
     !!lancamento &&
     !!editado &&
@@ -162,6 +165,8 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   return (
     <form noValidate onSubmit={salvar} className="flex flex-col gap-4">
       <ControleSegmentado rotulo="Tipo" valor={rascunho.tipo} opcoes={OPCOES_TIPO} onChange={alterarTipo} />
+
+      <CampoCaixa id="lanc-caixa" valor={rascunho.caixaId} onChange={(id) => alterar('caixaId', id)} />
 
       <Field data-invalid={!!erros.descricao || undefined}>
         <FieldLabel htmlFor="lanc-descricao">Descrição</FieldLabel>
@@ -460,7 +465,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
         </Field>
       )}
 
-      <EfeitoNoCaixa simulados={simulados} substitui={lancamento?.id} tipo={rascunho.tipo} />
+      <EfeitoNoCaixa simulados={simulados} substitui={lancamento?.id} tipo={rascunho.tipo} caixaId={rascunho.caixaId} />
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>

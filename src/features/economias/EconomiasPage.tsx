@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useProjecao, useProjecoes } from '@/features/projecao/useProjecao'
+import { lancamentosDoCaixa, metasDoCaixa, NOME_TOTAL } from '@/features/caixas/caixa'
+import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
+import { useEscolherCaixa, useVisao } from '@/features/caixas/useVisao'
+import { useProjecao } from '@/features/projecao/useProjecao'
 import { CardRisco } from '@/features/risco/components/CardRisco'
-import { analisarRisco, capacidadePorNivel } from '@/features/risco/risco'
+import { capacidadePorNivelDaVisao } from '@/features/risco/risco-por-conta'
 import type { ContextoRisco } from '@/features/risco/simulacao'
+import { useRisco } from '@/features/risco/useRisco'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
@@ -43,10 +47,36 @@ interface Selecao {
 
 const FECHADO: Selecao = { aberto: false }
 
+/** Metas, reserva e capacidade são de contas: num benefício, a tela só explica isso e oferece voltar para as contas. */
 export function EconomiasPage() {
+  const { caixa, ehBeneficio } = useVisao()
+  const escolher = useEscolherCaixa()
+  if (!ehBeneficio) return <ConteudoEconomias />
+
+  return (
+    <div className="flex flex-col gap-4">
+      <CabecalhoPagina forma={FORMA_PAGINA.economias} titulo="Economias" descricao={caixa?.nome} />
+      {caixa && <CardBeneficio caixa={caixa} />}
+      <Card className={CARD}>
+        <EstadoVazio
+          titulo="Metas ficam nas contas"
+          descricao={`${caixa?.nome} é um benefício: o dinheiro dele só paga alguns gastos, então não dá para guardar dele. Metas, reserva e risco do caixa ficam nas contas.`}
+          acao={
+            <Button variant="outline" className={BOTAO} onClick={() => escolher(null)}>
+              Ver o {NOME_TOTAL}
+            </Button>
+          }
+        />
+      </Card>
+    </div>
+  )
+}
+
+function ConteudoEconomias() {
   const { estado, dispatch } = useFinancas()
+  // Metas, capacidade, reserva e sugestões são do que a tela mostra (no Total, a soma das contas no total).
+  const { metas, lancamentos, projecoes } = useVisao()
   const { ano, meses } = useProjecao()
-  const projecoes = useProjecoes()
   const { reserva: mesesDeReserva = MESES_DE_RESERVA_PADRAO } = useSearch({ from: '/economias' })
   const navigate = useNavigate({ from: '/economias' })
   const [hoje] = useState(() => paraDataISO(new Date()))
@@ -55,42 +85,44 @@ export function EconomiasPage() {
   const [exclusao, setExclusao] = useState<Selecao>(FECHADO)
 
   const resumos = useMemo(
-    () => new Map(estado.metas.map((m) => [m.id, resumirMeta(m, hoje)])),
-    [estado.metas, hoje],
+    () => new Map(metas.map((m) => [m.id, resumirMeta(m, hoje)])),
+    [metas, hoje],
   )
   // Independe do ano exibido: capacidade, reserva e gastos grandes olham os próximos meses a partir de hoje.
   const dias = useMemo(() => projecoes.flatMap((p) => p.dias), [projecoes])
   const capacidade = useMemo(() => capacidadeDePoupanca(dias, hoje), [dias, hoje])
-  const risco = useMemo(() => analisarRisco(dias, hoje), [dias, hoje])
-  const porNivel = useMemo(
-    () => risco && capacidadePorNivel(dias, hoje, risco.referenciaCentavos),
-    [dias, hoje, risco],
-  )
+  // Risco por conta: no Total com várias contas, vale a mais apertada, e guardar sem piorar soma o que cada uma aguenta.
+  const risco = useRisco()
+  const porNivel = useMemo(() => risco && capacidadePorNivelDaVisao(risco, hoje), [risco, hoje])
   // O que dá para guardar a mais sem piorar o risco do caixa: é o valor que o app recomenda.
   const guardarSemPiorar = risco && porNivel ? porNivel[risco.nivel] : null
-  const contextoRisco: ContextoRisco = useMemo(
-    () => ({ config: estado.config, lancamentos: estado.lancamentos, metas: estado.metas, hoje }),
-    [estado.config, estado.lancamentos, estado.metas, hoje],
+  // O simulador de conta nova roda na conta em destaque (a única, ou a mais apertada).
+  const contaDoRisco = risco && (risco.caixa ?? risco.contas[0].caixa)
+  const contextoRisco: ContextoRisco | null = useMemo(
+    () =>
+      contaDoRisco && {
+        caixa: contaDoRisco,
+        lancamentos: lancamentosDoCaixa(estado.lancamentos, contaDoRisco.id),
+        metas: metasDoCaixa(estado.metas, contaDoRisco.id),
+        hoje,
+      },
+    [contaDoRisco, estado.lancamentos, estado.metas, hoje],
   )
   const essencial = useMemo(() => gastoEssencial(dias, estado.tags, hoje), [dias, estado.tags, hoje])
-  const grandes = useMemo(() => gastosGrandes(dias, estado.lancamentos, hoje), [dias, estado.lancamentos, hoje])
-  const reserva = metaDeReserva(estado.metas)
-  const principal = metaPrincipal(estado.metas, resumos)
+  const grandes = useMemo(() => gastosGrandes(dias, lancamentos, hoje), [dias, lancamentos, hoje])
+  const reserva = metaDeReserva(metas)
+  const principal = metaPrincipal(metas, resumos)
+  const referencias = useMemo(
+    () => new Map(risco?.contas.map((c) => [c.caixa.id, c.analise.referenciaCentavos])),
+    [risco],
+  )
   const sugestoes = useMemo(
-    () =>
-      montarSugestoes({
-        config: estado.config,
-        lancamentos: estado.lancamentos,
-        metas: estado.metas,
-        projecoes,
-        resumos,
-        hoje,
-      }),
-    [estado.config, estado.lancamentos, estado.metas, projecoes, resumos, hoje],
+    () => montarSugestoes({ caixas: estado.caixas, lancamentos, metas, projecoes, referencias, resumos, hoje }),
+    [estado.caixas, lancamentos, metas, projecoes, referencias, resumos, hoje],
   )
   const guardado = [...resumos.values()].reduce((t, r) => t + r.guardadoCentavos, 0)
-  const alvo = estado.metas.reduce((t, m) => t + m.valorAlvoCentavos, 0)
-  const quantidade = estado.metas.length
+  const alvo = metas.reduce((t, m) => t + m.valorAlvoCentavos, 0)
+  const quantidade = metas.length
   const nova = () => setEdicao({ aberto: true })
 
   return (
@@ -141,11 +173,11 @@ export function EconomiasPage() {
         </Card>
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-2 min-[90rem]:grid-cols-3">
-          {estado.metas.map((meta) => (
+          {metas.map((meta) => (
             <CardMeta
               key={meta.id}
               meta={meta}
-              principal={meta.id === principal?.id && estado.metas.length > 1}
+              principal={meta.id === principal?.id && metas.length > 1}
               resumo={resumos.get(meta.id)!}
               hoje={hoje}
               onEditar={() => setEdicao({ aberto: true, meta })}
@@ -157,7 +189,7 @@ export function EconomiasPage() {
       )}
 
       {/* O risco vem antes das sugestões: nenhuma recomendação de guardar mais sem mostrar o aperto do caixa. */}
-      {risco && <CardRisco risco={risco} contexto={contextoRisco} />}
+      {risco && contextoRisco && <CardRisco risco={risco} contexto={contextoRisco} />}
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
         {capacidade && risco && porNivel && <CardCapacidade capacidade={capacidade} risco={risco} porNivel={porNivel} />}

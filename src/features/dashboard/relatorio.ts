@@ -1,15 +1,8 @@
 import { format } from 'date-fns'
-import type { DiaProjetado, Projecao } from '@/features/projecao/projecao'
+import type { DiaProjetado } from '@/features/projecao/projecao'
 import { anoDe, deDataISO, formatarData, nomeDoDiaDaSemana, nomeDoMes } from '@/shared/lib/datas'
 import type { DadoPeriodo } from './graficos'
-import { diasDoPeriodo, periodoDe, type Periodo, type Unidade } from './periodo'
-
-/** Dias projetados dentro do período, atravessando quantos anos forem preciso. */
-export function diasNoPeriodo(projecoes: Projecao[], { de, ate }: Periodo): DiaProjetado[] {
-  return projecoes
-    .filter((p) => p.ano >= anoDe(de) && p.ano <= anoDe(ate))
-    .flatMap((p) => p.dias.filter((d) => d.data >= de && d.data <= ate))
-}
+import { diasDoPeriodo, periodoDe, type Periodo, type Unidade } from '@/shared/lib/periodo'
 
 /** Barras por dia até um mês, por semana até um trimestre, por mês até dois anos, depois por ano. */
 export function agrupamentoPara(periodo: Periodo): Unidade {

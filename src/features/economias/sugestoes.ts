@@ -1,5 +1,5 @@
+import { lancamentosDoCaixa, type Caixa } from '@/features/caixas/caixa'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
-import type { Configuracao } from '@/features/projecao/configuracao'
 import type { Projecao } from '@/features/projecao/projecao'
 import { nivelDoSaldo, referenciaDoRisco, type NivelRisco } from '@/features/risco/risco'
 import type { DataISO } from '@/shared/lib/datas'
@@ -44,10 +44,14 @@ export type Sugestao =
   | ({ tipo: 'extra'; entrada: EntradaExtra; guardarCentavos: number } & SemEfeito)
 
 export interface ContextoSugestoes {
-  config: Configuracao
+  /** Todos os caixas: o efeito na meta é simulado na conta dela. */
+  caixas: Caixa[]
+  /** Lançamentos, metas e projeção do que a tela mostra (um caixa ou o Total). */
   lancamentos: Lancamento[]
   metas: MetaEconomia[]
   projecoes: Projecao[]
+  /** O gasto de um mês de cada conta (régua do risco); sem ela, vale o da projeção da tela. */
+  referencias: Map<string, number>
   resumos: Map<string, ResumoMeta>
   hoje: DataISO
 }
@@ -58,20 +62,23 @@ export interface ContextoSugestoes {
  * As já aplicadas não voltam; sem meta principal, a sugestão vem sem efeito (o card oferece criar uma).
  */
 export function montarSugestoes(ctx: ContextoSugestoes): Sugestao[] {
-  const { config, lancamentos, metas, projecoes, resumos, hoje } = ctx
+  const { caixas, lancamentos, metas, projecoes, referencias, resumos, hoje } = ctx
   const dias = projecoes.flatMap((p) => p.dias)
   const principal = metaPrincipal(metas, resumos)
-  const referencia = referenciaDoRisco(dias, hoje)
+  const conta = principal && caixas.find((c) => c.id === principal.caixaId)
+  const referencia = (conta && referencias.get(conta.id)) ?? referenciaDoRisco(dias, hoje)
   const sugestoes: Sugestao[] = []
 
   const resumo = resumoNovoMes(projecoes, hoje)
   if (resumo) sugestoes.push({ tipo: 'novo-mes', resumo })
 
   function efeito(nova: MetaEconomia | null | undefined): SemEfeito {
-    if (!principal) return { efeito: null }
+    if (!principal || !conta) return { efeito: null }
     if (!nova) return { efeito: null, terminaAntes: principal.nome }
-    const outras = metas.filter((m) => m.id !== principal.id)
-    const saldo = menorSaldo({ config, lancamentos, outrasMetas: outras, hoje }, [...outras, nova])
+    // A meta tira o dinheiro da conta dela: a simulação usa só os lançamentos e as metas dessa conta.
+    const outras = metas.filter((m) => m.id !== principal.id && m.caixaId === conta.id)
+    const doCaixa = lancamentosDoCaixa(lancamentos, conta.id)
+    const saldo = menorSaldo({ config: conta, lancamentos: doCaixa, outrasMetas: outras, hoje }, [...outras, nova])
     return {
       efeito: {
         meta: principal,

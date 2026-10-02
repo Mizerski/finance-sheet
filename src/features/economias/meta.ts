@@ -6,6 +6,8 @@ import type { DataISO } from '@/shared/lib/datas'
  */
 export interface MetaEconomia {
   id: string
+  /** Caixa de onde saem os aportes; sempre do tipo conta. */
+  caixaId: string
   nome: string
   valorAlvoCentavos: number
   /** Quanto guardar por mês. */

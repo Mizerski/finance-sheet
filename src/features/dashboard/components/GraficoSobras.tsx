@@ -2,7 +2,7 @@ import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Rectangle, XAxis, YA
 import { formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
 import { AREA_GRAFICO, CONTORNO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
-import type { Unidade } from '../periodo'
+import type { Unidade } from '@/shared/lib/periodo'
 import { NOME_UNIDADE } from '../relatorio'
 import { CardGrafico } from './CardGrafico'
 import { TabelaPeriodos } from './TabelaPeriodos'

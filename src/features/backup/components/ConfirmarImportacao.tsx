@@ -1,3 +1,4 @@
+import { caixasNoTotal } from '@/features/caixas/caixa'
 import { formatarData } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG, VALOR_SALDO, ROTULO as ROTULO_BASE } from '@/shared/lib/estilos'
@@ -25,6 +26,10 @@ interface ConfirmarImportacaoProps {
 
 const ROTULO = cn(ROTULO_BASE, 'text-muted-foreground')
 
+/** Soma dos saldos iniciais dos caixas que entram no total (com um caixa só, o saldo inicial dele). */
+const saldoInicial = (dados: DadosFinancas) =>
+  caixasNoTotal(dados.caixas).reduce((t, c) => t + c.saldoInicialCentavos, 0)
+
 /** Mostra o que muda antes de trocar os dados atuais pelos do backup. */
 export function ConfirmarImportacao({ backup, atual, onCancelar, onConfirmar }: ConfirmarImportacaoProps) {
   return (
@@ -46,9 +51,12 @@ export function ConfirmarImportacao({ backup, atual, onCancelar, onConfirmar }: 
             <Linha rotulo="Lançamentos" atual={atual.lancamentos.length} novo={backup.dados.lancamentos.length} />
             <Linha rotulo="Categorias" atual={atual.categorias.length} novo={backup.dados.categorias.length} />
             <Linha rotulo="Metas de economia" atual={atual.metas.length} novo={backup.dados.metas.length} />
+            {(atual.caixas.length > 1 || backup.dados.caixas.length > 1) && (
+              <Linha rotulo="Caixas" atual={atual.caixas.length} novo={backup.dados.caixas.length} />
+            )}
             <span className="text-muted-foreground">Saldo inicial</span>
-            <Saldo centavos={atual.config.saldoInicialCentavos} />
-            <Saldo centavos={backup.dados.config.saldoInicialCentavos} />
+            <Saldo centavos={saldoInicial(atual)} />
+            <Saldo centavos={saldoInicial(backup.dados)} />
           </div>
         )}
 

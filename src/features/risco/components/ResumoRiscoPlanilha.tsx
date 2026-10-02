@@ -7,14 +7,14 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { COR_RISCO } from '../cores'
-import type { AnaliseRisco } from '../risco'
+import type { RiscoDaVisao } from '../risco-por-conta'
 import { FaixaMeses } from './FaixaMeses'
 import { LegendaCompleta } from './LegendaRisco'
 import { ConselhoRisco, FraseDiaApertado } from './MensagemRisco'
 import { SeloRisco } from './SeloRisco'
 
 interface ResumoRiscoPlanilhaProps {
-  risco: AnaliseRisco
+  risco: RiscoDaVisao
   /** Abre o mês clicado na faixa ("2026-11"). */
   onMes: (mes: string) => void
 }
@@ -37,8 +37,10 @@ export function ResumoRiscoPlanilha({ risco, onMes }: ResumoRiscoPlanilhaProps) 
         </span>
         <div className="grid min-w-0 flex-1 gap-3 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center lg:gap-5">
           <div className="flex min-w-0 flex-col gap-1.5">
-            <div className="flex items-center gap-2">
-              <span className={cn(ROTULO, 'text-muted-foreground')}>Risco do caixa</span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className={cn(ROTULO, 'whitespace-nowrap text-muted-foreground')}>Risco do caixa</span>
+              {/* No Total com várias contas, o risco é o da conta mais apertada. */}
+              {risco.caixa && <span className="text-sm font-semibold whitespace-nowrap">{risco.caixa.nome}</span>}
               <SeloRisco nivel={risco.nivel} />
               <Ajuda titulo="Risco do caixa" largo>
                 <p>
@@ -50,6 +52,12 @@ export function ResumoRiscoPlanilha({ risco, onMes }: ResumoRiscoPlanilhaProps) 
                 <p className="text-muted-foreground">
                   O fundo da coluna Saldo tem a cor do nível de cada dia. Clique num mês da faixa para abrir esse mês.
                 </p>
+                {risco.caixa && (
+                  <p className="text-muted-foreground">
+                    Com mais de uma conta, vale a mais apertada: cada dia tem a cor da conta em pior situação, e as
+                    frases falam de {risco.caixa.nome}.
+                  </p>
+                )}
                 <LegendaCompleta />
                 <Button asChild variant="outline" className={cn(BOTAO, 'h-8 self-start px-3')}>
                   <Link to="/economias">

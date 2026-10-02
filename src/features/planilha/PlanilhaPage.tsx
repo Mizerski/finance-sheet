@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
 import { Landmark } from 'lucide-react'
+import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
+import { useVisao } from '@/features/caixas/useVisao'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useAno } from '@/features/projecao/useAno'
 import { DialogLancamento } from '@/features/lancamentos/components/DialogLancamento'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
-import { useProjecoes } from '@/features/projecao/useProjecao'
 import { ResumoRiscoPlanilha } from '@/features/risco/components/ResumoRiscoPlanilha'
 import { useRisco } from '@/features/risco/useRisco'
 import { Ajuda } from '@/shared/components/Ajuda'
@@ -48,9 +49,11 @@ interface Edicao {
 }
 
 export function PlanilhaPage() {
+  // Categorias e a busca do lançamento a editar valem para todos os caixas; o resto é do que a tela mostra.
   const { estado } = useFinancas()
+  const visao = useVisao()
+  const { projecoes } = visao
   const { ano, anoAtual, intervalo } = useAno()
-  const projecoes = useProjecoes()
   const risco = useRisco()
   const search = useSearch({ from: '/' })
   const navigate = useNavigate({ from: '/' })
@@ -59,7 +62,7 @@ export function PlanilhaPage() {
   const [conferindo, setConferindo] = useState(false)
 
   // Cada mês precisa de ~430px para os valores caberem com folga (~540px com a coluna Economia).
-  const comEconomia = estado.metas.length > 0
+  const comEconomia = visao.metas.length > 0
   const layout = comEconomia ? LAYOUT_COM_ECONOMIA : LAYOUT
   const telaGrande = useMediaQuery(layout.tresMeses)
   const telaMedia = useMediaQuery(layout.doisMeses)
@@ -130,7 +133,7 @@ export function PlanilhaPage() {
             </>
           ) : (
             <>
-              Sem dados antes de {formatarData(estado.config.dataSaldoInicial)} ·{' '}
+              Sem dados antes de {formatarData(visao.dataInicial)} ·{' '}
               <BotaoSaldoInicial onClick={() => setEditandoSaldo(true)} />
             </>
           )
@@ -176,18 +179,20 @@ export function PlanilhaPage() {
       />
 
       <PrimeirosPassos
-        saldoDefinido={estado.configDefinida}
+        saldoDefinido={visao.saldoDefinido}
         temCategorias={estado.categorias.length > 0}
-        temLancamentos={estado.lancamentos.length > 0}
+        temLancamentos={visao.lancamentos.length > 0}
         onDefinirSaldo={() => setEditandoSaldo(true)}
       />
 
-      {risco && estado.lancamentos.length > 0 && (
+      {risco && visao.lancamentos.length > 0 && (
         <ResumoRiscoPlanilha
           risco={risco}
           onMes={(mes) => irPara(Number(mes.slice(0, 4)) * 12 + Number(mes.slice(5, 7)) - 1)}
         />
       )}
+      {/* Benefício não tem risco: a pergunta dele é quanto sobra até a recarga. */}
+      {visao.ehBeneficio && visao.caixa && <CardBeneficio caixa={visao.caixa} />}
 
       <div className={cn('grid items-start gap-4', layout.grade)}>
         {visiveis.map(({ projecao, resumo }) => (
@@ -201,7 +206,7 @@ export function PlanilhaPage() {
             onEditar={editar}
             onAdicionar={adicionar}
             comEconomia={comEconomia}
-            referenciaCentavos={risco?.referenciaCentavos ?? null}
+            nivelDoDia={risco?.nivelDoDia ?? null}
           />
         ))}
       </div>
