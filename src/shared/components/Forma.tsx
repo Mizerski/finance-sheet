@@ -5,7 +5,7 @@ const COR: Record<CorForma, string> = {
   vermelho: 'bg-vermelho',
   azul: 'bg-azul',
   amarelo: 'bg-amarelo',
-  papel: 'bg-papel',
+  papel: 'bg-sobre-bloco',
   tinta: 'bg-current',
 }
 

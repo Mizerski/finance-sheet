@@ -22,7 +22,7 @@ export function FaixaMeses({ meses, rotulo, comRotulo, onMes }: FaixaMesesProps)
       {comRotulo && <span className={cn(ROTULO, 'text-muted-foreground')}>{rotulo}</span>}
       <ol
         aria-label={rotulo}
-        className="grid border-2 border-foreground bg-card"
+        className="grid border-2 border-contorno bg-card"
         style={{ gridTemplateColumns: `repeat(${meses.length}, minmax(0, 1fr))` }}
       >
         {meses.map((m, i) => {
@@ -42,7 +42,7 @@ export function FaixaMeses({ meses, rotulo, comRotulo, onMes }: FaixaMesesProps)
               </span>
               <span
                 className={cn(
-                  'flex h-6 items-center justify-center border-t-2 border-foreground text-[0.65rem] font-bold tabular-nums sm:h-7 sm:text-xs',
+                  'flex h-6 items-center justify-center border-t-2 border-contorno text-[0.65rem] font-bold tabular-nums sm:h-7 sm:text-xs',
                   COR_RISCO[m.nivel].bloco,
                 )}
               >
@@ -51,13 +51,13 @@ export function FaixaMeses({ meses, rotulo, comRotulo, onMes }: FaixaMesesProps)
             </>
           )
           return (
-            <li key={m.mes} className="min-w-0 border-foreground not-first:border-l-2" title={descricao}>
+            <li key={m.mes} className="min-w-0 border-contorno not-first:border-l-2" title={descricao}>
               {onMes ? (
                 <button
                   type="button"
                   onClick={() => onMes(m.mes)}
                   aria-label={`${descricao}. Abrir o mês`}
-                  className="flex w-full flex-col outline-none transition-colors duration-100 hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  className="flex w-full flex-col outline-none transition-colors duration-100 hover:bg-amarelo dark:hover:bg-selecao-forte focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   {conteudo}
                 </button>

@@ -23,7 +23,7 @@ export function SeletorDiasSemana({ rotuloId, valor, onChange, invalido }: Selet
       role="group"
       aria-labelledby={rotuloId}
       className={cn(
-        'grid grid-cols-7 border-2 border-foreground bg-card',
+        'grid grid-cols-7 border-2 border-contorno bg-card',
         invalido && 'border-destructive shadow-[3px_3px_0_0_var(--destructive)]',
       )}
     >
@@ -38,8 +38,8 @@ export function SeletorDiasSemana({ rotuloId, valor, onChange, invalido }: Selet
             title={nomeDoDiaDaSemana(dia, 'longo')}
             onClick={() => alternar(dia)}
             className={cn(
-              'flex min-h-9 items-center justify-center border-l-2 border-foreground px-1 text-xs font-semibold uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:tracking-[0.06em]',
-              marcado && 'bg-foreground text-background hover:bg-foreground',
+              'flex min-h-9 items-center justify-center border-l-2 border-contorno px-1 text-xs font-semibold uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:tracking-[0.06em]',
+              marcado && 'bg-foreground text-background hover:bg-foreground hover:text-background',
             )}
           >
             {nomeDoDiaDaSemana(dia)}

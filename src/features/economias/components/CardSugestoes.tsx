@@ -60,7 +60,7 @@ export function CardSugestoes({ sugestoes, risco, guardarSemPiorarCentavos, onAp
         {sugestoes.map((s) => (
           <li
             key={s.tipo === 'novo-mes' ? 'novo-mes' : s.tipo === 'aumento' ? `aumento-${s.aumento.mes}` : `extra-${s.entrada.lancamentoId}`}
-            className="flex flex-col gap-2.5 border-b-2 border-foreground px-4 py-4 last:border-b-0 sm:px-5"
+            className="flex flex-col gap-2.5 border-b-2 border-contorno px-4 py-4 last:border-b-0 sm:px-5"
           >
             {s.tipo === 'novo-mes' ? (
               <NovoMes sugestao={s} guardarSemPiorarCentavos={guardarSemPiorarCentavos} risco={risco} />

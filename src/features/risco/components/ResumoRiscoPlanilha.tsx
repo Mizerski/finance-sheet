@@ -31,7 +31,7 @@ export function ResumoRiscoPlanilha({ risco, onMes }: ResumoRiscoPlanilhaProps) 
       <div className="flex items-stretch">
         <span
           aria-hidden
-          className={cn('flex w-10 shrink-0 items-center justify-center border-r-2 border-foreground sm:w-12', cores.bloco)}
+          className={cn('flex w-10 shrink-0 items-center justify-center border-r-2 border-contorno sm:w-12', cores.bloco)}
         >
           <Forma forma="triangulo" cor="tinta" className="size-5 sm:size-6" />
         </span>

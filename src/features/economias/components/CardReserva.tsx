@@ -92,7 +92,7 @@ export function CardReserva({ gasto, meses, onMeses, existente, onCriar, onAtual
         (existente ? (
           <Existente {...existente} alvo={alvo} meses={meses} onAtualizarAlvo={onAtualizarAlvo} />
         ) : (
-          <div className="border-t-2 border-foreground px-4 py-4 sm:px-5">
+          <div className="border-t-2 border-contorno px-4 py-4 sm:px-5">
             <Button className={BOTAO} onClick={() => onCriar(alvo)}>
               <Plus />
               Criar meta de reserva
@@ -118,7 +118,7 @@ function Existente({
   const diferente = meta.valorAlvoCentavos !== alvo
 
   return (
-    <div className="flex flex-col gap-3 border-t-2 border-foreground px-4 py-4 sm:px-5">
+    <div className="flex flex-col gap-3 border-t-2 border-contorno px-4 py-4 sm:px-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className={cn(ROTULO, 'truncate')}>{meta.nome}</span>
         <span className="text-sm text-muted-foreground tabular-nums">

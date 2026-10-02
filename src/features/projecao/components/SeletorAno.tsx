@@ -24,7 +24,7 @@ export function SeletorAno() {
           <ChevronLeft />
         </Button>
       </span>
-      <span className="flex w-14 items-center justify-center border-x-2 border-foreground font-heading text-base font-bold tabular-nums" aria-live="polite">
+      <span className="flex w-14 items-center justify-center border-x-2 border-contorno font-heading text-base font-bold tabular-nums" aria-live="polite">
         {ano}
       </span>
       <Button

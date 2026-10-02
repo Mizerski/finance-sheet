@@ -92,7 +92,7 @@ export function BotaoBackup() {
             </p>
           )}
           {caminho && (
-            <p className="border-t-2 border-foreground pt-3 text-xs break-all text-muted-foreground">Arquivo de dados: {caminho}</p>
+            <p className="border-t-2 border-contorno pt-3 text-xs break-all text-muted-foreground">Arquivo de dados: {caminho}</p>
           )}
         </PopoverContent>
       </Popover>

@@ -89,7 +89,7 @@ export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGasto
               </TableRow>
             ))}
           </TableBody>
-          <TableFooter className="border-t-2 border-foreground bg-transparent">
+          <TableFooter className="border-t-2 border-contorno bg-transparent">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={2} className={cn(CELULA, TABELA.primeira, ROTULO)}>
                 Total
@@ -105,7 +105,7 @@ export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGasto
 
       {itens.length > 0 &&
         (descobertos > 0 ? (
-          <div className="border-t-2 border-foreground px-4 py-4 sm:px-5">
+          <div className="border-t-2 border-contorno px-4 py-4 sm:px-5">
             <CaixaDestaque fundo="bg-negativo-suave" faixa="border-l-vermelho">
               <p>
                 <Forte className="text-negativo">
@@ -116,7 +116,7 @@ export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGasto
             </CaixaDestaque>
           </div>
         ) : (
-          <p className="border-t-2 border-foreground px-4 py-3 text-sm sm:px-5">
+          <p className="border-t-2 border-contorno px-4 py-3 text-sm sm:px-5">
             <Forte>O saldo cobre todos.</Forte>
           </p>
         ))}

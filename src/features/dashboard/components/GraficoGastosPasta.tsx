@@ -35,7 +35,7 @@ export function GraficoGastosPasta({
 }: GraficoGastosPastaProps) {
   return (
     <CardGrafico
-      faixa="bg-foreground"
+      faixa="bg-tinta"
       forma={{ forma: 'quadrado', cor: 'amarelo' }}
       titulo="Gastos por pasta"
       descricao={`Quanto cada pasta levou das saídas ${periodo}`}
@@ -88,7 +88,7 @@ export function GraficoGastosPasta({
                   {pasta.nome} por categoria
                 </>
               }
-              className="border-t-2 border-foreground pt-4 lg:border-t-0 lg:border-l-2 lg:pt-0 lg:pl-4"
+              className="border-t-2 border-contorno pt-4 lg:border-t-0 lg:border-l-2 lg:pt-0 lg:pl-4"
             >
               {categoriasDaPasta.length === 0 ? (
                 <EstadoVazio titulo={`Nenhuma saída em ${pasta.nome} ${periodo}`} />

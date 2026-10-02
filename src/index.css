@@ -5,7 +5,7 @@
 @import "@fontsource-variable/inter/opsz.css";
 @import "@fontsource-variable/outfit/wght.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
     --font-heading: 'Outfit Variable', 'Futura', ui-sans-serif, system-ui, sans-serif;
@@ -59,6 +59,13 @@
     --color-azul: var(--azul);
     --color-amarelo: var(--amarelo);
     --color-papel: var(--papel);
+    --color-tinta: var(--tinta);
+    --color-sobre-bloco: var(--sobre-bloco);
+    --color-contorno: var(--contorno);
+    --color-veu: var(--veu);
+    --color-sombra: var(--sombra);
+    --color-selecao: var(--selecao);
+    --color-selecao-forte: var(--selecao-forte);
     --color-risco-1: var(--risco-1);
     --color-risco-1-suave: var(--risco-1-suave);
     --color-risco-1-texto: var(--risco-1-texto);
@@ -74,10 +81,10 @@
     --color-risco-5: var(--risco-5);
     --color-risco-5-suave: var(--risco-5-suave);
     --color-risco-5-texto: var(--risco-5-texto);
-    /* Sombras duras, sem desfoque: o bloco parece recortado e colado sobre o papel. */
-    --shadow-bloco-sm: 3px 3px 0 0 var(--foreground);
-    --shadow-bloco: 4px 4px 0 0 var(--foreground);
-    --shadow-bloco-lg: 6px 6px 0 0 var(--foreground);
+    /* Sombras duras, sem desfoque: o bloco parece recortado e colado sobre o papel. A cor vem de `--sombra`. */
+    --shadow-bloco-sm: 3px 3px 0 0 var(--sombra);
+    --shadow-bloco: 4px 4px 0 0 var(--sombra);
+    --shadow-bloco-lg: 6px 6px 0 0 var(--sombra);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -124,6 +131,19 @@
     --amarelo: oklch(0.84 0.16 88);
     /* Papel puro, para texto sobre os blocos de cor. */
     --papel: oklch(0.992 0.003 90);
+    /* Texto e formas sobre os blocos azul e vermelho: o papel no claro; no escuro, tinta (as primárias ficam claras). */
+    --sobre-bloco: oklch(0.992 0.003 90);
+    /* Tinta: o preto quente, igual nos dois temas. Texto sobre o amarelo (e os riscos 2 a 4) e blocos pretos decorativos. */
+    --tinta: oklch(0.2 0.006 80);
+    /* Contornos, réguas e linhas estruturais (cards, campos, cabeçalhos de tabela, eixos e contorno dos gráficos). */
+    --contorno: oklch(0.2 0.006 80);
+    /* Cor da sombra dura dos blocos. */
+    --sombra: oklch(0.2 0.006 80);
+    /* Véu amarelo de linha selecionada e destaque de período; o forte é o hover sobre ele. */
+    --selecao: color-mix(in oklch, var(--amarelo) 30%, transparent);
+    --selecao-forte: color-mix(in oklch, var(--amarelo) 40%, transparent);
+    /* Véu atrás de dialogs: escurece a página (no escuro, um véu claro deixaria tudo cinza). */
+    --veu: color-mix(in oklch, var(--foreground) 35%, transparent);
 
     /* Planilha */
     --entrada: oklch(0.45 0.2 264);
@@ -175,38 +195,104 @@
     --sidebar-ring: oklch(0.45 0.2 264);
 }
 
+/*
+ * Bauhaus escuro, "grafite médio": papel cinza-grafite em vez de preto, para o preto continuar organizando a tela.
+ * Não é a inversão do claro; cada cor tem a sua variante. Medidas e motivos em docs/design-system.md.
+ * - Chão e superfícies quase neutros (H 80, C ≤ 0.005), em degraus de L: chão 0.295, card 0.33, área neutra 0.37.
+ * - Texto quase branco e sem amarelar (11,4:1 no card); secundário a 6,5:1.
+ * - Contorno e réguas pretos, como no claro (papel recortado). Campos ganham contorno cinza (`--input`, 4,4:1).
+ * - Sombra dura em azul-tinta escuro, mais macia que o contorno (1,2:1 contra 1,6:1).
+ * - Primárias de pigmento, apagadas e próximas em luz (L 0.60–0.75): o amarelo não manda mais na tela.
+ *   Texto sobre azul e vermelho é escuro (`--sobre-bloco`), como cartaz impresso.
+ * - Fundos de coluna quase neutros; a cor fica no texto, nos blocos e na barra de risco da célula de saldo.
+ */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    color-scheme: dark;
+
+    /* Chão e superfícies */
+    --background: oklch(0.295 0.004 80);
+    --card: oklch(0.33 0.004 80);
+    --popover: oklch(0.33 0.004 80);
+    --muted: oklch(0.37 0.005 80);
+    --secondary: oklch(0.37 0.005 80);
+    --accent: oklch(0.37 0.005 80);
+
+    /* Texto */
+    --foreground: oklch(0.975 0.003 85);
+    --card-foreground: oklch(0.975 0.003 85);
+    --popover-foreground: oklch(0.975 0.003 85);
+    --secondary-foreground: oklch(0.975 0.003 85);
+    --accent-foreground: oklch(0.975 0.003 85);
+    --muted-foreground: oklch(0.8 0.004 80);
+    --primary: oklch(0.975 0.003 85);
+    --primary-foreground: oklch(0.295 0.004 80);
+
+    /* Estrutura e sombra */
+    --contorno: oklch(0.14 0.004 80);
+    --input: oklch(0.69 0.005 80);
+    --border: oklch(0.235 0.004 80);
+    --sombra: oklch(0.235 0.03 262);
+    --ring: oklch(0.78 0.1 258);
+    --tinta: oklch(0.16 0.004 80);
+    --sobre-bloco: oklch(0.16 0.004 80);
+    --selecao: color-mix(in oklch, var(--amarelo) 20%, transparent);
+    --selecao-forte: color-mix(in oklch, var(--amarelo) 28%, transparent);
+    --veu: oklch(0.12 0.004 80 / 60%);
+
+    /* Primárias (blocos, formas, faixas) */
+    --vermelho: oklch(0.62 0.145 30);
+    --azul: oklch(0.6 0.115 258);
+    --amarelo: oklch(0.75 0.12 84);
+    --destructive: oklch(0.75 0.12 27);
+
+    /* Planilha: cor no texto, fundo quase neutro */
+    --entrada: oklch(0.82 0.08 256);
+    --entrada-suave: oklch(0.355 0.016 258);
+    --saida: oklch(0.79 0.1 30);
+    --saida-suave: oklch(0.355 0.016 28);
+    --saldo: oklch(0.975 0.003 85);
+    --saldo-suave: oklch(0.36 0.004 80);
+    --negativo: oklch(0.79 0.11 25);
+    --negativo-suave: oklch(0.39 0.05 25);
+    --economia: oklch(0.84 0.095 85);
+    --economia-suave: oklch(0.36 0.014 88);
+
+    /* Gráficos: as primárias do escuro; o contorno preto das barras separa o vermelho do azul. */
+    --grafico-entrada: oklch(0.6 0.115 258);
+    --grafico-saida: oklch(0.62 0.145 30);
+    --grafico-economia: oklch(0.75 0.12 84);
+    --grafico-saldo: oklch(0.975 0.003 85);
+    --chart-1: oklch(0.62 0.145 30);
+    --chart-2: oklch(0.6 0.115 258);
+    --chart-3: oklch(0.75 0.12 84);
+    --chart-4: oklch(0.975 0.003 85);
+    --chart-5: oklch(0.6 0.004 80);
+
+    /* Risco: blocos com texto escuro; fundos suaves quase neutros (a cor vai na barra `COR_RISCO[n].marca`). */
+    --risco-1: oklch(0.6 0.115 258);
+    --risco-1-suave: oklch(0.36 0.02 258);
+    --risco-1-texto: oklch(0.82 0.08 256);
+    --risco-2: oklch(0.71 0.085 220);
+    --risco-2-suave: oklch(0.36 0.018 220);
+    --risco-2-texto: oklch(0.83 0.065 215);
+    --risco-3: oklch(0.75 0.12 84);
+    --risco-3-suave: oklch(0.36 0.016 88);
+    --risco-3-texto: oklch(0.84 0.095 85);
+    --risco-4: oklch(0.69 0.12 55);
+    --risco-4-suave: oklch(0.36 0.02 55);
+    --risco-4-texto: oklch(0.81 0.095 58);
+    --risco-5: oklch(0.62 0.145 30);
+    --risco-5-suave: oklch(0.39 0.05 25);
+    --risco-5-texto: oklch(0.79 0.11 25);
+
+    --sidebar: oklch(0.33 0.004 80);
+    --sidebar-foreground: oklch(0.975 0.003 85);
+    --sidebar-primary: oklch(0.975 0.003 85);
+    --sidebar-primary-foreground: oklch(0.295 0.004 80);
+    --sidebar-accent: oklch(0.37 0.005 80);
+    --sidebar-accent-foreground: oklch(0.975 0.003 85);
+    --sidebar-border: oklch(0.235 0.004 80);
+    --sidebar-ring: oklch(0.78 0.1 258);
 }
 
 @layer base {
@@ -227,7 +313,7 @@
     }
   ::selection {
     background-color: var(--amarelo);
-    color: var(--foreground);
+    color: var(--tinta);
     }
   /* O Tailwind 4 tira o cursor de mão dos botões; tudo que é clicável volta a mostrá-lo. */
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary {
@@ -250,4 +336,8 @@
 .papel-pontilhado {
   background-image: radial-gradient(color-mix(in oklch, var(--foreground) 14%, transparent) 1px, transparent 1px);
   background-size: 16px 16px;
+}
+/* No escuro, os pontos são de contorno (preto), como no claro: pontos claros sobre o grafite pesariam como textura. */
+.dark .papel-pontilhado {
+  background-image: radial-gradient(color-mix(in oklch, var(--contorno) 22%, transparent) 1px, transparent 1px);
 }

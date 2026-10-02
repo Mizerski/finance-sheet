@@ -8,7 +8,7 @@ export function PontoCor({ cor, className }: { cor: string; className?: string }
   return (
     <span
       aria-hidden
-      className={cn('inline-block size-2.5 shrink-0 border-[1.5px] border-foreground', className)}
+      className={cn('inline-block size-2.5 shrink-0 border-[1.5px] border-contorno', className)}
       style={{ backgroundColor: cor }}
     />
   )

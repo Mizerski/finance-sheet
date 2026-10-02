@@ -51,7 +51,7 @@ export function CardCaixas({ caixas, usos, onEditar, onMover, onArquivar, onExcl
       <CabecalhoCard
         titulo="Caixas"
         contagem={ativos.length}
-        faixa="bg-foreground"
+        faixa="bg-tinta"
         forma={{ forma: 'circulo', cor: 'amarelo' }}
         descricao="Cada um com o próprio saldo"
         ajuda={
@@ -203,7 +203,7 @@ function BotaoPosicao({
       title={rotulo}
       disabled={desabilitado}
       onClick={onClick}
-      className="flex h-5 w-7 items-center justify-center text-muted-foreground transition-colors duration-100 outline-none hover:bg-amarelo hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30 [&_svg]:size-4"
+      className="flex h-5 w-7 items-center justify-center text-muted-foreground transition-colors duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30 [&_svg]:size-4"
     >
       {children}
     </button>

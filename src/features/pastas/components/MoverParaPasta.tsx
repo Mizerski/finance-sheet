@@ -35,7 +35,7 @@ export function MoverParaPasta({ descricao, pastaAtual, pastas, onMover }: Mover
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className={cn(CAMADA, 'w-60 gap-3')}>
-        <p className={cn(ROTULO, 'border-b-2 border-foreground pb-1.5')}>Mover para</p>
+        <p className={cn(ROTULO, 'border-b-2 border-contorno pb-1.5')}>Mover para</p>
         <ul className="-mt-1.5 flex flex-col">
           {opcoes.map((o) => {
             const ativa = o.id === atual
@@ -49,7 +49,7 @@ export function MoverParaPasta({ descricao, pastaAtual, pastas, onMover }: Mover
                     setAberto(false)
                   }}
                   className={cn(
-                    'flex w-full items-center gap-2 px-2 py-2 text-left text-[0.8125rem] transition-colors outline-none hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-ring',
+                    'flex w-full items-center gap-2 px-2 py-2 text-left text-[0.8125rem] transition-colors outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring',
                     ativa && 'font-semibold',
                   )}
                 >

@@ -23,7 +23,7 @@ function Aviso({ estado, onInstalar, onAdiar }: AvisoProps) {
   return (
     <div
       role="status"
-      className="fixed inset-x-4 bottom-4 z-50 flex flex-col gap-3 border-2 border-foreground bg-card p-4 text-sm shadow-bloco-lg sm:right-auto sm:w-96"
+      className="fixed inset-x-4 bottom-4 z-50 flex flex-col gap-3 border-2 border-contorno bg-card p-4 text-sm shadow-bloco-lg sm:right-auto sm:w-96"
     >
       <div className="flex items-center gap-3">
         <span aria-hidden className="flex items-end gap-1">
@@ -50,7 +50,7 @@ function Aviso({ estado, onInstalar, onAdiar }: AvisoProps) {
       )}
 
       {!baixando && (
-        <div className="flex justify-end gap-2 border-t-2 border-foreground pt-3">
+        <div className="flex justify-end gap-2 border-t-2 border-contorno pt-3">
           <Button variant="outline" className={BOTAO} onClick={onAdiar}>
             Depois
           </Button>
@@ -78,7 +78,7 @@ function Progresso({ fracao }: { fracao: number | null }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={porcento ?? undefined}
-        className="h-3 border-2 border-foreground bg-background"
+        className="h-3 border-2 border-contorno bg-background"
       >
         <div className="h-full bg-foreground transition-[width] duration-100" style={{ width: `${porcento ?? 0}%` }} />
       </div>

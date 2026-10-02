@@ -75,7 +75,7 @@ export function RoscaGastos({ itens, rotuloValor }: RoscaGastosProps) {
               nameKey="nome"
               innerRadius="62%"
               outerRadius="100%"
-              stroke="var(--foreground)"
+              stroke="var(--contorno)"
               strokeWidth={2}
               isAnimationActive={false}
             />

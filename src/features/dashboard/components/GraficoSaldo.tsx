@@ -48,7 +48,7 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
   return (
     <CardGrafico
       titulo={`Saldo no fim de ${cada}`}
-      faixa="bg-foreground"
+      faixa="bg-tinta"
       forma={{ forma: 'quarto', cor: 'vermelho' }}
       descricao={`Quanto sobra na conta ${noFim}`}
       className={className}
@@ -76,7 +76,7 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
           />
           {temNegativo && <ReferenceLine y={0} stroke="var(--vermelho)" strokeWidth={2} strokeDasharray="6 4" />}
           <ChartTooltip
-            cursor={{ stroke: 'var(--foreground)', strokeWidth: 1, strokeDasharray: '3 3' }}
+            cursor={{ stroke: 'var(--contorno)', strokeWidth: 1, strokeDasharray: '3 3' }}
             content={({ active, payload }) => {
               const d = payload?.[0]?.payload as DadoPeriodo | undefined
               if (!active || !d || d.saldo === null) return null
@@ -96,7 +96,7 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
             strokeLinejoin="miter"
             strokeLinecap="square"
             dot={(props: PontoProps) => <Ponto key={props.index} {...props} />}
-            activeDot={{ r: 6, fill: 'var(--amarelo)', stroke: 'var(--foreground)', strokeWidth: 2 }}
+            activeDot={{ r: 6, fill: 'var(--amarelo)', stroke: 'var(--contorno)', strokeWidth: 2 }}
             isAnimationActive={false}
           >
             {/* Rótulo direto só no último mês: o valor que a projeção entrega. */}

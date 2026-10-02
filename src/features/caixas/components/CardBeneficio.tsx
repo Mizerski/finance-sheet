@@ -26,8 +26,8 @@ export function CardBeneficio({ caixa }: { caixa: Caixa }) {
         <span
           aria-hidden
           className={cn(
-            'flex w-10 shrink-0 items-center justify-center border-r-2 border-foreground sm:w-12',
-            falta ? 'bg-vermelho' : 'bg-foreground',
+            'flex w-10 shrink-0 items-center justify-center border-r-2 border-contorno sm:w-12',
+            falta ? 'bg-vermelho' : 'bg-tinta',
           )}
         >
           <Forma forma={falta ? 'triangulo' : 'quarto'} cor={falta ? 'papel' : 'amarelo'} className="size-5 sm:size-6" />
@@ -55,7 +55,7 @@ export function CardBeneficio({ caixa }: { caixa: Caixa }) {
             <Mensagem resumo={resumo} caixa={caixa} />
           </div>
           {resumo && (
-            <dl className="grid grid-cols-3 gap-3 border-t border-border pt-3 lg:border-t-0 lg:border-l-2 lg:border-foreground lg:pt-0 lg:pl-5">
+            <dl className="grid grid-cols-3 gap-3 border-t border-border pt-3 lg:border-t-0 lg:border-l-2 lg:border-contorno lg:pt-0 lg:pl-5">
               <Numero rotulo="Saldo hoje">
                 <span className={cn(VALOR_SALDO, resumo.saldoHojeCentavos < 0 && 'text-negativo')}>
                   {formatarBRL(resumo.saldoHojeCentavos)}

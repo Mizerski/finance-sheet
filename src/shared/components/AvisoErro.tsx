@@ -12,7 +12,7 @@ export function AvisoErro({ titulo, mensagem, onFechar }: AvisoErroProps) {
   return (
     <div
       role="alert"
-      className="fixed inset-x-4 bottom-4 z-50 flex items-start gap-3 border-2 border-l-8 border-foreground border-l-vermelho bg-card p-4 text-sm shadow-bloco-lg sm:left-auto sm:max-w-md"
+      className="fixed inset-x-4 bottom-4 z-50 flex items-start gap-3 border-2 border-l-8 border-contorno border-l-vermelho bg-card p-4 text-sm shadow-bloco-lg sm:left-auto sm:max-w-md"
     >
       <div className="flex flex-1 flex-col gap-1">
         <p className="font-heading font-bold text-negativo uppercase">{titulo}</p>

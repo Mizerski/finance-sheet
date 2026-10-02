@@ -82,7 +82,7 @@ export function CardMetaPrincipal({ principal, totalDeMetas, hoje }: CardMetaPri
       </div>
 
       {/* Os quatro marcos lado a lado, como uma régua de cartaz. */}
-      <ol className="grid grid-cols-4 border-y-2 border-foreground">
+      <ol className="grid grid-cols-4 border-y-2 border-contorno">
         {progresso.marcos.map((m) => (
           <ItemMarco key={m.fracao} marco={m} proximo={m === progresso.proximo} />
         ))}
@@ -106,12 +106,12 @@ function ItemMarco({ marco, proximo }: { marco: Marco; proximo: boolean }) {
   return (
     <li
       className={cn(
-        'flex min-w-0 flex-col gap-1 border-foreground px-2 py-2.5 not-last:border-r-2 first:pl-4 sm:px-3 sm:first:pl-5',
+        'flex min-w-0 flex-col gap-1 border-contorno px-2 py-2.5 not-last:border-r-2 first:pl-4 sm:px-3 sm:first:pl-5',
         marco.atingido && 'bg-economia-suave',
-        proximo && 'bg-amarelo',
+        proximo && 'bg-amarelo text-tinta',
       )}
     >
-      <span className={cn(ROTULO, 'flex items-center gap-1', marco.atingido ? 'text-economia' : 'text-foreground')}>
+      <span className={cn(ROTULO, 'flex items-center gap-1', marco.atingido && 'text-economia')}>
         {marco.fracao * 100}%{marco.atingido && <Check className="size-3 stroke-3" aria-label="atingido" />}
       </span>
       {/* No celular, sem o "R$" para os quatro valores caberem lado a lado. */}
@@ -119,7 +119,7 @@ function ItemMarco({ marco, proximo }: { marco: Marco; proximo: boolean }) {
         <span className="sm:hidden">{formatarBRLSemSimbolo(marco.valorCentavos)}</span>
         <span className="hidden sm:inline">{formatarBRL(marco.valorCentavos)}</span>
       </span>
-      <span className={cn('truncate text-xs', proximo ? 'text-foreground' : 'text-muted-foreground')}>
+      <span className={cn('truncate text-xs', !proximo && 'text-muted-foreground')}>
         {marco.data ? formatarMesAno(marco.data, 'curto') : '—'}
       </span>
     </li>

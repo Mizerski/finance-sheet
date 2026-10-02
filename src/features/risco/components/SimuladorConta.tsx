@@ -60,7 +60,7 @@ export function SimuladorConta({ risco, contexto }: { risco: AnaliseRisco; conte
     )
 
   return (
-    <section aria-label="Posso assumir uma conta nova?" className="flex flex-col gap-4 border-t-2 border-foreground px-4 py-4 sm:px-5">
+    <section aria-label="Posso assumir uma conta nova?" className="flex flex-col gap-4 border-t-2 border-contorno px-4 py-4 sm:px-5">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-1 basis-72 flex-col gap-1">
           <h3 className={cn(TITULO_CARD, 'text-base')}>Posso assumir uma conta nova?</h3>

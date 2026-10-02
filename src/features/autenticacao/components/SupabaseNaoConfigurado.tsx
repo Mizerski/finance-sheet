@@ -8,12 +8,12 @@ export function SupabaseNaoConfigurado() {
     >
       <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm">
         <li>
-          Copie <code className="border border-foreground bg-muted px-1">.env.example</code> para{' '}
-          <code className="border border-foreground bg-muted px-1">.env.local</code>.
+          Copie <code className="border border-contorno bg-muted px-1">.env.example</code> para{' '}
+          <code className="border border-contorno bg-muted px-1">.env.local</code>.
         </li>
         <li>Preencha a URL e a chave pública do projeto (Project Settings → API).</li>
         <li>
-          Rode o SQL de <code className="border border-foreground bg-muted px-1">supabase/migrations</code> no SQL Editor.
+          Rode o SQL de <code className="border border-contorno bg-muted px-1">supabase/migrations</code> no SQL Editor.
         </li>
         <li>Reinicie o servidor de desenvolvimento.</li>
       </ol>

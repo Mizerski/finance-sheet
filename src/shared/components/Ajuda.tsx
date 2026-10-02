@@ -25,7 +25,7 @@ export function Ajuda({ titulo, largo, className, children }: AjudaProps) {
         <Button
           variant="ghost"
           size="icon"
-          className={cn('-my-1 size-7 rounded-full text-muted-foreground hover:bg-amarelo', className)}
+          className={cn('-my-1 size-7 rounded-full text-muted-foreground hover:bg-amarelo hover:text-tinta', className)}
           aria-label={`Entenda: ${titulo}`}
         >
           <CircleHelp />

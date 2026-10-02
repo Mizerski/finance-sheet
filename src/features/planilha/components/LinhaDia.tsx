@@ -28,7 +28,7 @@ interface LinhaDiaProps {
 const VEU = {
   hover: '[&>td]:group-hover:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-foreground)_6%,transparent)]',
   aberto: '[&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-foreground)_9%,transparent)]',
-  hoje: 'font-semibold [&>td]:shadow-[inset_0_2px_0_0_var(--color-foreground),inset_0_-2px_0_0_var(--color-foreground)]',
+  hoje: 'font-semibold [&>td]:shadow-[inset_0_2px_0_0_var(--color-contorno),inset_0_-2px_0_0_var(--color-contorno)]',
 }
 
 /** Espaço que um dia cheio pede abaixo da linha; com menos que isso, o popover abre para cima se lá couber mais. */
@@ -76,7 +76,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
               <span
                 className={cn(
                   'inline-flex h-6 min-w-5 items-center justify-center',
-                  ehHoje && 'bg-vermelho px-1 text-papel',
+                  ehHoje && 'bg-vermelho px-1 text-sobre-bloco',
                 )}
               >
                 {String(dia.dia).padStart(2, '0')}
@@ -102,7 +102,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
       <PopoverContent
         side={lado}
         align="start"
-        className="w-80 rounded-none border-2 border-foreground p-4 shadow-bloco-lg ring-0"
+        className="w-80 rounded-none border-2 border-contorno p-4 shadow-bloco-lg ring-0"
         // Clicar na própria linha alterna o popover em vez de fechar e reabrir.
         onInteractOutside={(e) => {
           if (linhaRef.current?.contains(e.target as Node)) e.preventDefault()

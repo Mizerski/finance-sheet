@@ -216,17 +216,17 @@ function EscolhaTipo({ valor, onChange }: { valor: TipoCaixa; onChange: (tipo: T
             tabIndex={ativo ? 0 : -1}
             onClick={() => onChange(t)}
             className={cn(
-              'flex flex-col gap-1.5 border-2 border-foreground p-3 text-left transition-[background-color,box-shadow,translate] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+              'group flex flex-col gap-1.5 border-2 border-contorno p-3 text-left transition-[background-color,box-shadow,translate] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
               ativo
                 ? 'bg-foreground text-background motion-safe:translate-x-[2px] motion-safe:translate-y-[2px]'
-                : 'bg-card shadow-bloco-sm hover:bg-amarelo active:shadow-none motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]',
+                : 'bg-card shadow-bloco-sm hover:bg-amarelo hover:text-tinta active:shadow-none motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]',
             )}
           >
             <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.06em] uppercase">
               <Forma {...FORMA_TIPO[t]} cor={ativo ? 'papel' : 'tinta'} className="size-3.5" />
               {ROTULO_TIPO_CAIXA[t]}
             </span>
-            <span className={cn('text-[0.8125rem] leading-snug', ativo ? 'text-background/85' : 'text-muted-foreground')}>
+            <span className={cn('text-[0.8125rem] leading-snug', ativo ? 'text-background/85' : 'text-muted-foreground dark:group-hover:text-tinta/80')}>
               {EXPLICACAO_TIPO[t]}
             </span>
           </button>

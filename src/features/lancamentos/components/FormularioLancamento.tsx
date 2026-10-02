@@ -434,7 +434,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
       )}
 
       {perguntarVigencia && (
-        <Field data-invalid={!!erroVigencia || undefined} className="border-2 border-l-8 border-foreground border-l-amarelo p-4">
+        <Field data-invalid={!!erroVigencia || undefined} className="border-2 border-l-8 border-contorno border-l-amarelo p-4">
           <FieldLabel htmlFor="lanc-vigencia">Este lançamento já aconteceu. A mudança vale</FieldLabel>
           <ControleSegmentado
             id="lanc-vigencia"

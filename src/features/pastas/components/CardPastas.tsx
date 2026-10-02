@@ -29,7 +29,7 @@ export function CardPastas({ pastas, grupos, onNova, onEditar, onExcluir }: Card
       <CabecalhoCard
         titulo="Pastas"
         contagem={pastas.length}
-        faixa="bg-foreground"
+        faixa="bg-tinta"
         forma={{ forma: 'quadrado', cor: 'amarelo' }}
         destaque={{ rotulo: 'Sem pasta', valor: `${semPasta} ${semPasta === 1 ? 'lançamento' : 'lançamentos'}` }}
       />

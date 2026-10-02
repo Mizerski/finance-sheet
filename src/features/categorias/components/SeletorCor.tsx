@@ -73,8 +73,8 @@ function Quadradinho({ cor, ativo, focavel, onClick }: { cor: CorCategoria; ativ
       tabIndex={focavel ? 0 : -1}
       onClick={onClick}
       className={cn(
-        'flex size-8 items-center justify-center border-2 border-foreground transition-[translate,box-shadow] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
-        cor.clara ? 'text-foreground' : 'text-papel',
+        'flex size-8 items-center justify-center border-2 border-contorno transition-[translate,box-shadow] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+        cor.clara ? 'text-tinta' : 'text-papel',
         // Afunda ao clicar; a escolhida fica afundada.
         ativo
           ? 'motion-safe:translate-x-[2px] motion-safe:translate-y-[2px]'

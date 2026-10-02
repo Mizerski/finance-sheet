@@ -24,12 +24,12 @@ interface CabecalhoCardProps {
 /** Cabeçalho de card: faixa de cor, título em caixa alta, destaque ou ações à direita e régua preta embaixo. */
 export function CabecalhoCard({ titulo, contagem, faixa, forma, descricao, ajuda, destaque, acoes }: CabecalhoCardProps) {
   return (
-    <header className="flex items-stretch border-b-2 border-foreground">
+    <header className="flex items-stretch border-b-2 border-contorno">
       {faixa && (
         <span
           aria-hidden
           className={cn(
-            'flex shrink-0 items-center justify-center overflow-hidden border-r-2 border-foreground',
+            'flex shrink-0 items-center justify-center overflow-hidden border-r-2 border-contorno text-tinta',
             forma ? 'w-10 sm:w-12' : 'w-3 sm:w-4',
             faixa,
           )}
