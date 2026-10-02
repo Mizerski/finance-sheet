@@ -1,7 +1,7 @@
 import type { ResumoAno } from '@/features/projecao/projecao'
 import { formatarData, nomeDoDiaDaSemana, deDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { NO_PERIODO, tipoDoPeriodo, type Periodo } from '../periodo'
+import { NO_PERIODO, tipoDoPeriodo, type Periodo } from '@/shared/lib/periodo'
 import { CartaoEvitaveis, type ResumoEvitaveis } from './CartaoEvitaveis'
 import { CartaoIndicador } from './CartaoIndicador'
 

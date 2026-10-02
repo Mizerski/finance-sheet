@@ -12,7 +12,7 @@ export interface RiscoDaConta {
 }
 
 /**
- * O risco do que a tela mostra. Com uma conta só, é a análise dela. Em "Todos" com várias contas,
+ * O risco do que a tela mostra. Com uma conta só, é a análise dela. No Total com várias contas,
  * vale a conta mais apertada (o pior nível), e cada dia fica com o pior nível entre as contas.
  */
 export interface RiscoDaVisao extends AnaliseRisco {

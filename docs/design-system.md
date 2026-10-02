@@ -118,6 +118,7 @@ Sem categoria: `#a39a8e`.
 | Tags | amarelo, triângulo |
 | Pastas | preto, quadrado amarelo |
 | Caixas | preto, círculo amarelo |
+| Benefício até a recarga (`CardBeneficio`) | preto com quarto de círculo amarelo; se o saldo acaba antes da recarga, vermelho com triângulo papel |
 | Entradas vs saídas · gastos no ano · saldo | azul com quadrado vermelho · azul com quarto amarelo · preto com quarto vermelho |
 
 - A marca (`Marca`) é quadrado vermelho, círculo azul e triângulo amarelo, com o nome em duas linhas.
@@ -163,7 +164,11 @@ Sem categoria: `#a39a8e`.
 | Card de conteúdo | `CARD` — `rounded-none border-2 border-foreground shadow-bloco` |
 | Cabeçalho de card | `CabecalhoCard` (faixa de cor opcional à esquerda, que vira bloco com forma quando há `forma`; contagem em bloco preto, destaque à direita) |
 | Mensagem principal de um card | `CaixaDestaque`: contorno preto, faixa grossa de cor à esquerda (`border-l-8`) e fundo suave da cor do assunto (economia, risco, saída); texto em preto, não cinza |
-| Popover, Dialog | `CAMADA` — `border-2 border-foreground shadow-bloco-lg`; todo dialog tem a faixa vermelho/azul/amarelo no topo |
+| Popover, Dialog | `CAMADA` — `border-2 border-foreground shadow-bloco-lg`; todo dialog tem a faixa vermelho/azul/amarelo no topo. Popover nunca passa da tela: com conteúdo demais, rola por dentro (numa lista, só a lista rola) |
+| Checkbox (`src/shared/ui/checkbox.tsx`) | quadrado de 18px com contorno preto de 2px, hover amarelo; marcado ou parcial, bloco preto com ✓ ou – |
+| Barra de seleção (lote) | presa embaixo (`fixed inset-x-4 bottom-4`), `shadow-bloco-lg`; a contagem em bloco amarelo à esquerda, ações em botões `outline`, aviso do que mudou com "Desfazer" na linha de cima. A página ganha folga embaixo para a barra não cobrir a última linha |
+| Seletor de caixa | um botão em bloco (`shadow-bloco-sm`) com a bolinha da cor, o nome e ▾, que afunda e fica amarelo quando aberto; a lista numera os atalhos em quadradinhos (preto no escolhido) |
+| Escolha com explicação (tipo do caixa) | cartões lado a lado com forma, nome em caixa alta e uma frase; o escolhido fica em bloco preto, afundado |
 | Campo (input, select) | `CAMPO`, `CAMPO_SELECT` — `h-10`, borda preta de 2px; foco com sombra azul deslocada |
 | Botão com texto | `Button` + `BOTAO`; principal preto com sombra vermelha, secundário (`outline`) papel com sombra preta e hover amarelo |
 | Botão só com ícone | `variant="ghost" size="icon" className="rounded-full"` (círculo), com `aria-label` |
@@ -189,7 +194,7 @@ Sem categoria: `#a39a8e`.
   - hover: 6% do preto
   - linha aberta: 9% do preto
   - hoje: moldura preta de 2px em cima e embaixo + `font-semibold`; o número do dia vira bloco vermelho
-  - período selecionado (dashboard): 30% de amarelo
+  - período selecionado (dashboard) e linha marcada para a ação em lote: 30% de amarelo
 - **Cabeçalho do mês na planilha:** número do mês em bloco preto, nome em caixa alta.
 - **Grupo de pasta:** linha `bg-muted` com régua preta embaixo e nome em caixa alta.
 
@@ -223,7 +228,8 @@ Cada card responde uma pergunta de relance (regra `progressive-disclosure` da ui
 - Em telas pequenas, **abrevie em vez de esconder** (ex.: "Saídas fixas" vira "Fixas"). Rótulos em caixa alta perdem o espaçamento entre letras no celular quando apertam as colunas.
 - Breakpoints arbitrários devem usar **rem** (`min-[76rem]:`), não px.
 - Na planilha, os meses visíveis são 1 abaixo de 64rem, 2 entre 64rem e 90rem e 3 a partir de 90rem (72rem/106rem com a coluna Economia).
-- O menu rola na horizontal no celular (sem barra visível), mas nunca quebra em várias linhas. Abaixo de 76rem ele ocupa uma linha própria.
+- O menu rola na horizontal no celular (sem barra visível), mas nunca quebra em várias linhas. Abaixo de 76rem (90rem com o seletor de caixa) ele ocupa uma linha própria.
+- Colunas de texto livre (descrição) quebram palavras longas (`[overflow-wrap:anywhere]`), para a tabela caber no card mesmo com os botões da linha.
 
 ## Ícones
 
@@ -239,6 +245,7 @@ Cada card responde uma pergunta de relance (regra `progressive-disclosure` da ui
   - `CabecalhoCard`: cabeçalho de card com faixa, contagem, destaque e ações.
   - `Forma`, `Marca`, `Composicao`: a linguagem geométrica.
   - `ControleSegmentado`, `EstadoVazio`, `TelaCentralizada`, `AvisoErro`, `PontoCor`, `CaixaDestaque`.
+  - `SeletorPeriodo`: grupo "‹ março de 2026 ›" com calendário e atalhos Dia/Semana/Mês/Ano; com `onLimpar`, opcional ("Qualquer data" e um ×).
   - `Ajuda` (botão "?" com popover) e `MaisDetalhes` (abre e fecha no lugar): divulgação progressiva.
 - **Constantes de estilo** de uma feature ficam num arquivo próprio (ex.: `cores.ts`), não dentro de componentes, por causa do Fast Refresh.
 

@@ -1,4 +1,4 @@
-import { caixasAtivos } from '@/features/caixas/caixa'
+import { caixasAtivos, NOME_TOTAL } from '@/features/caixas/caixa'
 import { CAMADA, ROTULO, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
@@ -14,7 +14,7 @@ interface Grupo {
 const GRUPO_CAIXAS: Grupo = {
   titulo: 'Caixas',
   atalhos: [
-    { teclas: ['Alt', '0'], acao: 'Ver todos os caixas' },
+    { teclas: ['Alt', '0'], acao: `Ver o ${NOME_TOTAL} (soma das contas)` },
     { teclas: ['Alt', '1…9'], acao: 'Ver o caixa nessa posição' },
   ],
 }
@@ -34,6 +34,13 @@ const GRUPOS: Grupo[] = [
     atalhos: [
       { teclas: ['←', '→'], acao: 'Mês anterior e próximo' },
       { teclas: ['T'], acao: 'Voltar para hoje' },
+    ],
+  },
+  {
+    titulo: 'Em lançamentos (tela larga)',
+    atalhos: [
+      { teclas: ['Shift', 'clique'], acao: 'Marcar vários seguidos' },
+      { teclas: ['Esc'], acao: 'Desmarcar todos' },
     ],
   },
   {

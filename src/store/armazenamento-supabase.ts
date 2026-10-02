@@ -63,6 +63,15 @@ const COLUNAS_CAIXA =
 const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
 const COLUNAS_META = 'id, caixa_id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, prazo, ajustes'
 
+/** Gravações em lote vão em partes: a exclusão leva os ids na URL, que tem limite de tamanho. */
+const TAMANHO_LOTE = 100
+
+function emLotes<T>(itens: T[]): T[][] {
+  return Array.from({ length: Math.ceil(itens.length / TAMANHO_LOTE) }, (_, i) =>
+    itens.slice(i * TAMANHO_LOTE, (i + 1) * TAMANHO_LOTE),
+  )
+}
+
 /** O PostgREST devolve no máximo 1000 linhas por consulta; busca página por página. */
 const TAMANHO_PAGINA = 1000
 
@@ -247,6 +256,23 @@ function persistir(
     }
     case 'lancamento/excluir':
       return rodar(() => supabase.from('lancamentos').delete().eq('id', acao.id))
+    case 'lancamento/salvarVarios': {
+      const ids = {
+        categorias: new Set(antes.categorias.map((c) => c.id)),
+        tags: new Set(antes.tags.map((t) => t.id)),
+        pastas: new Set(antes.pastas.map((p) => p.id)),
+      }
+      const lotes = emLotes(acao.lancamentos.map((l) => paraLinhaLancamento(l, ids)))
+      return async () => {
+        for (const linhas of lotes) await rodar(() => supabase.from('lancamentos').upsert(linhas))()
+      }
+    }
+    case 'lancamento/excluirVarios': {
+      const lotes = emLotes(acao.ids)
+      return async () => {
+        for (const ids of lotes) await rodar(() => supabase.from('lancamentos').delete().in('id', ids))()
+      }
+    }
     case 'meta/salvar':
       return rodar(() => supabase.from('metas_economia').upsert(paraLinhaMeta(acao.meta)))
     case 'meta/excluir':

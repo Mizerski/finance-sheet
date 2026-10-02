@@ -14,7 +14,6 @@ import {
   startOfYear,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import type { IntervaloAnos } from '@/features/projecao/anos'
 import { anoDe, deDataISO, formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 
 /** Intervalo de datas do relatório, inclusivo nas duas pontas. */
@@ -30,6 +29,12 @@ export type TipoPeriodo = Unidade | 'personalizado'
 /** Semana de domingo a sábado, como no calendário em pt-BR. */
 const SEMANA = { locale: ptBR }
 
+/** Anos que a projeção calcula (o intervalo de `useAno`): o período não sai deles. */
+export interface LimitesAnos {
+  min: number
+  max: number
+}
+
 export interface BuscaPeriodo {
   de?: DataISO
   ate?: DataISO
@@ -39,17 +44,7 @@ function dataValida(valor: unknown): valor is DataISO {
   return typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor) && isValid(parseISO(valor))
 }
 
-/** `validateSearch` do dashboard: aceita o par de datas só se as duas forem válidas. */
-export interface BuscaDashboard extends BuscaPeriodo {
-  /** Pasta detalhada por categoria no card de pastas. */
-  pasta?: string
-}
-
-export function validarBuscaDashboard(search: Record<string, unknown>): BuscaDashboard {
-  const pasta = typeof search.pasta === 'string' && search.pasta ? search.pasta : undefined
-  return { ...validarPeriodo(search), ...(pasta && { pasta }) }
-}
-
+/** Parte do `validateSearch` das rotas com período (`?de=&ate=`): aceita o par só se as duas datas forem válidas. */
 export function validarPeriodo(search: Record<string, unknown>): BuscaPeriodo {
   if (!dataValida(search.de) || !dataValida(search.ate)) return {}
   return search.de <= search.ate ? { de: search.de, ate: search.ate } : { de: search.ate, ate: search.de }
@@ -60,7 +55,7 @@ export function periodoDoAno(ano: number): Periodo {
 }
 
 /** Mantém o período dentro dos anos que a projeção calcula. */
-export function limitarPeriodo({ de, ate }: Periodo, { min, max }: IntervaloAnos): Periodo {
+export function limitarPeriodo({ de, ate }: Periodo, { min, max }: LimitesAnos): Periodo {
   const inicio = `${min}-01-01`
   const fim = `${max}-12-31`
   const limitar = (d: DataISO) => (d < inicio ? inicio : d > fim ? fim : d)

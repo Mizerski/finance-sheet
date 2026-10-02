@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { lancamentosDoCaixa, metasDoCaixa } from '@/features/caixas/caixa'
+import { lancamentosDoCaixa, metasDoCaixa, NOME_TOTAL } from '@/features/caixas/caixa'
+import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
 import { useEscolherCaixa, useVisao } from '@/features/caixas/useVisao'
 import { useProjecao } from '@/features/projecao/useProjecao'
 import { CardRisco } from '@/features/risco/components/CardRisco'
@@ -55,13 +56,14 @@ export function EconomiasPage() {
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina forma={FORMA_PAGINA.economias} titulo="Economias" descricao={caixa?.nome} />
+      {caixa && <CardBeneficio caixa={caixa} />}
       <Card className={CARD}>
         <EstadoVazio
-          titulo="Economias são das contas"
-          descricao={`${caixa?.nome} é um benefício: o saldo dele aparece na planilha, mas metas, reserva e risco do caixa ficam nas contas.`}
+          titulo="Metas ficam nas contas"
+          descricao={`${caixa?.nome} é um benefício: o dinheiro dele só paga alguns gastos, então não dá para guardar dele. Metas, reserva e risco do caixa ficam nas contas.`}
           acao={
             <Button variant="outline" className={BOTAO} onClick={() => escolher(null)}>
-              Ver todos os caixas
+              Ver o {NOME_TOTAL}
             </Button>
           }
         />
@@ -72,7 +74,7 @@ export function EconomiasPage() {
 
 function ConteudoEconomias() {
   const { estado, dispatch } = useFinancas()
-  // Metas, capacidade, reserva e sugestões são do que a tela mostra (em "Todos", a soma das contas no total).
+  // Metas, capacidade, reserva e sugestões são do que a tela mostra (no Total, a soma das contas no total).
   const { metas, lancamentos, projecoes } = useVisao()
   const { ano, meses } = useProjecao()
   const { reserva: mesesDeReserva = MESES_DE_RESERVA_PADRAO } = useSearch({ from: '/economias' })
@@ -89,7 +91,7 @@ function ConteudoEconomias() {
   // Independe do ano exibido: capacidade, reserva e gastos grandes olham os próximos meses a partir de hoje.
   const dias = useMemo(() => projecoes.flatMap((p) => p.dias), [projecoes])
   const capacidade = useMemo(() => capacidadeDePoupanca(dias, hoje), [dias, hoje])
-  // Risco por conta: em "Todos" com várias contas, vale a mais apertada, e guardar sem piorar soma o que cada uma aguenta.
+  // Risco por conta: no Total com várias contas, vale a mais apertada, e guardar sem piorar soma o que cada uma aguenta.
   const risco = useRisco()
   const porNivel = useMemo(() => risco && capacidadePorNivelDaVisao(risco, hoje), [risco, hoje])
   // O que dá para guardar a mais sem piorar o risco do caixa: é o valor que o app recomenda.

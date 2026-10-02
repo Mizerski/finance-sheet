@@ -35,7 +35,7 @@ export function CardRisco({ risco, contexto }: CardRiscoProps) {
     <Card className={cn(CARD, 'overflow-hidden')}>
       <CabecalhoCard
         titulo="Risco do caixa"
-        // Em "Todos" com várias contas, o card fala da conta mais apertada (e o simulador roda nela).
+        // No Total com várias contas, o card fala da conta mais apertada (e o simulador roda nela).
         descricao={risco.caixa && `A conta mais apertada: ${risco.caixa.nome}`}
         faixa={cores.bloco}
         forma={{ forma: 'triangulo', cor: 'tinta' }}

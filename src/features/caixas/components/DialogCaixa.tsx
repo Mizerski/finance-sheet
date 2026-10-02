@@ -14,11 +14,11 @@ interface DialogCaixaProps {
 export function DialogCaixa({ aberto, onOpenChange, caixa }: DialogCaixaProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-md')}>
+      <DialogContent showCloseButton={false} className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-lg')}>
         <DialogHeader>
           <DialogTitle className={TITULO_DIALOG}>{caixa ? 'Editar caixa' : 'Novo caixa'}</DialogTitle>
           <DialogDescription>
-            Uma conta bancária ou um benefício (vale-refeição, vale-alimentação), com o próprio saldo.
+            Cada caixa tem o próprio saldo. Categorias, tags e pastas valem para todos.
           </DialogDescription>
         </DialogHeader>
         <FormularioCaixa key={caixa?.id ?? 'novo'} caixa={caixa} onConcluir={() => onOpenChange(false)} />

@@ -55,7 +55,7 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   const { dispatch } = useFinancas()
   const { caixaPadrao } = useVisao()
   const { porCaixa } = useProjecoesDosCaixas()
-  // O caixa da tela (em "Todos", a primeira conta); o ajuste é sempre de um caixa, nunca da soma.
+  // O caixa da tela (no Total, a primeira conta); o ajuste é sempre de um caixa, nunca da soma.
   const [caixaId, setCaixaId] = useState(caixaPadrao?.id ?? '')
   const projecoes = porCaixa.get(caixaId) ?? []
   const [data, setData] = useState<DataISO>(() => paraDataISO(new Date()))

@@ -46,7 +46,7 @@ export type Sugestao =
 export interface ContextoSugestoes {
   /** Todos os caixas: o efeito na meta é simulado na conta dela. */
   caixas: Caixa[]
-  /** Lançamentos, metas e projeção do que a tela mostra (um caixa ou "Todos"). */
+  /** Lançamentos, metas e projeção do que a tela mostra (um caixa ou o Total). */
   lancamentos: Lancamento[]
   metas: MetaEconomia[]
   projecoes: Projecao[]

@@ -12,7 +12,7 @@ import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
-import { PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
+import { PopoverDescription, PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
 
 interface DetalheDiaProps {
   dia: DiaProjetado
@@ -27,13 +27,18 @@ interface DetalheDiaProps {
 
 /** Conteúdo do popover: lançamentos de um dia da planilha. */
 export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = null }: DetalheDiaProps) {
+  const quantidade = dia.ocorrencias.length + dia.aportes.length
 
   return (
     <>
-      <PopoverHeader>
+      <PopoverHeader className="shrink-0">
         <PopoverTitle className="first-letter:uppercase">
           {nomeDoDiaDaSemana(dia.diaDaSemana, 'longo')}, {formatarData(dia.data)}
         </PopoverTitle>
+        {/* Num dia cheio, a lista rola: a contagem diz quanto há embaixo. */}
+        {quantidade > 5 && (
+          <PopoverDescription className="text-xs tabular-nums">{quantidade} lançamentos neste dia</PopoverDescription>
+        )}
       </PopoverHeader>
 
       {!dia.noCalculo ? (
@@ -41,7 +46,13 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = nul
       ) : dia.ocorrencias.length === 0 && dia.aportes.length === 0 ? (
         <p className="text-muted-foreground">Nenhum lançamento neste dia.</p>
       ) : (
-        <ul className="-mx-2 flex flex-col">
+        // A lista é a única parte que encolhe e rola; título, saldo e o botão de adicionar continuam à vista.
+        <ul
+          className={cn(
+            '-mx-2 flex flex-col overflow-y-auto overscroll-contain',
+            quantidade > 3 && 'min-h-24 border-y border-border',
+          )}
+        >
           {dia.ocorrencias.map((o) => (
             <ItemOcorrencia
               key={o.lancamentoId}
@@ -57,7 +68,7 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = nul
       )}
 
       {dia.saldoCentavos !== null && (
-        <div className="flex justify-between border-t-2 border-foreground pt-3 font-semibold">
+        <div className="flex shrink-0 justify-between border-t-2 border-foreground pt-3 font-semibold">
           <span>Saldo do dia</span>
           <span className={cn('tabular-nums', VALOR_SALDO, dia.saldoCentavos < 0 && 'text-negativo')}>
             {formatarBRL(dia.saldoCentavos)}
@@ -66,13 +77,18 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = nul
       )}
 
       {nivel && (
-        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
-          Caixa no dia: <SeloRisco nivel={nivel} /> <span>{NIVEL[nivel].significado}</span>
+        <p
+          className="flex shrink-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground"
+          title={NIVEL[nivel].significado}
+        >
+          Caixa no dia: <SeloRisco nivel={nivel} />{' '}
+          {/* Num dia cheio, o significado vira dica, para sobrar altura para a lista. */}
+          {quantidade > 5 ? <span className="sr-only">{NIVEL[nivel].significado}</span> : <span>{NIVEL[nivel].significado}</span>}
         </p>
       )}
 
       {dia.noCalculo && (
-        <Button variant="outline" className={cn(BOTAO, 'mt-1 w-full')} onClick={onAdicionar}>
+        <Button variant="outline" className={cn(BOTAO, 'mt-1 w-full shrink-0')} onClick={onAdicionar}>
           <Plus aria-hidden className="size-4" />
           Adicionar lançamento
         </Button>

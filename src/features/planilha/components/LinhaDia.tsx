@@ -31,17 +31,30 @@ const VEU = {
   hoje: 'font-semibold [&>td]:shadow-[inset_0_2px_0_0_var(--color-foreground),inset_0_-2px_0_0_var(--color-foreground)]',
 }
 
+/** Espaço que um dia cheio pede abaixo da linha; com menos que isso, o popover abre para cima se lá couber mais. */
+const ALTURA_CONFORTAVEL = 420
+
 export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia, nivel }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
+  const [lado, setLado] = useState<'top' | 'bottom'>('bottom')
   const linhaRef = useRef<HTMLTableRowElement>(null)
   const fimDeSemana = dia.diaDaSemana === 0 || dia.diaDaSemana === 6
+
+  const alternar = () => {
+    const linha = linhaRef.current?.getBoundingClientRect()
+    if (linha && !aberto) {
+      const abaixo = window.innerHeight - linha.bottom
+      setLado(abaixo < ALTURA_CONFORTAVEL && linha.top > abaixo ? 'top' : 'bottom')
+    }
+    setAberto((a) => !a)
+  }
 
   return (
     <Popover open={aberto} onOpenChange={setAberto}>
       <PopoverAnchor asChild>
         <TableRow
           ref={linhaRef}
-          onClick={() => setAberto((a) => !a)}
+          onClick={alternar}
           className={cn(
             'group cursor-pointer border-b-border/70 hover:bg-transparent has-aria-expanded:bg-transparent',
             VEU.hover,
@@ -87,6 +100,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
       </PopoverAnchor>
 
       <PopoverContent
+        side={lado}
         align="start"
         className="w-80 rounded-none border-2 border-foreground p-4 shadow-bloco-lg ring-0"
         // Clicar na própria linha alterna o popover em vez de fechar e reabrir.

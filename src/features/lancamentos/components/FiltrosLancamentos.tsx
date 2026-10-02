@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import type { Categoria } from '@/features/categorias/categoria'
+import { useAno } from '@/features/projecao/useAno'
 import { SEM_TAG, type Tag } from '@/features/tags/tag'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
+import { SeletorPeriodo } from '@/shared/components/SeletorPeriodo'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
 import { BOTAO, CAMADA, CAMPO, CAMPO_SELECT } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -12,7 +14,8 @@ import { Input } from '@/shared/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { COR_ATIVA_TIPO } from '../cores'
-import { contarFiltros, FILTRO_SEM_TAG, ID_BUSCA, temFiltro, type FiltrosLancamento } from '../filtros'
+import { paraDataISO } from '@/shared/lib/datas'
+import { contarFiltros, FILTRO_SEM_TAG, ID_BUSCA, periodoDoFiltro, temFiltro, type FiltrosLancamento } from '../filtros'
 
 interface FiltrosLancamentosProps {
   filtros: FiltrosLancamento
@@ -127,11 +130,24 @@ function CampoBusca({ valor, onChange }: { valor: string; onChange: (q: string) 
 }
 
 function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosProps) {
+  const { intervalo } = useAno()
+  const [hoje] = useState(() => paraDataISO(new Date()))
   // Com um tipo escolhido, só faz sentido listar categorias desse tipo.
   const categoriasVisiveis = filtros.tipo ? categorias.filter((c) => c.tipo === filtros.tipo) : categorias
 
   return (
     <>
+      {/* Data como no Dashboard: Dia, Semana, Mês, Ano ou um intervalo; mostra só o que acontece nele. */}
+      <SeletorPeriodo
+        rotulo="Filtrar por data"
+        periodo={periodoDoFiltro(filtros)}
+        intervalo={intervalo}
+        hoje={hoje}
+        onChange={({ de, ate }) => onChange({ ...filtros, de, ate })}
+        onLimpar={() => onChange({ ...filtros, de: undefined, ate: undefined })}
+        className="w-full sm:w-auto"
+      />
+
       <ControleSegmentado
         rotulo="Filtrar por tipo"
         valor={filtros.tipo ?? 'todos'}

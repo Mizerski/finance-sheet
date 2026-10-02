@@ -3,7 +3,7 @@ import { CAMPO_SELECT } from '@/shared/lib/estilos'
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { useFinancas } from '@/store/financas-context'
-import { caixasAtivos, type Caixa } from '../caixa'
+import { caixasAtivos, NOME_TOTAL, type Caixa } from '../caixa'
 
 interface CampoCaixaProps {
   id: string
@@ -42,7 +42,13 @@ export function CampoCaixa({ id, valor, onChange, filtro = () => true, descricao
           ))}
         </SelectContent>
       </Select>
-      {descricao && <FieldDescription>{descricao}</FieldDescription>}
+      {descricao ? (
+        <FieldDescription>{descricao}</FieldDescription>
+      ) : (
+        atual?.tipo === 'beneficio' && (
+          <FieldDescription>Benefício: o saldo dele fica à parte, fora do {NOME_TOTAL}.</FieldDescription>
+        )
+      )}
     </Field>
   )
 }

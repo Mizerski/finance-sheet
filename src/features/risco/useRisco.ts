@@ -10,7 +10,7 @@ import type { ContextoRisco } from './simulacao'
 
 /**
  * Risco do caixa de hoje até os próximos 12 meses, independente do ano exibido.
- * Só contas têm risco: num benefício, null. Em "Todos", junta as contas que entram no total (a pior em destaque).
+ * Só contas têm risco: num benefício, null. No Total, junta as contas que entram no total (a pior em destaque).
  */
 export function useRisco(): RiscoDaVisao | null {
   const { caixasDaVisao } = useVisao()

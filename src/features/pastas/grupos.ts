@@ -10,19 +10,19 @@ export interface GrupoPasta {
   nome: string
   cor: string
   lancamentos: Lancamento[]
-  /** Projetado no ano para os lançamentos do grupo. */
+  /** Projetado no ano (ou no período do filtro de data) para os lançamentos do grupo. */
   entradasCentavos: number
   saidasCentavos: number
 }
 
 /**
  * Separa os lançamentos por pasta, na ordem de cadastro das pastas, com "Sem pasta" no fim.
- * Pastas sem nenhum dos lançamentos ficam de fora. `totalNoAno` é o projetado por lançamento.
+ * Pastas sem nenhum dos lançamentos ficam de fora. `totais` é o projetado por lançamento (no ano ou no período).
  */
 export function agruparPorPasta(
   lancamentos: Lancamento[],
   pastas: Pasta[],
-  totalNoAno: Map<string, number>,
+  totais: Map<string, number>,
 ): GrupoPasta[] {
   const ids = new Set(pastas.map((p) => p.id))
   const porChave = new Map<string, Lancamento[]>()
@@ -36,7 +36,7 @@ export function agruparPorPasta(
     const doGrupo = porChave.get(chave)
     if (!doGrupo) return []
     const somar = (tipo: Lancamento['tipo']) =>
-      doGrupo.reduce((t, l) => (l.tipo === tipo ? t + (totalNoAno.get(l.id) ?? 0) : t), 0)
+      doGrupo.reduce((t, l) => (l.tipo === tipo ? t + (totais.get(l.id) ?? 0) : t), 0)
     return [{ chave, nome, cor, lancamentos: doGrupo, entradasCentavos: somar('entrada'), saidasCentavos: somar('saida') }]
   })
 }

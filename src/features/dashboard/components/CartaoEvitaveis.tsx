@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { formatarPercentual } from '@/shared/lib/percentual'
-import { NO_ANTERIOR, NO_PERIODO, tipoDoPeriodo, type Periodo } from '../periodo'
+import { NO_ANTERIOR, NO_PERIODO, tipoDoPeriodo, type Periodo } from '@/shared/lib/periodo'
 import { CartaoIndicador } from './CartaoIndicador'
 
 /** Gastos com tags evitáveis no período e no período anterior. */

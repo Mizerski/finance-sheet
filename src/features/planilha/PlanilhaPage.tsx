@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
 import { Landmark } from 'lucide-react'
+import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
 import { useVisao } from '@/features/caixas/useVisao'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
@@ -190,6 +191,8 @@ export function PlanilhaPage() {
           onMes={(mes) => irPara(Number(mes.slice(0, 4)) * 12 + Number(mes.slice(5, 7)) - 1)}
         />
       )}
+      {/* Benefício não tem risco: a pergunta dele é quanto sobra até a recarga. */}
+      {visao.ehBeneficio && visao.caixa && <CardBeneficio caixa={visao.caixa} />}
 
       <div className={cn('grid items-start gap-4', layout.grade)}>
         {visiveis.map(({ projecao, resumo }) => (

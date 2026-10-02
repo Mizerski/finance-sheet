@@ -3,7 +3,7 @@ import type { Projecao } from './projecao'
 import { useAno } from './useAno'
 
 /**
- * Projeção de todos os anos navegáveis do que a tela mostra: o caixa escolhido ou a soma de "Todos".
+ * Projeção de todos os anos navegáveis do que a tela mostra: o caixa escolhido ou a soma do Total.
  * Recalculada quando os caixas, os lançamentos ou as metas mudam (ver `useProjecoesDosCaixas`).
  */
 export function useProjecoes(): Projecao[] {

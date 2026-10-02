@@ -4,9 +4,18 @@ import { useVisao } from '@/features/caixas/useVisao'
 import { resumirMeta } from '@/features/economias/aportes'
 import { CardMetaPrincipal } from '@/features/economias/components/CardMetaPrincipal'
 import { metaPrincipal, progressoDaMeta } from '@/features/economias/marcos'
-import { diasDaPasta, gastosPorCategoria, gastosPorPasta, gastosPorTag, resumirAno, totalEvitavel } from '@/features/projecao/projecao'
+import {
+  diasDaPasta,
+  diasNoPeriodo,
+  gastosPorCategoria,
+  gastosPorPasta,
+  gastosPorTag,
+  resumirAno,
+  totalEvitavel,
+} from '@/features/projecao/projecao'
 import { useAno } from '@/features/projecao/useAno'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
+import { SeletorPeriodo } from '@/shared/components/SeletorPeriodo'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { anoDe, formatarData, paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -20,7 +29,6 @@ import { GraficoGastosTag } from './components/GraficoGastosTag'
 import { GraficoSaldo } from './components/GraficoSaldo'
 import { GraficoSobras } from './components/GraficoSobras'
 import { Indicadores } from './components/Indicadores'
-import { SeletorPeriodo } from './components/SeletorPeriodo'
 import { gastosPorAno } from './graficos'
 import {
   deslocar,
@@ -31,8 +39,8 @@ import {
   rotuloDoPeriodo,
   tipoDoPeriodo,
   type Periodo,
-} from './periodo'
-import { agrupamentoPara, agrupar, diasNoPeriodo } from './relatorio'
+} from '@/shared/lib/periodo'
+import { agrupamentoPara, agrupar } from './relatorio'
 
 export function DashboardPage() {
   // Categorias, tags e pastas são de todos os caixas; saldos, metas e gastos são do que a tela mostra.

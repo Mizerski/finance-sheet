@@ -28,10 +28,23 @@ export function SecaoCaixas() {
   )
   const nova = () => setEdicao({ aberto: true })
 
+  // Troca de lugar com o vizinho e renumera os ativos em sequência (a ordem antiga pode ter repetidos).
+  const mover = (caixa: Caixa, passo: -1 | 1) => {
+    const ativos = caixas.filter((c) => !c.arquivado)
+    const i = ativos.indexOf(caixa)
+    const j = i + passo
+    if (i < 0 || j < 0 || j >= ativos.length) return
+    const lista = [...ativos]
+    ;[lista[i], lista[j]] = [lista[j], lista[i]]
+    lista.forEach((c, ordem) => {
+      if (c.ordem !== ordem) dispatch({ tipo: 'caixa/salvar', caixa: { ...c, ordem } })
+    })
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoOrganizacao
-        descricao="Contas e benefícios (vale-refeição, vale-alimentação), cada um com o próprio saldo"
+        descricao="Contas (dinheiro livre) e benefícios (vale-refeição, vale-alimentação), cada um com o próprio saldo"
         acao={
           <Button className={BOTAO} onClick={nova}>
             <Plus />
@@ -44,6 +57,7 @@ export function SecaoCaixas() {
         caixas={caixas}
         usos={usos}
         onEditar={(caixa) => setEdicao({ aberto: true, caixa })}
+        onMover={mover}
         onArquivar={(caixa, arquivado) =>
           dispatch({
             tipo: 'caixa/salvar',

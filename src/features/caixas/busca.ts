@@ -1,5 +1,5 @@
 export interface BuscaCaixa {
-  /** Caixa exibido; sem ele, "Todos". Um id inválido ou de caixa arquivado também vale "Todos". */
+  /** Caixa exibido; sem ele, o Total. Um id inválido ou de caixa arquivado também vale o Total. */
   caixa?: string
 }
 

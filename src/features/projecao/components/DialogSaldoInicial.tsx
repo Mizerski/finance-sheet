@@ -47,7 +47,7 @@ const OPCOES_SINAL = [
   { valor: 'negativo' as const, rotulo: 'Negativo' },
 ]
 
-/** O caixa da tela (em "Todos", a primeira conta), que pode ser trocado quando há mais de um. */
+/** O caixa da tela (no Total, a primeira conta), que pode ser trocado quando há mais de um. */
 function FormularioSaldoInicial({ onConcluir }: { onConcluir: () => void }) {
   const { estado } = useFinancas()
   const { caixaPadrao } = useVisao()

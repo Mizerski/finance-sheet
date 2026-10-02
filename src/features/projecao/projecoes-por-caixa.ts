@@ -3,7 +3,8 @@ import { caixasNoTotal, lancamentosDoCaixa, metasDoCaixa, type Caixa } from '@/f
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { useFinancas } from '@/store/financas-context'
-import { projetarAnos, somarProjecoes, type DiaProjetado, type Projecao } from './projecao'
+import type { Periodo } from '@/shared/lib/periodo'
+import { diasNoPeriodo, projetarAnos, somarProjecoes, type DiaProjetado, type Projecao } from './projecao'
 import { useAno } from './useAno'
 
 /** Mesmos itens, na mesma ordem (o reducer mantém a referência de quem não mudou). */
@@ -29,7 +30,7 @@ interface EntradaTodos {
 }
 
 /**
- * Últimas projeções calculadas, uma por caixa e uma de "Todos", compartilhadas entre o cabeçalho e a página
+ * Últimas projeções calculadas, uma por caixa e uma do Total, compartilhadas entre o cabeçalho e a página
  * abertas ao mesmo tempo. Lançar no vale não recalcula a conta: cada caixa compara só os próprios lançamentos e metas.
  */
 const cache = new Map<string, EntradaCaixa>()
@@ -70,7 +71,7 @@ export interface ProjecoesDosCaixas {
   todos: Projecao[]
 }
 
-/** Projeção de todos os anos navegáveis de cada caixa e de "Todos". */
+/** Projeção de todos os anos navegáveis de cada caixa e do Total. */
 export function useProjecoesDosCaixas(): ProjecoesDosCaixas {
   const { estado } = useFinancas()
   const { intervalo } = useAno()
@@ -102,4 +103,19 @@ export function useDiasDosCaixas(ano: number, caixaId?: string): DiaProjetado[] 
     if (listas.length === 1) return listas[0][indice]?.dias ?? []
     return listas.flatMap((p) => p[indice]?.dias ?? [])
   }, [porCaixa, caixaId, indice])
+}
+
+/**
+ * Dias do período de cada caixa (ou só de `caixaId`), um caixa depois do outro, inclusive os que não entram no total;
+ * null sem período. Para o filtro de data da lista de lançamentos; não serve para saldos.
+ */
+export function useDiasDosCaixasNoPeriodo(periodo: Periodo | null, caixaId?: string): DiaProjetado[] | null {
+  const { porCaixa } = useProjecoesDosCaixas()
+  const de = periodo?.de
+  const ate = periodo?.ate
+  return useMemo(() => {
+    if (!de || !ate) return null
+    const listas = caixaId ? [porCaixa.get(caixaId) ?? []] : [...porCaixa.values()]
+    return listas.flatMap((p) => diasNoPeriodo(p, { de, ate }))
+  }, [porCaixa, caixaId, de, ate])
 }

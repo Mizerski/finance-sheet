@@ -32,6 +32,11 @@ export function formatarData(data: DataISO): string {
   return format(parseISO(data), 'dd/MM/yyyy')
 }
 
+/** Formata sem o ano, para textos curtos: dd/MM */
+export function formatarDiaMes(data: DataISO): string {
+  return format(parseISO(data), 'dd/MM')
+}
+
 /** "2026-09-30", -1 → "2026-09-29" */
 export function somarDias(data: DataISO, dias: number): DataISO {
   return paraDataISO(addDays(parseISO(data), dias))

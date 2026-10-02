@@ -93,6 +93,9 @@ export type AcaoFinancas =
   | { tipo: 'categoria/excluir'; id: string }
   | { tipo: 'lancamento/salvar'; lancamento: Lancamento }
   | { tipo: 'lancamento/excluir'; id: string }
+  /** Vários de uma vez: edição em lote na lista de lançamentos e o "Desfazer" dela (inclusive de uma exclusão). */
+  | { tipo: 'lancamento/salvarVarios'; lancamentos: Lancamento[] }
+  | { tipo: 'lancamento/excluirVarios'; ids: string[] }
   | { tipo: 'meta/salvar'; meta: MetaEconomia }
   | { tipo: 'meta/excluir'; id: string }
   | { tipo: 'tag/salvar'; tag: Tag }
@@ -130,6 +133,22 @@ export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): Est
       return { ...estado, lancamentos: salvar(estado.lancamentos, acao.lancamento) }
     case 'lancamento/excluir':
       return { ...estado, lancamentos: estado.lancamentos.filter((l) => l.id !== acao.id) }
+    case 'lancamento/salvarVarios': {
+      // Os que não mudaram mantêm a referência (a projeção de cada caixa só recalcula se a lista dele mudou).
+      const porId = new Map(acao.lancamentos.map((l) => [l.id, l]))
+      const existentes = new Set(estado.lancamentos.map((l) => l.id))
+      return {
+        ...estado,
+        lancamentos: [
+          ...estado.lancamentos.map((l) => porId.get(l.id) ?? l),
+          ...acao.lancamentos.filter((l) => !existentes.has(l.id)),
+        ],
+      }
+    }
+    case 'lancamento/excluirVarios': {
+      const ids = new Set(acao.ids)
+      return { ...estado, lancamentos: estado.lancamentos.filter((l) => !ids.has(l.id)) }
+    }
     case 'meta/salvar':
       return { ...estado, metas: salvar(estado.metas, acao.meta) }
     case 'meta/excluir':

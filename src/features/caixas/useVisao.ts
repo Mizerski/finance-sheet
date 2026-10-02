@@ -8,21 +8,21 @@ import type { DataISO } from '@/shared/lib/datas'
 import { useFinancas } from '@/store/financas-context'
 import { caixasAtivos, caixasNoTotal, configPadrao, primeiraConta, primeiraData, type Caixa } from './caixa'
 
-/** O que as telas mostram: um caixa escolhido em `?caixa=` ou "Todos". */
+/** O que as telas mostram: um caixa escolhido em `?caixa=` ou o Total. */
 export interface Visao {
   /** Caixas ativos, na ordem do seletor. */
   caixas: Caixa[]
-  /** Caixa escolhido; null = "Todos". */
+  /** Caixa escolhido; null = Total. */
   caixa: Caixa | null
-  /** Caixas cujos números aparecem: o escolhido ou, em "Todos", os que entram no total. */
+  /** Caixas cujos números aparecem: o escolhido ou, no Total, os que entram no total. */
   caixasDaVisao: Caixa[]
   /** Lançamentos dos caixas da visão (os que entram nos saldos). */
   lancamentos: Lancamento[]
-  /** Lista da tela de Lançamentos: do caixa escolhido ou, em "Todos", de todos os caixas. */
+  /** Lista da tela de Lançamentos: do caixa escolhido ou, no Total, de todos os caixas. */
   lancamentosDaLista: Lancamento[]
   /** Metas dos caixas da visão. */
   metas: MetaEconomia[]
-  /** Projeção de todos os anos navegáveis: do caixa escolhido ou a soma de "Todos". */
+  /** Projeção de todos os anos navegáveis: do caixa escolhido ou a soma do Total. */
   projecoes: Projecao[]
   /** Projeção dos gastos por categoria, tag e pasta (ver `projecoesDoRelatorio`). */
   projecoesDoRelatorio: Projecao[]
@@ -32,14 +32,14 @@ export interface Visao {
   saldoDefinido: boolean
   /** Benefício (vale): sem risco, metas, reserva e capacidade. */
   ehBeneficio: boolean
-  /** Caixa de um lançamento novo: o escolhido ou, em "Todos", a primeira conta. */
+  /** Caixa de um lançamento novo: o escolhido ou, no Total, a primeira conta. */
   caixaPadrao: Caixa | undefined
   /** Caixa de uma meta nova (sempre conta): o escolhido, se for conta, ou a primeira conta. */
   contaPadrao: Caixa | undefined
 }
 
 /**
- * [Decisão provisória] Em "Todos", os gastos por categoria, tag e pasta do Dashboard seguem a regra dos saldos:
+ * [Decisão provisória] No Total, os gastos por categoria, tag e pasta do Dashboard seguem a regra dos saldos:
  * só os caixas que entram no total. Para incluir os benefícios, troque só aqui.
  */
 function projecoesDoRelatorio(projecoes: Projecao[]): Projecao[] {
@@ -56,7 +56,7 @@ export function useCaixaEscolhido(): Caixa | null {
   return estado.caixas.find((c) => c.id === id && !c.arquivado) ?? null
 }
 
-/** Caixa, lançamentos, metas e projeção do que as telas mostram (um caixa ou "Todos"). */
+/** Caixa, lançamentos, metas e projeção do que as telas mostram (um caixa ou o Total). */
 export function useVisao(): Visao {
   const { estado } = useFinancas()
   const { porCaixa, todos } = useProjecoesDosCaixas()
@@ -102,7 +102,7 @@ export function useVisao(): Visao {
   }
 }
 
-/** Troca o caixa na URL (null = "Todos"), mantendo os outros parâmetros da tela. */
+/** Troca o caixa na URL (null = Total), mantendo os outros parâmetros da tela. */
 export function useEscolherCaixa(): (caixaId: string | null) => void {
   const navigate = useNavigate()
   return (caixaId) =>

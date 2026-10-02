@@ -42,7 +42,7 @@ export function SaldoProjetado() {
       <Button
         variant="ghost"
         size="icon"
-        className="-ml-1 rounded-full text-muted-foreground transition-colors hover:text-foreground"
+        className="-ml-1 size-8 rounded-full text-muted-foreground transition-colors hover:text-foreground sm:size-9"
         aria-label={ocultos ? 'Mostrar saldos' : 'Ocultar saldos'}
         aria-pressed={ocultos}
         onClick={() => dispatch({ tipo: 'saldos/alternarVisibilidade' })}

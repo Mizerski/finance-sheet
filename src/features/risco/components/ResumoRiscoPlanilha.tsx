@@ -39,7 +39,7 @@ export function ResumoRiscoPlanilha({ risco, onMes }: ResumoRiscoPlanilhaProps) 
           <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className={cn(ROTULO, 'whitespace-nowrap text-muted-foreground')}>Risco do caixa</span>
-              {/* Em "Todos" com várias contas, o risco é o da conta mais apertada. */}
+              {/* No Total com várias contas, o risco é o da conta mais apertada. */}
               {risco.caixa && <span className="text-sm font-semibold whitespace-nowrap">{risco.caixa.nome}</span>}
               <SeloRisco nivel={risco.nivel} />
               <Ajuda titulo="Risco do caixa" largo>

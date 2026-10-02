@@ -21,17 +21,23 @@ export interface Caixa extends Configuracao {
   tipo: TipoCaixa
   /** false enquanto o usuário não salvou um saldo inicial (vale o padrão: R$ 0 em 1º de janeiro). */
   saldoDefinido: boolean
-  /** Entra nos números de "Todos" (saldo, Planilha, Dashboard, risco). Padrão: true na conta, false no benefício. */
+  /** Entra nos números do Total (saldo, Planilha, Dashboard, risco). Só vale para conta: leia com `somaNoTotal`. */
   entraNoTotal: boolean
   /** Posição no seletor (e nos atalhos Alt+1…9), do menor para o maior. */
   ordem: number
-  /** Caixa arquivado some do seletor e do formulário, mas mantém o histórico (e continua em "Todos"). */
+  /** Caixa arquivado some do seletor e do formulário, mas mantém o histórico (e continua no Total). */
   arquivado?: boolean
 }
 
 export const NOME_CONTA_PRINCIPAL = 'Conta principal'
 /** Azul da paleta (`GRUPOS_CORES_CATEGORIA`). */
 export const COR_CONTA_PRINCIPAL = '#1f45c4'
+
+/**
+ * Nome da visão sem `?caixa=`: a soma dos caixas que entram no total (as contas, em geral).
+ * "Total" e não "Todos": os benefícios ficam fora dessa soma.
+ */
+export const NOME_TOTAL = 'Total'
 
 export const ROTULO_TIPO_CAIXA: Record<TipoCaixa, string> = {
   conta: 'Conta',
@@ -68,9 +74,14 @@ export function caixasAtivos(caixas: Caixa[]): Caixa[] {
   return ordenarCaixas(caixas.filter((c) => !c.arquivado))
 }
 
-/** Os que entram nos números de "Todos", na ordem. Arquivados continuam, para o histórico não mudar. */
+/** Benefício nunca soma no Total (o dinheiro dele só paga alguns gastos); a conta soma se `entraNoTotal`. */
+export function somaNoTotal(caixa: Caixa): boolean {
+  return caixa.tipo === 'conta' && caixa.entraNoTotal
+}
+
+/** Os que entram nos números do Total, na ordem. Arquivados continuam, para o histórico não mudar. */
 export function caixasNoTotal(caixas: Caixa[]): Caixa[] {
-  return ordenarCaixas(caixas.filter((c) => c.entraNoTotal))
+  return ordenarCaixas(caixas.filter(somaNoTotal))
 }
 
 /** Primeira conta ativa: o caixa padrão de lançamentos e metas novos. */
