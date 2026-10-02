@@ -40,7 +40,7 @@ export function DiagnosticoMeta({ rascunho, avaliacao, hoje, onUsarAporte }: Dia
     <section
       aria-label="Cabe no seu bolso?"
       className={cn(
-        'flex flex-col gap-3 border-2 border-l-8 border-foreground p-3 text-foreground',
+        'flex flex-col gap-3 border-2 border-l-8 border-contorno p-3 text-foreground',
         cores ? [cores.suave, cores.faixa] : 'bg-muted/60',
       )}
     >
@@ -254,7 +254,7 @@ function Situacao({ cabe }: { cabe: boolean }) {
       variant="outline"
       className={cn(
         'mr-1 align-[0.1em]',
-        cabe ? 'border-foreground bg-card text-foreground' : 'border-negativo bg-negativo-suave text-negativo',
+        cabe ? 'border-contorno bg-card text-foreground' : 'border-negativo bg-negativo-suave text-negativo',
       )}
     >
       {cabe ? 'Cabe' : 'Não cabe'}

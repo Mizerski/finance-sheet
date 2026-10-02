@@ -26,7 +26,7 @@ export function MaisDetalhes({ rotulo, rotuloAberto = 'Esconder detalhes', class
         onClick={() => setAberto((a) => !a)}
         className={cn(
           ROTULO,
-          '-mx-1 flex items-center gap-1 self-start px-1 py-0.5 font-semibold text-foreground transition-colors duration-100 outline-none hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+          '-mx-1 flex items-center gap-1 self-start px-1 py-0.5 font-semibold text-foreground transition-colors duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
         )}
       >
         <ChevronDown aria-hidden strokeWidth={3} className={cn('size-3.5 transition-transform duration-100', aberto && 'rotate-180')} />

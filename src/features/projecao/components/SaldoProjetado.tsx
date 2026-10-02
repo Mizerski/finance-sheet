@@ -33,7 +33,7 @@ export function SaldoProjetado() {
     <div className="flex items-center gap-2 sm:gap-3">
       {/* Régua vertical entre os dois saldos, como nas colunas de um cartaz. */}
       <Saldo rotulo="Hoje" titulo={`Saldo no fim de hoje, ${formatarData(hoje)}`} centavos={saldoHoje} />
-      <span aria-hidden className="h-7 w-0.5 bg-foreground" />
+      <span aria-hidden className="h-7 w-0.5 bg-contorno" />
       <Saldo
         rotulo={`Fim de ${ano}`}
         titulo={`Saldo projetado em ${formatarData(`${ano}-12-31`)}`}

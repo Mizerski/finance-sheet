@@ -67,7 +67,7 @@ export function BotaoLembrete() {
             </Button>
 
             {/* Para o lembrete chegar com a janela fechada, o app precisa continuar rodando na bandeja. */}
-            <div className="flex flex-col gap-3 border-t-2 border-foreground pt-3">
+            <div className="flex flex-col gap-3 border-t-2 border-contorno pt-3">
               <Field>
                 <FieldLabel>Ao fechar a janela</FieldLabel>
                 <ControleSegmentado
@@ -103,7 +103,7 @@ export function BotaoLembrete() {
           </p>
         )}
         {prefs && (prefs.ultimoAviso || prefs.ultimoRegistro) && (
-          <p className="border-t-2 border-foreground pt-3 text-xs text-muted-foreground">
+          <p className="border-t-2 border-contorno pt-3 text-xs text-muted-foreground">
             {prefs.ultimoRegistro && <>Último registro: {formatarData(prefs.ultimoRegistro)}. </>}
             {prefs.ultimoAviso && <>Último lembrete: {formatarData(prefs.ultimoAviso)}.</>}
           </p>

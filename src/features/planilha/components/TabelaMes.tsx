@@ -86,7 +86,7 @@ export function TabelaMes({
 
   return (
     <Card className={CARD}>
-      <header className="flex items-stretch justify-between gap-3 border-b-2 border-foreground">
+      <header className="flex items-stretch justify-between gap-3 border-b-2 border-contorno">
         <div className="flex items-stretch">
           {/* Número do mês em bloco preto, como a numeração de um cartaz. */}
           <span
@@ -124,7 +124,7 @@ export function TabelaMes({
 
       <Table className="text-[0.7rem] tracking-tight sm:text-[0.8125rem] sm:tracking-normal lg:table-fixed">
         <TableHeader>
-          <TableRow className="border-b-2 border-b-foreground hover:bg-transparent">
+          <TableRow className="border-b-2 border-b-contorno hover:bg-transparent">
             {colunas.map((c) => (
               <TableHead
                 key={c.rotulo}
@@ -167,7 +167,7 @@ export function TabelaMes({
           ))}
         </TableBody>
 
-        <TableFooter className="border-t-2 border-foreground bg-transparent font-semibold">
+        <TableFooter className="border-t-2 border-contorno bg-transparent font-semibold">
           <TableRow className="hover:bg-transparent">
             <TableCell className={cn(CELULA_DIA, ROTULO, 'font-semibold')}>
               Total

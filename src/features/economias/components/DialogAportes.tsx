@@ -98,7 +98,7 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
         </ul>
       )}
 
-      <div className="flex justify-between border-t-2 border-foreground pt-3 text-sm">
+      <div className="flex justify-between border-t-2 border-contorno pt-3 text-sm">
         <span className="text-muted-foreground">Guardado até hoje</span>
         <span className="font-semibold tabular-nums">
           {formatarBRL(guardado)} <span className="font-normal text-muted-foreground">de {formatarBRL(meta.valorAlvoCentavos)}</span>

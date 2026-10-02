@@ -12,14 +12,14 @@ export function BarraProgresso({ percentual, rotulo }: { percentual: number; rot
       aria-valuemax={100}
       aria-valuenow={inteiro}
       aria-valuetext={`${inteiro}%`}
-      className="relative h-5 w-full overflow-hidden border-2 border-foreground bg-card"
+      className="relative h-5 w-full overflow-hidden border-2 border-contorno bg-card"
     >
       {percentual > 0 && (
-        <div className="h-full border-r-2 border-foreground bg-amarelo" style={{ width: `${percentual * 100}%` }} />
+        <div className="h-full border-r-2 border-contorno bg-amarelo" style={{ width: `${percentual * 100}%` }} />
       )}
       {/* Marcas de 10 em 10%, como uma régua. */}
       {MARCAS.map((m) => (
-        <span key={m} aria-hidden className="absolute inset-y-0 w-px bg-foreground/35" style={{ left: `${m}%` }} />
+        <span key={m} aria-hidden className="absolute inset-y-0 w-px bg-contorno/35" style={{ left: `${m}%` }} />
       ))}
     </div>
   )

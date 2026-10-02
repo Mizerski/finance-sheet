@@ -31,9 +31,9 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
 
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
-      <header className="flex items-stretch border-b-2 border-foreground">
+      <header className="flex items-stretch border-b-2 border-contorno">
         {/* Meia-lua amarela: a forma da tela Economias. */}
-        <span aria-hidden className="flex w-12 shrink-0 items-center justify-center border-r-2 border-foreground bg-amarelo sm:w-14">
+        <span aria-hidden className="flex w-12 shrink-0 items-center justify-center border-r-2 border-contorno bg-amarelo text-tinta sm:w-14">
           <Forma forma="semicirculo" cor="tinta" className="size-7" />
         </span>
         <div className="flex min-w-0 flex-1 items-start justify-between gap-3 py-3 pr-2 pl-4">
@@ -41,7 +41,7 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
             <div className="flex min-w-0 items-center gap-2">
               <h2 className={cn('truncate', TITULO_CARD)}>{meta.nome}</h2>
               {principal && (
-                <Badge className="shrink-0 border-foreground bg-amarelo text-foreground">Principal</Badge>
+                <Badge className="shrink-0 border-contorno bg-amarelo text-tinta">Principal</Badge>
               )}
             </div>
             <p className="text-sm text-muted-foreground">
@@ -88,7 +88,7 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
       </div>
 
       {/* Três dados em colunas separadas por réguas, como uma tabela de cartaz. */}
-      <dl className="grid grid-cols-3 border-y-2 border-foreground">
+      <dl className="grid grid-cols-3 border-y-2 border-contorno">
         <Dado rotulo="Falta">{formatarBRL(resumo.faltaCentavos)}</Dado>
         <Dado rotulo="Média por mês">{resumo.mediaCentavos === null ? '—' : formatarBRL(resumo.mediaCentavos)}</Dado>
         <Dado rotulo={`Até ${formatarMesAno(fimDoAno, 'curto')}`}>{formatarBRL(resumo.previstoFimDoAnoCentavos)}</Dado>
@@ -120,7 +120,7 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
 
 function Dado({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 border-foreground px-3 py-2.5 not-last:border-r-2 first:pl-4 sm:first:pl-5">
+    <div className="flex min-w-0 flex-col gap-1 border-contorno px-3 py-2.5 not-last:border-r-2 first:pl-4 sm:first:pl-5">
       <dt className={cn(ROTULO, 'truncate text-muted-foreground')}>{rotulo}</dt>
       <dd className="text-sm font-semibold tabular-nums">{children}</dd>
     </div>

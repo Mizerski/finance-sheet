@@ -16,7 +16,7 @@ const CELULAS: Celula[] = [
   { fundo: 'bg-vermelho' },
   { forma: 'circulo', cor: 'azul' },
   { forma: 'quarto', cor: 'amarelo' },
-  { fundo: 'bg-foreground text-background', forma: 'circulo', cor: 'tinta', giro: 'scale-50' },
+  { fundo: 'bg-tinta text-background', forma: 'circulo', cor: 'tinta', giro: 'scale-50' },
   { forma: 'triangulo', cor: 'tinta' },
   { fundo: 'bg-amarelo' },
   { forma: 'semicirculo', cor: 'vermelho' },
@@ -28,13 +28,13 @@ const CELULAS: Celula[] = [
   { forma: 'semicirculo', cor: 'tinta', giro: 'rotate-180' },
   {},
   { forma: 'circulo', cor: 'vermelho' },
-  { fundo: 'bg-foreground' },
+  { fundo: 'bg-tinta' },
 ]
 
 /** Decorativa. No celular mostra só a primeira faixa; a grade inteira aparece a partir de `lg`. */
 export function Composicao({ className }: { className?: string }) {
   return (
-    <div aria-hidden className={cn('grid grid-cols-4 gap-0.5 bg-foreground p-0.5', className)}>
+    <div aria-hidden className={cn('grid grid-cols-4 gap-0.5 bg-contorno p-0.5', className)}>
       {CELULAS.map((c, i) => (
         <div
           key={i}

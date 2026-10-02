@@ -35,7 +35,8 @@ export function CelulaValor({ centavos, className, compacta }: CelulaProps & { c
 }
 
 /**
- * Célula de saldo. Com `nivel`, o fundo ganha a cor do risco do caixa no dia; o saldo negativo continua em vermelho.
+ * Célula de saldo. Com `nivel`, o fundo ganha a cor do risco do caixa no dia (no escuro, também uma barra à esquerda);
+ * o saldo negativo continua em vermelho.
  */
 export function CelulaSaldo({
   centavos,
@@ -47,13 +48,13 @@ export function CelulaSaldo({
     centavos === null
       ? COR_COLUNA.foraDoCalculo
       : centavos < 0
-        ? COR_COLUNA.saldoNegativo
+        ? cn(COR_COLUNA.saldoNegativo, COR_RISCO[5].marca)
         : nivel != null
-          ? cn('text-saldo', COR_RISCO[nivel].suave)
+          ? cn('text-saldo', COR_RISCO[nivel].suave, COR_RISCO[nivel].marca)
           : COR_COLUNA.saldo
 
   return (
-    <TableCell className={cn(CELULA, 'text-right tabular-nums', cor, className)}>
+    <TableCell className={cn(CELULA, 'relative text-right tabular-nums', cor, className)}>
       {centavos !== null && (
         <span className={VALOR_SALDO}>
           <Dinheiro centavos={centavos} compacta={compacta} />

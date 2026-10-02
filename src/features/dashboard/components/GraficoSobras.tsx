@@ -43,7 +43,7 @@ export function GraficoSobras({ dados, unidade }: { dados: DadoPeriodo[]; unidad
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis dataKey="rotulo" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis {...escala} tickFormatter={formatarBRLCompacto} tickLine={false} axisLine={false} width={76} />
-          {temNegativo && <ReferenceLine y={0} stroke="var(--foreground)" strokeWidth={2} />}
+          {temNegativo && <ReferenceLine y={0} stroke="var(--contorno)" strokeWidth={2} />}
           <ChartTooltip
             cursor={{ fill: 'var(--foreground)', fillOpacity: 0.04 }}
             content={({ active, payload }) => {

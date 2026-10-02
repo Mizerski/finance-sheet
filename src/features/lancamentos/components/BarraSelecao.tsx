@@ -76,7 +76,7 @@ export function BarraSelecao({
     <div
       role="region"
       aria-label="Ações nos lançamentos selecionados"
-      className="fixed inset-x-4 bottom-4 z-40 flex flex-col border-2 border-foreground bg-card shadow-bloco-lg"
+      className="fixed inset-x-4 bottom-4 z-40 flex flex-col border-2 border-contorno bg-card shadow-bloco-lg"
       onMouseEnter={() => onPausarAviso(true)}
       onMouseLeave={() => onPausarAviso(false)}
       onFocus={() => onPausarAviso(true)}
@@ -88,7 +88,7 @@ export function BarraSelecao({
           role="status"
           className={cn(
             'flex items-center gap-3 px-4 py-2 text-sm',
-            quantidade > 0 && 'border-b-2 border-foreground',
+            quantidade > 0 && 'border-b-2 border-contorno',
           )}
         >
           <Check aria-hidden strokeWidth={3} className="size-4 shrink-0" />
@@ -116,7 +116,7 @@ export function BarraSelecao({
       {quantidade > 0 && (
         <div className="flex items-stretch">
           {/* Quantos estão marcados, em bloco amarelo como a seleção nas linhas. */}
-          <div className="flex shrink-0 items-center gap-2 border-r-2 border-foreground bg-amarelo px-4 py-2">
+          <div className="flex shrink-0 items-center gap-2 border-r-2 border-contorno bg-amarelo px-4 py-2 text-tinta">
             <span className="font-heading text-2xl leading-none font-bold tabular-nums">{quantidade}</span>
             <span className={cn(ROTULO, 'font-semibold')}>{quantidade === 1 ? 'selecionado' : 'selecionados'}</span>
           </div>
@@ -180,7 +180,7 @@ export function BarraSelecao({
             </Button>
           </div>
 
-          <div className="flex items-center border-l-2 border-foreground px-2">
+          <div className="flex items-center border-l-2 border-contorno px-2">
             <Button
               variant="ghost"
               size="icon"
@@ -233,7 +233,7 @@ function MenuLote({ icone: Icone, rotulo, titulo, grupos, onEscolher, vazio, des
         </Button>
       </PopoverTrigger>
       <PopoverContent side="top" align="start" className={cn(CAMADA, 'w-64 gap-2')}>
-        <p className={cn(ROTULO, 'border-b-2 border-foreground pb-1.5 font-semibold')}>{titulo}</p>
+        <p className={cn(ROTULO, 'border-b-2 border-contorno pb-1.5 font-semibold')}>{titulo}</p>
         {!temOpcoes && <p className="text-sm text-muted-foreground">{vazio}</p>}
         {grupos.map((g, i) => (
           <GrupoOpcoes key={i} titulo={g.titulo}>
@@ -245,7 +245,7 @@ function MenuLote({ icone: Icone, rotulo, titulo, grupos, onEscolher, vazio, des
                     onEscolher(o.id)
                     setAberto(false)
                   }}
-                  className="flex w-full items-center gap-2 px-2 py-2 text-left text-[0.8125rem] transition-colors outline-none hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-ring"
+                  className="flex w-full items-center gap-2 px-2 py-2 text-left text-[0.8125rem] transition-colors outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring"
                 >
                   <PontoCor cor={o.cor} className={cn(redondo && 'rounded-full')} />
                   <span className="min-w-0 flex-1 truncate">{o.nome}</span>

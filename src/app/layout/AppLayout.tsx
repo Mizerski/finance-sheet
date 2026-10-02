@@ -6,6 +6,7 @@ import { useVisao } from '@/features/caixas/useVisao'
 import { BotaoBackup } from '@/features/backup/components/BotaoBackup'
 import { BotaoLembrete } from '@/features/lembrete/components/BotaoLembrete'
 import { SaldoProjetado } from '@/features/projecao/components/SaldoProjetado'
+import { BotaoTema } from '@/features/tema/components/BotaoTema'
 import { Forma } from '@/shared/components/Forma'
 import { Marca } from '@/shared/components/Marca'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
@@ -48,7 +49,7 @@ export function AppLayout() {
   return (
     <MemoriaNavegacaoProvider>
       <div className="min-h-svh bg-background">
-        <header className="sticky top-0 z-40 border-b-2 border-foreground bg-background">
+        <header className="sticky top-0 z-40 border-b-2 border-contorno bg-background">
           <div className={cn('flex flex-col gap-3 px-4 py-3', linha.cabecalho)}>
             <div className={cn('flex min-w-0 items-center justify-between gap-2 sm:gap-6', linha.marca)}>
               <Marca />
@@ -62,6 +63,7 @@ export function AppLayout() {
               <Menu linha={linha} />
               {EH_DESKTOP && <BotaoLembrete />}
               {EH_DESKTOP && <BotaoBackup />}
+              <BotaoTema />
               <BotaoSair />
             </div>
           </div>
@@ -95,10 +97,10 @@ function Menu({ linha }: { linha: LinhaUnica }) {
           search={buscaPara(to)}
           activeOptions={{ exact: true, includeSearch: false }}
           className={cn(
-            'flex h-9 shrink-0 grow items-center justify-center gap-2 border-2 border-foreground px-3 text-xs font-semibold tracking-[0.06em] uppercase transition-[color,background-color,box-shadow,translate] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]',
+            'flex h-9 shrink-0 grow items-center justify-center gap-2 border-2 border-contorno px-3 text-xs font-semibold tracking-[0.06em] uppercase transition-[color,background-color,box-shadow,translate] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]',
             linha.aba,
           )}
-          inactiveProps={{ className: 'bg-card shadow-bloco-sm hover:bg-amarelo active:shadow-none' }}
+          inactiveProps={{ className: 'bg-card shadow-bloco-sm hover:bg-amarelo hover:text-tinta active:shadow-none' }}
           activeProps={{ className: 'bg-foreground text-background motion-safe:translate-x-[2px] motion-safe:translate-y-[2px]' }}
         >
           <Forma {...forma} className="size-3" />

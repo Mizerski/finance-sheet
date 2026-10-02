@@ -197,7 +197,7 @@ function LinhaLancamento({
   return (
     <TableRow
       data-state={selecionado ? 'selected' : undefined}
-      className={cn(TABELA.linha, 'data-[state=selected]:bg-amarelo/30 data-[state=selected]:hover:bg-amarelo/40')}
+      className={cn(TABELA.linha, 'data-[state=selected]:bg-selecao data-[state=selected]:hover:bg-selecao-forte')}
     >
       {onSelecionar && (
         // A célula inteira marca (alvo maior que o quadradinho); Shift marca o intervalo.

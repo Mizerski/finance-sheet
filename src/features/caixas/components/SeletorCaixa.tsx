@@ -117,9 +117,9 @@ export function SeletorCaixa({ className }: { className?: string }) {
     <Popover open={aberto} onOpenChange={setAberto}>
       <PopoverTrigger
         className={cn(
-          'flex h-9 min-w-0 shrink items-center gap-2 border-2 border-foreground bg-card px-2.5 text-xs font-semibold tracking-[0.06em] uppercase shadow-bloco-sm transition-[background-color,box-shadow,translate] duration-100 outline-none hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:shadow-none motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]',
+          'flex h-9 min-w-0 shrink items-center gap-2 border-2 border-contorno bg-card px-2.5 text-xs font-semibold tracking-[0.06em] uppercase shadow-bloco-sm transition-[background-color,box-shadow,translate] duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:shadow-none motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]',
           // Aberto, fica afundado como a aba ativa do menu.
-          'data-[state=open]:bg-amarelo data-[state=open]:shadow-none motion-safe:data-[state=open]:translate-x-[2px] motion-safe:data-[state=open]:translate-y-[2px]',
+          'data-[state=open]:bg-amarelo data-[state=open]:text-tinta data-[state=open]:shadow-none motion-safe:data-[state=open]:translate-x-[2px] motion-safe:data-[state=open]:translate-y-[2px]',
           className,
         )}
         aria-label={`Caixa exibido: ${atual.nome}. Trocar de caixa`}
@@ -128,7 +128,7 @@ export function SeletorCaixa({ className }: { className?: string }) {
         {atual.caixa ? <PontoCor cor={atual.caixa.cor} className="size-3 rounded-full" /> : <PontosDoTotal caixas={noTotal} />}
         <span className="truncate">{atual.nome}</span>
         {atual.nivel && atual.nivel >= NIVEL_ALERTA && <SeloRisco nivel={atual.nivel} curto />}
-        {atual.alerta && <Badge className="border-foreground bg-vermelho text-papel">Falta</Badge>}
+        {atual.alerta && <Badge className="border-contorno bg-vermelho text-sobre-bloco">Falta</Badge>}
         {alertasDeOutros.length > 0 && (
           <>
             <Forma forma="triangulo" cor="vermelho" className="size-3" />
@@ -139,7 +139,7 @@ export function SeletorCaixa({ className }: { className?: string }) {
       </PopoverTrigger>
 
       <PopoverContent align="start" className={cn(CAMADA, 'w-[22rem] max-w-[calc(100vw-2rem)] gap-0 p-0')}>
-        <p className={cn(ROTULO, 'border-b-2 border-foreground px-3 py-2 font-semibold')}>Ver o caixa</p>
+        <p className={cn(ROTULO, 'border-b-2 border-contorno px-3 py-2 font-semibold')}>Ver o caixa</p>
         <ul className="flex flex-col py-1">{item(total)}</ul>
         {beneficios.length > 0 && <TituloGrupo>Contas</TituloGrupo>}
         <ul className="flex flex-col py-1">{contas.map(item)}</ul>
@@ -149,14 +149,14 @@ export function SeletorCaixa({ className }: { className?: string }) {
             <ul className="flex flex-col py-1">{beneficios.map(item)}</ul>
           </>
         )}
-        <div className="flex items-center justify-between gap-3 border-t-2 border-foreground px-3 py-2">
+        <div className="flex items-center justify-between gap-3 border-t-2 border-contorno px-3 py-2">
           <Link
             to="/organizacao"
             search={{ aba: 'caixas' }}
             onClick={() => setAberto(false)}
             className={cn(
               ROTULO,
-              '-mx-1 flex items-center gap-1.5 px-1 py-1 font-semibold transition-colors duration-100 outline-none hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-ring',
+              '-mx-1 flex items-center gap-1.5 px-1 py-1 font-semibold transition-colors duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring',
             )}
           >
             <Settings2 aria-hidden className="size-3.5" />
@@ -203,12 +203,12 @@ function ItemCaixa({ opcao, tecla, ativo, onEscolher, children }: ItemCaixaProps
         type="button"
         aria-current={ativo || undefined}
         onClick={onEscolher}
-        className="grid w-full grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-2.5 px-3 py-2 text-left transition-colors duration-100 outline-none hover:bg-amarelo focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        className="grid w-full grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-2.5 px-3 py-2 text-left transition-colors duration-100 outline-none hover:bg-amarelo dark:hover:bg-selecao-forte focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
       >
         <span
           aria-hidden
           className={cn(
-            'flex size-5 items-center justify-center border-[1.5px] border-foreground text-[0.65rem] font-semibold tabular-nums',
+            'flex size-5 items-center justify-center border-[1.5px] border-contorno text-[0.65rem] font-semibold tabular-nums',
             ativo ? 'bg-foreground text-background' : 'bg-card',
           )}
         >

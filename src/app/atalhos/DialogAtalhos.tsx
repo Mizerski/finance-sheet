@@ -67,7 +67,7 @@ export function DialogAtalhos({ aberto, onOpenChange }: DialogAtalhosProps) {
         </DialogHeader>
         {grupos.map((g) => (
           <section key={g.titulo} className="flex flex-col gap-2">
-            <h3 className={cn(ROTULO, 'border-b-2 border-foreground pb-1')}>{g.titulo}</h3>
+            <h3 className={cn(ROTULO, 'border-b-2 border-contorno pb-1')}>{g.titulo}</h3>
             <dl className="flex flex-col gap-2 text-sm">
               {g.atalhos.map((a) => (
                 <div key={a.acao} className="flex items-center justify-between gap-3">
@@ -76,7 +76,7 @@ export function DialogAtalhos({ aberto, onOpenChange }: DialogAtalhosProps) {
                     {a.teclas.map((t) => (
                       <kbd
                         key={t}
-                        className="min-w-7 border-2 border-foreground bg-card px-1.5 py-0.5 text-center font-sans text-xs font-semibold shadow-[2px_2px_0_0_var(--foreground)]"
+                        className="min-w-7 border-2 border-contorno bg-card px-1.5 py-0.5 text-center font-sans text-xs font-semibold shadow-[2px_2px_0_0_var(--sombra)]"
                       >
                         {t}
                       </kbd>

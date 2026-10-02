@@ -24,7 +24,7 @@ export function CabecalhoGrupo({ grupo, aberto, quando, colunas, onAlternar, sel
   const quantidade = lancamentos.length
 
   return (
-    <TableRow className="border-b-2 border-b-foreground bg-muted hover:bg-amarelo/40">
+    <TableRow className="border-b-2 border-b-contorno bg-muted hover:bg-selecao-forte">
       {selecao && (
         <TableCell className="w-0 py-0 pr-0 pl-4 sm:pl-5">
           <Checkbox

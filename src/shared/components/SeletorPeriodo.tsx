@@ -99,7 +99,7 @@ export function SeletorPeriodo({
         {periodo ? (
           <Button
             variant="ghost"
-            className="h-full min-w-0 flex-1 rounded-none border-0 border-x-2 border-foreground px-3 font-heading text-sm font-bold uppercase tabular-nums shadow-none hover:bg-amarelo sm:w-60 sm:flex-none"
+            className="h-full min-w-0 flex-1 rounded-none border-0 border-x-2 border-contorno px-3 font-heading text-sm font-bold uppercase tabular-nums shadow-none hover:bg-amarelo hover:text-tinta sm:w-60 sm:flex-none"
             aria-label={`${rotulo}: ${nome}. Alterar`}
           >
             <CalendarDays />
@@ -114,7 +114,7 @@ export function SeletorPeriodo({
       </PopoverTrigger>
 
       <PopoverContent align="end" className={cn(CAMADA, 'flex w-auto flex-col gap-3')}>
-        <div role="group" aria-label="Período inteiro" className="flex border-2 border-foreground">
+        <div role="group" aria-label="Período inteiro" className="flex border-2 border-contorno">
           {UNIDADES.map((u) => (
             <button
               key={u.valor}
@@ -122,8 +122,8 @@ export function SeletorPeriodo({
               aria-pressed={tipo === u.valor}
               onClick={() => aplicar(periodoDe(u.valor, referencia))}
               className={cn(
-                'flex-1 border-l-2 border-foreground px-3 py-1.5 text-xs font-semibold tracking-[0.06em] uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
-                tipo === u.valor && 'bg-foreground text-background hover:bg-foreground',
+                'flex-1 border-l-2 border-contorno px-3 py-1.5 text-xs font-semibold tracking-[0.06em] uppercase transition-colors outline-none first:border-l-0 hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                tipo === u.valor && 'bg-foreground text-background hover:bg-foreground hover:text-background',
               )}
             >
               {u.rotulo}
@@ -147,7 +147,7 @@ export function SeletorPeriodo({
           className="bg-transparent p-0"
         />
 
-        <div className="flex items-center justify-between gap-3 border-t-2 border-foreground pt-3">
+        <div className="flex items-center justify-between gap-3 border-t-2 border-contorno pt-3">
           <p className="text-xs text-muted-foreground tabular-nums">
             {de && ate
               ? `${formatarData(de)} – ${formatarData(ate)} · ${contarDias(diasDoPeriodo({ de, ate }))}`
@@ -209,7 +209,7 @@ export function SeletorPeriodo({
         <Button
           variant="ghost"
           size="icon"
-          className={cn(BOTAO_GRUPO, 'border-l-2 border-foreground')}
+          className={cn(BOTAO_GRUPO, 'border-l-2 border-contorno')}
           onClick={onLimpar}
           aria-label={`Tirar o filtro de data (${nome})`}
           title="Qualquer data"

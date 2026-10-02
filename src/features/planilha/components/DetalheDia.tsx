@@ -68,7 +68,7 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = nul
       )}
 
       {dia.saldoCentavos !== null && (
-        <div className="flex shrink-0 justify-between border-t-2 border-foreground pt-3 font-semibold">
+        <div className="flex shrink-0 justify-between border-t-2 border-contorno pt-3 font-semibold">
           <span>Saldo do dia</span>
           <span className={cn('tabular-nums', VALOR_SALDO, dia.saldoCentavos < 0 && 'text-negativo')}>
             {formatarBRL(dia.saldoCentavos)}
@@ -103,7 +103,7 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
     <li>
       <Link
         to="/economias"
-        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-amarelo/40 focus-visible:outline-2 focus-visible:outline-ring"
+        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-selecao-forte focus-visible:outline-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate font-semibold">{aporte.nome}</span>
@@ -140,7 +140,7 @@ function ItemOcorrencia({
       <button
         type="button"
         onClick={onEditar}
-        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-amarelo/40 focus-visible:outline-2 focus-visible:outline-ring"
+        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-selecao-forte focus-visible:outline-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate font-semibold">

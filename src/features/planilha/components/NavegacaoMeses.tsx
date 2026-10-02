@@ -40,7 +40,7 @@ export function NavegacaoMeses({ meses, temAnterior, temProximo, onAnterior, onP
       >
         <ChevronLeft />
       </Button>
-      <span className="min-w-0 flex-1 truncate border-x-2 border-foreground px-2 text-center font-heading text-sm leading-9 font-bold uppercase sm:w-60 sm:flex-none">
+      <span className="min-w-0 flex-1 truncate border-x-2 border-contorno px-2 text-center font-heading text-sm leading-9 font-bold uppercase sm:w-60 sm:flex-none">
         {meses.length === 1 ? (
           <>
             {nomeDoMes(primeiro.mes)} {ano(primeiro.ano)}

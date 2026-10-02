@@ -17,7 +17,7 @@ interface CabecalhoPaginaProps {
 export function CabecalhoPagina({ titulo, forma, descricao, ajuda, acoes }: CabecalhoPaginaProps) {
   return (
     // O título não fica mais estreito que 16rem: sem espaço, as ações descem para a linha de baixo.
-    <div className="flex flex-col gap-4 border-b-2 border-foreground pb-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-4 border-b-2 border-contorno pb-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
       <div className="flex items-start gap-3 sm:min-w-64 sm:flex-1 sm:gap-4">
         <Forma {...forma} className="mt-0.5 size-7 sm:size-10" />
         <div className="flex min-w-0 flex-col gap-2">

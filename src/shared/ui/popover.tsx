@@ -31,7 +31,7 @@ function PopoverContent({
         collisionPadding={16}
         // Nunca passa da tela: com conteúdo demais (um dia com muitos lançamentos), rola por dentro.
         className={cn(
-          "z-50 flex max-h-(--radix-popover-content-available-height) w-72 origin-(--radix-popover-content-transform-origin) flex-col overflow-y-auto gap-2.5 rounded-none border-2 border-foreground bg-popover p-2.5 text-sm text-popover-foreground shadow-bloco outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "z-50 flex max-h-(--radix-popover-content-available-height) w-72 origin-(--radix-popover-content-transform-origin) flex-col overflow-y-auto gap-2.5 rounded-none border-2 border-contorno bg-popover p-2.5 text-sm text-popover-foreground shadow-bloco outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...props}

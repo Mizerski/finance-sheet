@@ -73,7 +73,7 @@ export function CardCapacidade({ capacidade, risco, porNivel }: CardCapacidadePr
         )}
       </div>
 
-      <dl className="grid grid-cols-3 border-t-2 border-foreground">
+      <dl className="grid grid-cols-3 border-t-2 border-contorno">
         <Dado rotulo="Sobra média" curto="Sobra">
           <span className={cn(sobraMediaCentavos < 0 && 'text-negativo')}>{formatarBRL(sobraMediaCentavos)}</span>
         </Dado>
@@ -107,11 +107,11 @@ function Escada({ risco, porNivel }: { risco: AnaliseRisco; porNivel: Record<Niv
   return (
     <div className="flex flex-col gap-1.5">
       <span className={cn(ROTULO, 'text-muted-foreground')}>Quanto mais você guarda, mais o caixa aperta</span>
-      <ol className="flex flex-col border-2 border-foreground">
+      <ol className="flex flex-col border-2 border-contorno">
         {degraus.map((n) => (
           <li
             key={n}
-            className={cn('flex items-center gap-2 border-foreground px-3 py-2 text-sm not-last:border-b-2', COR_RISCO[n].suave)}
+            className={cn('flex items-center gap-2 border-contorno px-3 py-2 text-sm not-last:border-b-2', COR_RISCO[n].suave)}
           >
             <span className="min-w-0 flex-1">
               Até <DinheiroForte centavos={porNivel[n]} /> por mês
@@ -132,7 +132,7 @@ function Escada({ risco, porNivel }: { risco: AnaliseRisco; porNivel: Record<Niv
 
 function Dado({ rotulo, curto, children }: { rotulo: string; curto: string; children: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 border-foreground px-3 py-2.5 not-last:border-r-2 first:pl-4 sm:first:pl-5">
+    <div className="flex min-w-0 flex-col gap-1 border-contorno px-3 py-2.5 not-last:border-r-2 first:pl-4 sm:first:pl-5">
       <dt className={cn(ROTULO, 'truncate text-muted-foreground')}>
         <span className="sm:hidden">{curto}</span>
         <span className="hidden sm:inline">{rotulo}</span>

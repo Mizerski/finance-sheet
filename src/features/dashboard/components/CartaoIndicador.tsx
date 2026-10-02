@@ -10,9 +10,9 @@ import { Card } from '@/shared/ui/card'
  * da série nos gráficos; os saldos ficam no papel, onde o vermelho de negativo tem contraste.
  */
 const TOM = {
-  azul: 'bg-azul text-papel',
-  vermelho: 'bg-vermelho text-papel',
-  amarelo: 'bg-amarelo text-foreground',
+  azul: 'bg-azul text-sobre-bloco',
+  vermelho: 'bg-vermelho text-sobre-bloco',
+  amarelo: 'bg-amarelo text-tinta',
   papel: 'bg-card text-foreground',
 } as const
 

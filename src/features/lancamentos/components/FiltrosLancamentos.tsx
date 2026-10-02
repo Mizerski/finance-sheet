@@ -69,7 +69,7 @@ export function FiltrosLancamentos(props: FiltrosLancamentosProps) {
         <PopoverContent align="end" className={cn(CAMADA, 'flex w-[calc(100vw-2rem)] flex-col gap-3')}>
           <Controles {...props} />
           {quantidade > 0 && (
-            <div className="border-t-2 border-foreground pt-3">
+            <div className="border-t-2 border-contorno pt-3">
               <BotaoLimpar onClick={() => onChange({ q: filtros.q })} />
             </div>
           )}

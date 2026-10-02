@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prévia do tema escuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{font-family:'Inter',system-ui,sans-serif;background:oklch(0.16 0 0);color:oklch(0.93 0 0);padding:16px;font-feature-settings:"cv01","cv05"}
+header.pagina{padding:8px 0 16px;max-width:70rem}
+header.pagina h1{font-family:'Outfit',sans-serif;text-transform:uppercase;font-weight:800;font-size:1.75rem;letter-spacing:-0.02em}
+header.pagina p{color:oklch(0.78 0 0);font-size:.875rem;margin-top:6px;line-height:1.5}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:16px}
+.dir{background:var(--background);color:var(--foreground);border:1px solid oklch(0.35 0 0);min-width:0}
+.dir>h2{font-family:'Outfit',sans-serif;text-transform:uppercase;font-weight:800;font-size:1.25rem;padding:14px 16px 2px}
+.dir>.desc{font-size:.8rem;color:var(--muted-foreground);padding:0 16px 10px;line-height:1.45}
+.chao{padding:12px 16px 20px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--contorno);box-shadow:4px 4px 0 0 var(--sombra)}
+.cab{display:flex;align-items:stretch;border-bottom:2px solid var(--contorno)}
+.faixa{width:44px;display:flex;align-items:center;justify-content:center;border-right:2px solid var(--contorno);flex-shrink:0}
+.cab-txt{flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px}
+.titulo-card{font-family:'Outfit',sans-serif;font-weight:700;text-transform:uppercase;font-size:1.05rem;line-height:1;display:flex;align-items:center;gap:8px}
+.contagem,.mes{background:var(--foreground);color:var(--background);font-family:'Inter';font-size:.75rem;font-weight:600;padding:4px 6px;line-height:1}
+.ajuda{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--muted-foreground);border:1.5px solid var(--muted-foreground)}
+.forma{display:inline-block;width:22px;height:22px}
+.circulo{border-radius:50%}.triangulo{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.corpo{padding:12px 16px 16px;display:flex;flex-direction:column;gap:6px}
+.rotulo{font-size:.68rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.muted{color:var(--muted-foreground);font-size:.8125rem}
+.numero{font-family:'Outfit',sans-serif;font-weight:700;font-size:2.4rem;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.destaque{margin-top:8px;border:2px solid var(--contorno);border-left:8px solid var(--amarelo);background:var(--economia-suave);padding:8px 10px;font-size:.85rem}
+.planilha{width:100%;border-collapse:collapse;font-size:.8125rem;font-variant-numeric:tabular-nums}
+.planilha th{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;text-align:right;border-bottom:2px solid var(--contorno)}
+.planilha th.dia,.planilha td.dia{text-align:left;color:var(--muted-foreground)}
+.planilha td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--border)}
+.c-ent,.ent{color:var(--entrada)}.c-sai,.sai{color:var(--saida)}
+td.ent{background:var(--entrada-suave)}td.sai{background:var(--saida-suave)}
+td.sal{background:var(--saldo-suave);color:var(--saldo);position:relative}
+td.sal::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--marca,transparent)}
+td.sal.neg{background:var(--negativo-suave);color:var(--negativo);font-weight:500}
+tr.hoje td{box-shadow:inset 0 2px 0 var(--contorno),inset 0 -2px 0 var(--contorno);font-weight:600}
+.num-hoje{background:var(--vermelho);color:var(--sobre-bloco);padding:1px 4px}
+.planilha tfoot td{border-top:2px solid var(--contorno);border-bottom:0;font-weight:600}
+.planilha tfoot td.rotulo{text-align:left}
+.linha{display:flex;gap:12px;flex-wrap:wrap}
+.btn{height:40px;padding:0 16px;font:600 .75rem 'Inter';letter-spacing:.08em;text-transform:uppercase;border:2px solid var(--contorno);cursor:pointer;transition:all .1s}
+.btn:active{transform:translate(2px,2px);box-shadow:none}
+.principal{background:var(--foreground);color:var(--background);box-shadow:3px 3px 0 0 var(--vermelho)}
+.secundario{background:var(--card);color:var(--foreground);box-shadow:3px 3px 0 0 var(--sombra)}
+.secundario:hover,.secundario.hover{background:var(--amarelo);color:var(--tinta)}
+.campo-rot{display:flex;flex-direction:column;gap:6px}
+.campo{height:40px;border:2px solid var(--input);background:var(--card);color:var(--foreground);padding:0 12px;font:inherit;font-size:.875rem;outline:none}
+.campo.foco,.campo:focus{border-color:var(--ring);box-shadow:3px 3px 0 0 var(--ring)}
+.seg{display:flex;border:2px solid var(--contorno);background:var(--card);box-shadow:3px 3px 0 0 var(--sombra);width:fit-content}
+.seg span{padding:8px 14px;font:600 .72rem 'Inter';letter-spacing:.06em;text-transform:uppercase;border-left:2px solid var(--contorno);cursor:pointer}
+.seg span:first-child{border-left:0}
+.seg span:hover,.seg span.hover{background:var(--amarelo);color:var(--tinta)}
+.seg .ativo{background:var(--foreground);color:var(--background)}
+.seg .ativo-saida{background:var(--vermelho);color:var(--sobre-bloco)}
+.selos{display:flex;flex-wrap:wrap;gap:6px}
+.selo{display:inline-flex;align-items:center;height:22px;padding:0 7px;border:1.5px solid var(--contorno);font:600 .65rem 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--tinta)}
+.selo[style*="risco-1"],.selo[style*="risco-5"]{color:var(--sobre-bloco)}
+.lista{list-style:none;padding:0}
+.lista li{padding:9px 16px;border-bottom:1px solid var(--border);font-size:.875rem}
+.lista li:last-child{border-bottom:0}
+.lista li.sel{background:var(--selecao)}
+.lista li:hover,.lista li.hover-lista{background:var(--amarelo);color:var(--tinta)}
+.grafico{display:block;width:100%;padding:10px 12px}
+.dialogo{background:var(--card);border:2px solid var(--contorno);box-shadow:6px 6px 0 0 var(--sombra);position:relative}
+.tricolor{display:flex;height:6px;border-bottom:2px solid var(--contorno)}
+.tricolor i{flex:1}.tricolor i+i{border-left:2px solid var(--contorno)}
+.dialogo-corpo{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.marca{display:flex;align-items:center;gap:6px}.marca .forma{width:16px;height:16px}.marca .titulo-card{margin-left:8px}
+.medidas{padding:4px 16px 20px;font-size:.75rem}
+.medidas h4{font:700 .8rem 'Outfit';text-transform:uppercase;margin:14px 0 6px}
+.checagem{list-style:none;padding:0;display:grid;gap:3px}
+.checagem li::before{content:"✓ ";font-weight:700}
+.checagem li.ruim::before{content:"✗ "}
+.checagem li.ruim{color:var(--negativo)}
+.checagem span{color:var(--muted-foreground)}
+.tokens{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tokens th{text-align:left;font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid var(--contorno);padding:4px 4px}
+.tokens td{padding:3px 4px;border-bottom:1px solid var(--border);white-space:nowrap}
+.tokens td.papel-tok{white-space:normal;color:var(--muted-foreground);font-size:.68rem}
+.amostra{display:inline-block;width:10px;height:10px;border:1px solid var(--foreground);margin-right:5px;vertical-align:-1px}
+.fora{color:var(--negativo)}
+</style></head><body>
+<header class="pagina"><h1>Grafite médio: variações da sombra</h1>
+<p>Cada coluna aplica uma base aos mesmos componentes do app. Contrastes WCAG contra o card (o card e a sombra, contra o chão).
+Passe o mouse nos botões, no controle segmentado e na lista para ver o hover amarelo. Gerado por script; os valores das tabelas são os mesmos das amostras.</p></header>
+<div class="grade"><section class="dir" style="--background: oklch(0.270 0.004 80); --card: oklch(0.305 0.004 80); --muted: oklch(0.345 0.005 80); --foreground: oklch(0.970 0.003 85); --muted-foreground: oklch(0.780 0.004 80); --contorno: oklch(0.140 0.004 80); --input: oklch(0.660 0.005 80); --border: oklch(0.215 0.004 80); --sombra: oklch(0.170 0.004 80); --ring: oklch(0.760 0.100 258); --tinta: oklch(0.160 0.004 80); --sobre-bloco: oklch(0.160 0.004 80); --vermelho: oklch(0.620 0.145 30); --azul: oklch(0.600 0.115 258); --amarelo: oklch(0.750 0.120 84); --entrada: oklch(0.800 0.085 256); --entrada-suave: oklch(0.330 0.016 258); --saida: oklch(0.770 0.110 30); --saida-suave: oklch(0.330 0.016 28); --saldo: oklch(0.970 0.003 85); --saldo-suave: oklch(0.335 0.004 80); --negativo: oklch(0.760 0.120 25); --negativo-suave: oklch(0.370 0.050 25); --economia: oklch(0.820 0.100 85); --economia-suave: oklch(0.335 0.014 88); --grafico-entrada: oklch(0.600 0.115 258); --grafico-saida: oklch(0.620 0.145 30); --grafico-economia: oklch(0.750 0.120 84); --grafico-saldo: oklch(0.970 0.003 85); --risco-1: oklch(0.600 0.115 258); --risco-2: oklch(0.710 0.085 220); --risco-3: oklch(0.750 0.120 84); --risco-4: oklch(0.690 0.120 55); --risco-5: oklch(0.620 0.145 30); --risco-1-suave: oklch(0.335 0.020 258); --risco-3-suave: oklch(0.335 0.016 88); --risco-5-suave: oklch(0.370 0.050 25); --selecao: color-mix(in oklch, var(--amarelo) 20%, transparent); --selecao-forte: color-mix(in oklch, var(--amarelo) 28%, transparent)"><h2>Grafite médio</h2><p class="desc">A escolhida, como referência: contorno, réguas e sombra pretos.</p>
+<div class="chao">
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--azul)"><span class="forma circulo" style="background:var(--amarelo)"></span></span>
+      <div class="cab-txt">
+        <h3 class="titulo-card">Saldo hoje <span class="contagem">3</span></h3>
+        <span class="ajuda">?</span>
+      </div>
+    </header>
+    <div class="corpo">
+      <span class="rotulo muted">Na conta principal</span>
+      <span class="numero">R$ 4.218,50</span>
+      <div class="destaque"><b>Sobram R$ 480</b> até a recarga de <b>05/11</b>.</div>
+    </div>
+  </article>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--vermelho)"><span class="forma quadrado" style="background:var(--sobre-bloco)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card"><span class="mes">10</span> Outubro</h3>
+        <span class="selo" style="background:var(--risco-3)">Atenção</span></div>
+    </header>
+    <table class="planilha">
+      <thead><tr><th class="dia">Dia</th><th class="c-ent">Entrada</th><th class="c-sai">Saída</th><th class="c-sal">Saldo</th></tr></thead>
+      <tbody>
+        <tr><td class="dia">03</td><td class="ent">4.500,00</td><td class="sai"></td><td class="sal" style="--marca:var(--risco-1)">6.218,50</td></tr>
+        <tr><td class="dia">04</td><td class="ent"></td><td class="sai">320,00</td><td class="sal" style="--marca:var(--risco-2)">5.898,50</td></tr>
+        <tr class="hoje"><td class="dia"><span class="num-hoje">05</span></td><td class="ent"></td><td class="sai">1.250,00</td><td class="sal" style="--marca:var(--risco-3)">4.648,50</td></tr>
+        <tr><td class="dia">06</td><td class="ent"></td><td class="sai">5.000,00</td><td class="sal neg" style="--marca:var(--risco-5)">−351,50</td></tr>
+      </tbody>
+      <tfoot><tr><td class="rotulo">Total</td><td class="ent">4.500,00</td><td class="sai">6.570,00</td><td class="sal">−351,50</td></tr></tfoot>
+    </table>
+  </article>
+
+  <div class="linha">
+    <button class="btn principal">Salvar</button>
+    <button class="btn secundario">Cancelar</button>
+    <button class="btn secundario hover">Hover</button>
+  </div>
+
+  <label class="campo-rot"><span class="rotulo">Descrição</span><input class="campo" value="Mercado"></label>
+  <label class="campo-rot"><span class="rotulo">Valor (foco)</span><input class="campo foco" value="R$ 320,00"></label>
+
+  <div class="seg"><span class="ativo">Mês</span><span>Ano</span><span class="hover">Hover</span></div>
+  <div class="seg"><span class="ativo-saida">Saída</span><span>Entrada</span></div>
+
+  <div class="selos">
+    <span class="selo" style="background:var(--risco-1)">Tranquilo</span>
+    <span class="selo" style="background:var(--risco-2)">Estável</span>
+    <span class="selo" style="background:var(--risco-3)">Atenção</span>
+    <span class="selo" style="background:var(--risco-4)">Risco alto</span>
+    <span class="selo" style="background:var(--risco-5)">Muito alto</span>
+  </div>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--tinta)"><span class="forma quadrado" style="background:var(--amarelo)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card">Pastas</h3></div>
+    </header>
+    <ul class="lista">
+      <li>Casa</li><li class="sel">Viagem (marcada)</li><li class="hover-lista">Carro (hover)</li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--azul)"><span class="forma quadrado" style="background:var(--vermelho)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card">Entradas vs saídas</h3></div>
+    </header>
+    <svg class="grafico" viewBox="0 0 300 120" aria-hidden="true">
+      <line x1="24" y1="104" x2="296" y2="104" stroke="var(--contorno)" stroke-width="2"/>
+      <g stroke="var(--contorno)" stroke-width="1.5">
+        <rect x="34" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="58" y="46" width="22" height="58" fill="var(--grafico-saida)"/>
+        <rect x="104" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="128" y="22" width="22" height="82" fill="var(--grafico-saida)"/>
+        <rect x="174" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="198" y="58" width="22" height="46" fill="var(--grafico-saida)"/>
+        <rect x="244" y="12" width="22" height="92" fill="var(--grafico-entrada)"/><rect x="268" y="40" width="22" height="64" fill="var(--grafico-saida)"/>
+      </g>
+      <polyline points="45,70 115,64 185,52 255,40" fill="none" stroke="var(--grafico-saldo)" stroke-width="3" stroke-linejoin="miter"/>
+    </svg>
+  </article>
+
+  <div class="dialogo">
+    <div class="tricolor"><i style="background:var(--vermelho)"></i><i style="background:var(--azul)"></i><i style="background:var(--amarelo)"></i></div>
+    <div class="dialogo-corpo">
+      <div class="marca"><span class="forma quadrado" style="background:var(--vermelho)"></span><span class="forma circulo" style="background:var(--azul)"></span><span class="forma triangulo" style="background:var(--amarelo)"></span>
+      <span class="titulo-card">Novo lançamento</span></div>
+      <p class="muted">Faixa do dialog com divisórias de contorno entre as cores.</p>
+    </div>
+  </div>
+</div>
+<div class="medidas"><h4>Conferência</h4><ul class="checagem"><li class="bom">Card: <b>1.12</b> <span>(alvo 1.08–1.3)</span></li><li class="bom">Área neutra: <b>1.16</b> <span>(alvo 1.05–1.3)</span></li><li class="bom">Texto: <b>12.29</b> <span>(alvo 12–15)</span></li><li class="bom">Texto secundário: <b>6.69</b> <span>(alvo 6–8)</span></li><li class="ruim">Contorno: <b>1.49</b> <span>(alvo 3–5)</span></li><li class="bom">Campo: <b>4.31</b> <span>(alvo ≥ 3)</span></li><li class="bom">Divisória: <b>1.31</b> <span>(alvo 1.3–1.8)</span></li><li class="bom">Foco: <b>6.24</b> <span>(alvo ≥ 3)</span></li><li class="bom">Entrada: <b>7.18</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Saída: <b>6.20</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Negativo: <b>5.94</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Economia: <b>7.64</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Texto sobre vermelho: <b>4.99</b></li><li class="bom">Texto sobre azul: <b>4.90</b></li><li class="bom">Texto sobre amarelo: <b>8.66</b></li><li class="bom">Texto sobre risco-2: <b>7.74</b></li><li class="bom">Texto sobre risco-4: <b>6.76</b></li><li class="bom">entrada sobre entrada-suave: <b>6.55</b></li><li class="bom">saida sobre saida-suave: <b>5.69</b></li><li class="bom">negativo sobre negativo-suave: <b>4.73</b></li><li class="bom">economia sobre economia-suave: <b>6.84</b></li><li class="bom">risco-3-texto sobre risco-3-suave: <b>6.84</b></li><li class="bom">risco-4-texto sobre risco-4-suave: <b>6.09</b></li><li class="bom">Texto sobre seleção: <b>8.41</b></li><li class="bom">Sombra no chão <b>1.27</b> <span>(contorno 1.49: precisa ficar abaixo)</span></li><li class="bom">ΔL entre primárias: <b>0.15</b> <span>(alvo ≤ 0,15)</span></li><li class="bom">Fora do sRGB: <b>nenhum</b></li></ul><h4>Tokens</h4><table class="tokens"><thead><tr><th>Papel</th><th>Token</th><th>L</th><th>C</th><th>H</th><th>× card</th></tr></thead><tbody><tr><td class="papel-tok">Chão e superfícies</td><td><span class="amostra" style="background:oklch(0.270 0.004 80)"></span>background</td><td>0.270</td><td>0.004</td><td>80</td><td></td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.305 0.004 80)"></span>card</td><td>0.305</td><td>0.004</td><td>80</td><td>1.12</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.345 0.005 80)"></span>muted</td><td>0.345</td><td>0.005</td><td>80</td><td>1.16</td></tr><tr><td class="papel-tok">Texto</td><td><span class="amostra" style="background:oklch(0.970 0.003 85)"></span>foreground</td><td>0.970</td><td>0.003</td><td>85</td><td>12.29</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.780 0.004 80)"></span>muted-foreground</td><td>0.780</td><td>0.004</td><td>80</td><td>6.69</td></tr><tr><td class="papel-tok">Estrutura e sombra</td><td><span class="amostra" style="background:oklch(0.140 0.004 80)"></span>contorno</td><td>0.140</td><td>0.004</td><td>80</td><td>1.49</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.660 0.005 80)"></span>input</td><td>0.660</td><td>0.005</td><td>80</td><td>4.31</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.215 0.004 80)"></span>border</td><td>0.215</td><td>0.004</td><td>80</td><td>1.31</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.170 0.004 80)"></span>sombra</td><td>0.170</td><td>0.004</td><td>80</td><td>1.27</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.760 0.100 258)"></span>ring</td><td>0.760</td><td>0.100</td><td>258</td><td>6.24</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.160 0.004 80)"></span>tinta</td><td>0.160</td><td>0.004</td><td>80</td><td>1.45</td></tr><tr><td class="papel-tok">Blocos de cor</td><td><span class="amostra" style="background:oklch(0.620 0.145 30)"></span>vermelho</td><td>0.620</td><td>0.145</td><td>30</td><td>3.44</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.600 0.115 258)"></span>azul</td><td>0.600</td><td>0.115</td><td>258</td><td>3.38</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.750 0.120 84)"></span>amarelo</td><td>0.750</td><td>0.120</td><td>84</td><td>5.98</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.710 0.085 220)"></span>risco-2</td><td>0.710</td><td>0.085</td><td>220</td><td>5.34</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.690 0.120 55)"></span>risco-4</td><td>0.690</td><td>0.120</td><td>55</td><td>4.67</td></tr><tr><td class="papel-tok">Cor em texto</td><td><span class="amostra" style="background:oklch(0.800 0.085 256)"></span>entrada</td><td>0.800</td><td>0.085</td><td>256</td><td>7.18</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.770 0.110 30)"></span>saida</td><td>0.770</td><td>0.110</td><td>30</td><td>6.20</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.760 0.120 25)"></span>negativo</td><td>0.760</td><td>0.120</td><td>25</td><td>5.94</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.820 0.100 85)"></span>economia</td><td>0.820</td><td>0.100</td><td>85</td><td>7.64</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.810 0.070 215)"></span>risco-2-texto</td><td>0.810</td><td>0.070</td><td>215</td><td>7.58</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.790 0.100 58)"></span>risco-4-texto</td><td>0.790</td><td>0.100</td><td>58</td><td>6.77</td></tr><tr><td class="papel-tok">Fundos suaves</td><td><span class="amostra" style="background:oklch(0.330 0.016 258)"></span>entrada-suave</td><td>0.330</td><td>0.016</td><td>258</td><td>1.10</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.330 0.016 28)"></span>saida-suave</td><td>0.330</td><td>0.016</td><td>28</td><td>1.09</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.335 0.004 80)"></span>saldo-suave</td><td>0.335</td><td>0.004</td><td>80</td><td>1.12</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.370 0.050 25)"></span>negativo-suave</td><td>0.370</td><td>0.050</td><td>25</td><td>1.26</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.335 0.014 88)"></span>economia-suave</td><td>0.335</td><td>0.014</td><td>88</td><td>1.12</td></tr></tbody></table></div></section><section class="dir" style="--background: oklch(0.270 0.004 80); --card: oklch(0.305 0.004 80); --muted: oklch(0.345 0.005 80); --foreground: oklch(0.970 0.003 85); --muted-foreground: oklch(0.780 0.004 80); --contorno: oklch(0.140 0.004 80); --input: oklch(0.660 0.005 80); --border: oklch(0.215 0.004 80); --sombra: oklch(0.215 0.004 80); --ring: oklch(0.760 0.100 258); --tinta: oklch(0.160 0.004 80); --sobre-bloco: oklch(0.160 0.004 80); --vermelho: oklch(0.620 0.145 30); --azul: oklch(0.600 0.115 258); --amarelo: oklch(0.750 0.120 84); --entrada: oklch(0.800 0.085 256); --entrada-suave: oklch(0.330 0.016 258); --saida: oklch(0.770 0.110 30); --saida-suave: oklch(0.330 0.016 28); --saldo: oklch(0.970 0.003 85); --saldo-suave: oklch(0.335 0.004 80); --negativo: oklch(0.760 0.120 25); --negativo-suave: oklch(0.370 0.050 25); --economia: oklch(0.820 0.100 85); --economia-suave: oklch(0.335 0.014 88); --grafico-entrada: oklch(0.600 0.115 258); --grafico-saida: oklch(0.620 0.145 30); --grafico-economia: oklch(0.750 0.120 84); --grafico-saldo: oklch(0.970 0.003 85); --risco-1: oklch(0.600 0.115 258); --risco-2: oklch(0.710 0.085 220); --risco-3: oklch(0.750 0.120 84); --risco-4: oklch(0.690 0.120 55); --risco-5: oklch(0.620 0.145 30); --risco-1-suave: oklch(0.335 0.020 258); --risco-3-suave: oklch(0.335 0.016 88); --risco-5-suave: oklch(0.370 0.050 25); --selecao: color-mix(in oklch, var(--amarelo) 20%, transparent); --selecao-forte: color-mix(in oklch, var(--amarelo) 28%, transparent)"><h2>A · Sombra grafite</h2><p class="desc">Mesma base. A sombra vira um grafite escuro (L 0.215): ainda se lê como sombra, mas mais macia que o contorno preto.</p>
+<div class="chao">
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--azul)"><span class="forma circulo" style="background:var(--amarelo)"></span></span>
+      <div class="cab-txt">
+        <h3 class="titulo-card">Saldo hoje <span class="contagem">3</span></h3>
+        <span class="ajuda">?</span>
+      </div>
+    </header>
+    <div class="corpo">
+      <span class="rotulo muted">Na conta principal</span>
+      <span class="numero">R$ 4.218,50</span>
+      <div class="destaque"><b>Sobram R$ 480</b> até a recarga de <b>05/11</b>.</div>
+    </div>
+  </article>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--vermelho)"><span class="forma quadrado" style="background:var(--sobre-bloco)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card"><span class="mes">10</span> Outubro</h3>
+        <span class="selo" style="background:var(--risco-3)">Atenção</span></div>
+    </header>
+    <table class="planilha">
+      <thead><tr><th class="dia">Dia</th><th class="c-ent">Entrada</th><th class="c-sai">Saída</th><th class="c-sal">Saldo</th></tr></thead>
+      <tbody>
+        <tr><td class="dia">03</td><td class="ent">4.500,00</td><td class="sai"></td><td class="sal" style="--marca:var(--risco-1)">6.218,50</td></tr>
+        <tr><td class="dia">04</td><td class="ent"></td><td class="sai">320,00</td><td class="sal" style="--marca:var(--risco-2)">5.898,50</td></tr>
+        <tr class="hoje"><td class="dia"><span class="num-hoje">05</span></td><td class="ent"></td><td class="sai">1.250,00</td><td class="sal" style="--marca:var(--risco-3)">4.648,50</td></tr>
+        <tr><td class="dia">06</td><td class="ent"></td><td class="sai">5.000,00</td><td class="sal neg" style="--marca:var(--risco-5)">−351,50</td></tr>
+      </tbody>
+      <tfoot><tr><td class="rotulo">Total</td><td class="ent">4.500,00</td><td class="sai">6.570,00</td><td class="sal">−351,50</td></tr></tfoot>
+    </table>
+  </article>
+
+  <div class="linha">
+    <button class="btn principal">Salvar</button>
+    <button class="btn secundario">Cancelar</button>
+    <button class="btn secundario hover">Hover</button>
+  </div>
+
+  <label class="campo-rot"><span class="rotulo">Descrição</span><input class="campo" value="Mercado"></label>
+  <label class="campo-rot"><span class="rotulo">Valor (foco)</span><input class="campo foco" value="R$ 320,00"></label>
+
+  <div class="seg"><span class="ativo">Mês</span><span>Ano</span><span class="hover">Hover</span></div>
+  <div class="seg"><span class="ativo-saida">Saída</span><span>Entrada</span></div>
+
+  <div class="selos">
+    <span class="selo" style="background:var(--risco-1)">Tranquilo</span>
+    <span class="selo" style="background:var(--risco-2)">Estável</span>
+    <span class="selo" style="background:var(--risco-3)">Atenção</span>
+    <span class="selo" style="background:var(--risco-4)">Risco alto</span>
+    <span class="selo" style="background:var(--risco-5)">Muito alto</span>
+  </div>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--tinta)"><span class="forma quadrado" style="background:var(--amarelo)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card">Pastas</h3></div>
+    </header>
+    <ul class="lista">
+      <li>Casa</li><li class="sel">Viagem (marcada)</li><li class="hover-lista">Carro (hover)</li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--azul)"><span class="forma quadrado" style="background:var(--vermelho)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card">Entradas vs saídas</h3></div>
+    </header>
+    <svg class="grafico" viewBox="0 0 300 120" aria-hidden="true">
+      <line x1="24" y1="104" x2="296" y2="104" stroke="var(--contorno)" stroke-width="2"/>
+      <g stroke="var(--contorno)" stroke-width="1.5">
+        <rect x="34" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="58" y="46" width="22" height="58" fill="var(--grafico-saida)"/>
+        <rect x="104" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="128" y="22" width="22" height="82" fill="var(--grafico-saida)"/>
+        <rect x="174" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="198" y="58" width="22" height="46" fill="var(--grafico-saida)"/>
+        <rect x="244" y="12" width="22" height="92" fill="var(--grafico-entrada)"/><rect x="268" y="40" width="22" height="64" fill="var(--grafico-saida)"/>
+      </g>
+      <polyline points="45,70 115,64 185,52 255,40" fill="none" stroke="var(--grafico-saldo)" stroke-width="3" stroke-linejoin="miter"/>
+    </svg>
+  </article>
+
+  <div class="dialogo">
+    <div class="tricolor"><i style="background:var(--vermelho)"></i><i style="background:var(--azul)"></i><i style="background:var(--amarelo)"></i></div>
+    <div class="dialogo-corpo">
+      <div class="marca"><span class="forma quadrado" style="background:var(--vermelho)"></span><span class="forma circulo" style="background:var(--azul)"></span><span class="forma triangulo" style="background:var(--amarelo)"></span>
+      <span class="titulo-card">Novo lançamento</span></div>
+      <p class="muted">Faixa do dialog com divisórias de contorno entre as cores.</p>
+    </div>
+  </div>
+</div>
+<div class="medidas"><h4>Conferência</h4><ul class="checagem"><li class="bom">Card: <b>1.12</b> <span>(alvo 1.08–1.3)</span></li><li class="bom">Área neutra: <b>1.16</b> <span>(alvo 1.05–1.3)</span></li><li class="bom">Texto: <b>12.29</b> <span>(alvo 12–15)</span></li><li class="bom">Texto secundário: <b>6.69</b> <span>(alvo 6–8)</span></li><li class="ruim">Contorno: <b>1.49</b> <span>(alvo 3–5)</span></li><li class="bom">Campo: <b>4.31</b> <span>(alvo ≥ 3)</span></li><li class="bom">Divisória: <b>1.31</b> <span>(alvo 1.3–1.8)</span></li><li class="bom">Foco: <b>6.24</b> <span>(alvo ≥ 3)</span></li><li class="bom">Entrada: <b>7.18</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Saída: <b>6.20</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Negativo: <b>5.94</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Economia: <b>7.64</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Texto sobre vermelho: <b>4.99</b></li><li class="bom">Texto sobre azul: <b>4.90</b></li><li class="bom">Texto sobre amarelo: <b>8.66</b></li><li class="bom">Texto sobre risco-2: <b>7.74</b></li><li class="bom">Texto sobre risco-4: <b>6.76</b></li><li class="bom">entrada sobre entrada-suave: <b>6.55</b></li><li class="bom">saida sobre saida-suave: <b>5.69</b></li><li class="bom">negativo sobre negativo-suave: <b>4.73</b></li><li class="bom">economia sobre economia-suave: <b>6.84</b></li><li class="bom">risco-3-texto sobre risco-3-suave: <b>6.84</b></li><li class="bom">risco-4-texto sobre risco-4-suave: <b>6.09</b></li><li class="bom">Texto sobre seleção: <b>8.41</b></li><li class="bom">Sombra no chão <b>1.16</b> <span>(contorno 1.49: precisa ficar abaixo)</span></li><li class="bom">ΔL entre primárias: <b>0.15</b> <span>(alvo ≤ 0,15)</span></li><li class="bom">Fora do sRGB: <b>nenhum</b></li></ul><h4>Tokens</h4><table class="tokens"><thead><tr><th>Papel</th><th>Token</th><th>L</th><th>C</th><th>H</th><th>× card</th></tr></thead><tbody><tr><td class="papel-tok">Chão e superfícies</td><td><span class="amostra" style="background:oklch(0.270 0.004 80)"></span>background</td><td>0.270</td><td>0.004</td><td>80</td><td></td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.305 0.004 80)"></span>card</td><td>0.305</td><td>0.004</td><td>80</td><td>1.12</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.345 0.005 80)"></span>muted</td><td>0.345</td><td>0.005</td><td>80</td><td>1.16</td></tr><tr><td class="papel-tok">Texto</td><td><span class="amostra" style="background:oklch(0.970 0.003 85)"></span>foreground</td><td>0.970</td><td>0.003</td><td>85</td><td>12.29</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.780 0.004 80)"></span>muted-foreground</td><td>0.780</td><td>0.004</td><td>80</td><td>6.69</td></tr><tr><td class="papel-tok">Estrutura e sombra</td><td><span class="amostra" style="background:oklch(0.140 0.004 80)"></span>contorno</td><td>0.140</td><td>0.004</td><td>80</td><td>1.49</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.660 0.005 80)"></span>input</td><td>0.660</td><td>0.005</td><td>80</td><td>4.31</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.215 0.004 80)"></span>border</td><td>0.215</td><td>0.004</td><td>80</td><td>1.31</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.215 0.004 80)"></span>sombra</td><td>0.215</td><td>0.004</td><td>80</td><td>1.16</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.760 0.100 258)"></span>ring</td><td>0.760</td><td>0.100</td><td>258</td><td>6.24</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.160 0.004 80)"></span>tinta</td><td>0.160</td><td>0.004</td><td>80</td><td>1.45</td></tr><tr><td class="papel-tok">Blocos de cor</td><td><span class="amostra" style="background:oklch(0.620 0.145 30)"></span>vermelho</td><td>0.620</td><td>0.145</td><td>30</td><td>3.44</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.600 0.115 258)"></span>azul</td><td>0.600</td><td>0.115</td><td>258</td><td>3.38</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.750 0.120 84)"></span>amarelo</td><td>0.750</td><td>0.120</td><td>84</td><td>5.98</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.710 0.085 220)"></span>risco-2</td><td>0.710</td><td>0.085</td><td>220</td><td>5.34</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.690 0.120 55)"></span>risco-4</td><td>0.690</td><td>0.120</td><td>55</td><td>4.67</td></tr><tr><td class="papel-tok">Cor em texto</td><td><span class="amostra" style="background:oklch(0.800 0.085 256)"></span>entrada</td><td>0.800</td><td>0.085</td><td>256</td><td>7.18</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.770 0.110 30)"></span>saida</td><td>0.770</td><td>0.110</td><td>30</td><td>6.20</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.760 0.120 25)"></span>negativo</td><td>0.760</td><td>0.120</td><td>25</td><td>5.94</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.820 0.100 85)"></span>economia</td><td>0.820</td><td>0.100</td><td>85</td><td>7.64</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.810 0.070 215)"></span>risco-2-texto</td><td>0.810</td><td>0.070</td><td>215</td><td>7.58</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.790 0.100 58)"></span>risco-4-texto</td><td>0.790</td><td>0.100</td><td>58</td><td>6.77</td></tr><tr><td class="papel-tok">Fundos suaves</td><td><span class="amostra" style="background:oklch(0.330 0.016 258)"></span>entrada-suave</td><td>0.330</td><td>0.016</td><td>258</td><td>1.10</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.330 0.016 28)"></span>saida-suave</td><td>0.330</td><td>0.016</td><td>28</td><td>1.09</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.335 0.004 80)"></span>saldo-suave</td><td>0.335</td><td>0.004</td><td>80</td><td>1.12</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.370 0.050 25)"></span>negativo-suave</td><td>0.370</td><td>0.050</td><td>25</td><td>1.26</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.335 0.014 88)"></span>economia-suave</td><td>0.335</td><td>0.014</td><td>88</td><td>1.12</td></tr></tbody></table></div></section><section class="dir" style="--background: oklch(0.295 0.004 80); --card: oklch(0.330 0.004 80); --muted: oklch(0.370 0.005 80); --foreground: oklch(0.975 0.003 85); --muted-foreground: oklch(0.800 0.004 80); --contorno: oklch(0.140 0.004 80); --input: oklch(0.690 0.005 80); --border: oklch(0.235 0.004 80); --sombra: oklch(0.235 0.030 262); --ring: oklch(0.780 0.100 258); --tinta: oklch(0.160 0.004 80); --sobre-bloco: oklch(0.160 0.004 80); --vermelho: oklch(0.620 0.145 30); --azul: oklch(0.600 0.115 258); --amarelo: oklch(0.750 0.120 84); --entrada: oklch(0.820 0.080 256); --entrada-suave: oklch(0.355 0.016 258); --saida: oklch(0.790 0.100 30); --saida-suave: oklch(0.355 0.016 28); --saldo: oklch(0.970 0.003 85); --saldo-suave: oklch(0.360 0.004 80); --negativo: oklch(0.790 0.110 25); --negativo-suave: oklch(0.390 0.050 25); --economia: oklch(0.840 0.095 85); --economia-suave: oklch(0.360 0.014 88); --grafico-entrada: oklch(0.600 0.115 258); --grafico-saida: oklch(0.620 0.145 30); --grafico-economia: oklch(0.750 0.120 84); --grafico-saldo: oklch(0.970 0.003 85); --risco-1: oklch(0.600 0.115 258); --risco-2: oklch(0.710 0.085 220); --risco-3: oklch(0.750 0.120 84); --risco-4: oklch(0.690 0.120 55); --risco-5: oklch(0.620 0.145 30); --risco-1-suave: oklch(0.360 0.020 258); --risco-3-suave: oklch(0.360 0.016 88); --risco-5-suave: oklch(0.370 0.050 25); --selecao: color-mix(in oklch, var(--amarelo) 20%, transparent); --selecao-forte: color-mix(in oklch, var(--amarelo) 28%, transparent)"><h2>B · Mais claro, sombra azul-tinta</h2><p class="desc">Chão e card um degrau mais claros (0.295 / 0.33). Sombra em azul-tinta escuro, como ultramar impresso; contorno continua preto.</p>
+<div class="chao">
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--azul)"><span class="forma circulo" style="background:var(--amarelo)"></span></span>
+      <div class="cab-txt">
+        <h3 class="titulo-card">Saldo hoje <span class="contagem">3</span></h3>
+        <span class="ajuda">?</span>
+      </div>
+    </header>
+    <div class="corpo">
+      <span class="rotulo muted">Na conta principal</span>
+      <span class="numero">R$ 4.218,50</span>
+      <div class="destaque"><b>Sobram R$ 480</b> até a recarga de <b>05/11</b>.</div>
+    </div>
+  </article>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--vermelho)"><span class="forma quadrado" style="background:var(--sobre-bloco)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card"><span class="mes">10</span> Outubro</h3>
+        <span class="selo" style="background:var(--risco-3)">Atenção</span></div>
+    </header>
+    <table class="planilha">
+      <thead><tr><th class="dia">Dia</th><th class="c-ent">Entrada</th><th class="c-sai">Saída</th><th class="c-sal">Saldo</th></tr></thead>
+      <tbody>
+        <tr><td class="dia">03</td><td class="ent">4.500,00</td><td class="sai"></td><td class="sal" style="--marca:var(--risco-1)">6.218,50</td></tr>
+        <tr><td class="dia">04</td><td class="ent"></td><td class="sai">320,00</td><td class="sal" style="--marca:var(--risco-2)">5.898,50</td></tr>
+        <tr class="hoje"><td class="dia"><span class="num-hoje">05</span></td><td class="ent"></td><td class="sai">1.250,00</td><td class="sal" style="--marca:var(--risco-3)">4.648,50</td></tr>
+        <tr><td class="dia">06</td><td class="ent"></td><td class="sai">5.000,00</td><td class="sal neg" style="--marca:var(--risco-5)">−351,50</td></tr>
+      </tbody>
+      <tfoot><tr><td class="rotulo">Total</td><td class="ent">4.500,00</td><td class="sai">6.570,00</td><td class="sal">−351,50</td></tr></tfoot>
+    </table>
+  </article>
+
+  <div class="linha">
+    <button class="btn principal">Salvar</button>
+    <button class="btn secundario">Cancelar</button>
+    <button class="btn secundario hover">Hover</button>
+  </div>
+
+  <label class="campo-rot"><span class="rotulo">Descrição</span><input class="campo" value="Mercado"></label>
+  <label class="campo-rot"><span class="rotulo">Valor (foco)</span><input class="campo foco" value="R$ 320,00"></label>
+
+  <div class="seg"><span class="ativo">Mês</span><span>Ano</span><span class="hover">Hover</span></div>
+  <div class="seg"><span class="ativo-saida">Saída</span><span>Entrada</span></div>
+
+  <div class="selos">
+    <span class="selo" style="background:var(--risco-1)">Tranquilo</span>
+    <span class="selo" style="background:var(--risco-2)">Estável</span>
+    <span class="selo" style="background:var(--risco-3)">Atenção</span>
+    <span class="selo" style="background:var(--risco-4)">Risco alto</span>
+    <span class="selo" style="background:var(--risco-5)">Muito alto</span>
+  </div>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--tinta)"><span class="forma quadrado" style="background:var(--amarelo)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card">Pastas</h3></div>
+    </header>
+    <ul class="lista">
+      <li>Casa</li><li class="sel">Viagem (marcada)</li><li class="hover-lista">Carro (hover)</li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <header class="cab">
+      <span class="faixa" style="background:var(--azul)"><span class="forma quadrado" style="background:var(--vermelho)"></span></span>
+      <div class="cab-txt"><h3 class="titulo-card">Entradas vs saídas</h3></div>
+    </header>
+    <svg class="grafico" viewBox="0 0 300 120" aria-hidden="true">
+      <line x1="24" y1="104" x2="296" y2="104" stroke="var(--contorno)" stroke-width="2"/>
+      <g stroke="var(--contorno)" stroke-width="1.5">
+        <rect x="34" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="58" y="46" width="22" height="58" fill="var(--grafico-saida)"/>
+        <rect x="104" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="128" y="22" width="22" height="82" fill="var(--grafico-saida)"/>
+        <rect x="174" y="30" width="22" height="74" fill="var(--grafico-entrada)"/><rect x="198" y="58" width="22" height="46" fill="var(--grafico-saida)"/>
+        <rect x="244" y="12" width="22" height="92" fill="var(--grafico-entrada)"/><rect x="268" y="40" width="22" height="64" fill="var(--grafico-saida)"/>
+      </g>
+      <polyline points="45,70 115,64 185,52 255,40" fill="none" stroke="var(--grafico-saldo)" stroke-width="3" stroke-linejoin="miter"/>
+    </svg>
+  </article>
+
+  <div class="dialogo">
+    <div class="tricolor"><i style="background:var(--vermelho)"></i><i style="background:var(--azul)"></i><i style="background:var(--amarelo)"></i></div>
+    <div class="dialogo-corpo">
+      <div class="marca"><span class="forma quadrado" style="background:var(--vermelho)"></span><span class="forma circulo" style="background:var(--azul)"></span><span class="forma triangulo" style="background:var(--amarelo)"></span>
+      <span class="titulo-card">Novo lançamento</span></div>
+      <p class="muted">Faixa do dialog com divisórias de contorno entre as cores.</p>
+    </div>
+  </div>
+</div>
+<div class="medidas"><h4>Conferência</h4><ul class="checagem"><li class="bom">Card: <b>1.14</b> <span>(alvo 1.08–1.3)</span></li><li class="bom">Área neutra: <b>1.17</b> <span>(alvo 1.05–1.3)</span></li><li class="ruim">Texto: <b>11.37</b> <span>(alvo 12–15)</span></li><li class="bom">Texto secundário: <b>6.54</b> <span>(alvo 6–8)</span></li><li class="ruim">Contorno: <b>1.63</b> <span>(alvo 3–5)</span></li><li class="bom">Campo: <b>4.40</b> <span>(alvo ≥ 3)</span></li><li class="bom">Divisória: <b>1.36</b> <span>(alvo 1.3–1.8)</span></li><li class="bom">Foco: <b>6.10</b> <span>(alvo ≥ 3)</span></li><li class="bom">Entrada: <b>7.01</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Saída: <b>6.09</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Negativo: <b>6.05</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Economia: <b>7.45</b> <span>(alvo ≥ 4.5)</span></li><li class="bom">Texto sobre vermelho: <b>4.99</b></li><li class="bom">Texto sobre azul: <b>4.90</b></li><li class="bom">Texto sobre amarelo: <b>8.66</b></li><li class="bom">Texto sobre risco-2: <b>7.74</b></li><li class="bom">Texto sobre risco-4: <b>6.76</b></li><li class="bom">entrada sobre entrada-suave: <b>6.36</b></li><li class="bom">saida sobre saida-suave: <b>5.56</b></li><li class="bom">negativo sobre negativo-suave: <b>4.87</b></li><li class="bom">economia sobre economia-suave: <b>6.63</b></li><li class="bom">risco-3-texto sobre risco-3-suave: <b>6.63</b></li><li class="bom">risco-4-texto sobre risco-4-suave: <b>5.92</b></li><li class="bom">Texto sobre seleção: <b>7.88</b></li><li class="bom">Sombra no chão <b>1.20</b> <span>(contorno 1.63: precisa ficar abaixo)</span></li><li class="bom">ΔL entre primárias: <b>0.15</b> <span>(alvo ≤ 0,15)</span></li><li class="bom">Fora do sRGB: <b>nenhum</b></li></ul><h4>Tokens</h4><table class="tokens"><thead><tr><th>Papel</th><th>Token</th><th>L</th><th>C</th><th>H</th><th>× card</th></tr></thead><tbody><tr><td class="papel-tok">Chão e superfícies</td><td><span class="amostra" style="background:oklch(0.295 0.004 80)"></span>background</td><td>0.295</td><td>0.004</td><td>80</td><td></td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.330 0.004 80)"></span>card</td><td>0.330</td><td>0.004</td><td>80</td><td>1.14</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.370 0.005 80)"></span>muted</td><td>0.370</td><td>0.005</td><td>80</td><td>1.17</td></tr><tr><td class="papel-tok">Texto</td><td><span class="amostra" style="background:oklch(0.975 0.003 85)"></span>foreground</td><td>0.975</td><td>0.003</td><td>85</td><td>11.37</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.800 0.004 80)"></span>muted-foreground</td><td>0.800</td><td>0.004</td><td>80</td><td>6.54</td></tr><tr><td class="papel-tok">Estrutura e sombra</td><td><span class="amostra" style="background:oklch(0.140 0.004 80)"></span>contorno</td><td>0.140</td><td>0.004</td><td>80</td><td>1.63</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.690 0.005 80)"></span>input</td><td>0.690</td><td>0.005</td><td>80</td><td>4.40</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.235 0.004 80)"></span>border</td><td>0.235</td><td>0.004</td><td>80</td><td>1.36</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.235 0.030 262)"></span>sombra</td><td>0.235</td><td>0.030</td><td>262</td><td>1.20</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.780 0.100 258)"></span>ring</td><td>0.780</td><td>0.100</td><td>258</td><td>6.10</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.160 0.004 80)"></span>tinta</td><td>0.160</td><td>0.004</td><td>80</td><td>1.59</td></tr><tr><td class="papel-tok">Blocos de cor</td><td><span class="amostra" style="background:oklch(0.620 0.145 30)"></span>vermelho</td><td>0.620</td><td>0.145</td><td>30</td><td>3.14</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.600 0.115 258)"></span>azul</td><td>0.600</td><td>0.115</td><td>258</td><td>3.08</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.750 0.120 84)"></span>amarelo</td><td>0.750</td><td>0.120</td><td>84</td><td>5.45</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.710 0.085 220)"></span>risco-2</td><td>0.710</td><td>0.085</td><td>220</td><td>4.87</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.690 0.120 55)"></span>risco-4</td><td>0.690</td><td>0.120</td><td>55</td><td>4.25</td></tr><tr><td class="papel-tok">Cor em texto</td><td><span class="amostra" style="background:oklch(0.820 0.080 256)"></span>entrada</td><td>0.820</td><td>0.080</td><td>256</td><td>7.01</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.790 0.100 30)"></span>saida</td><td>0.790</td><td>0.100</td><td>30</td><td>6.09</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.790 0.110 25)"></span>negativo</td><td>0.790</td><td>0.110</td><td>25</td><td>6.05</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.840 0.095 85)"></span>economia</td><td>0.840</td><td>0.095</td><td>85</td><td>7.45</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.830 0.065 215)"></span>risco-2-texto</td><td>0.830</td><td>0.065</td><td>215</td><td>7.38</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.810 0.095 58)"></span>risco-4-texto</td><td>0.810</td><td>0.095</td><td>58</td><td>6.62</td></tr><tr><td class="papel-tok">Fundos suaves</td><td><span class="amostra" style="background:oklch(0.355 0.016 258)"></span>entrada-suave</td><td>0.355</td><td>0.016</td><td>258</td><td>1.10</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.355 0.016 28)"></span>saida-suave</td><td>0.355</td><td>0.016</td><td>28</td><td>1.10</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.360 0.004 80)"></span>saldo-suave</td><td>0.360</td><td>0.004</td><td>80</td><td>1.12</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.390 0.050 25)"></span>negativo-suave</td><td>0.390</td><td>0.050</td><td>25</td><td>1.24</td></tr><tr><td class="papel-tok"></td><td><span class="amostra" style="background:oklch(0.360 0.014 88)"></span>economia-suave</td><td>0.360</td><td>0.014</td><td>88</td><td>1.13</td></tr></tbody></table></div></section></div></body></html>
