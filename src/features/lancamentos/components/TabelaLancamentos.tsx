@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from 'react'
+import { useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { ArrowDown, ArrowLeftRight, ArrowUp, ChevronsUpDown, Pencil, Trash2 } from '@/shared/ui/icones'
 import type { Caixa } from '@/features/caixas/caixa'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
@@ -9,6 +9,7 @@ import type { Pasta } from '@/features/pastas/pasta'
 import { PilulaTag } from '@/features/tags/components/PilulaTag'
 import type { Tag } from '@/features/tags/tag'
 import { PontoCor } from '@/shared/components/PontoCor'
+import { paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { TABELA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -18,6 +19,7 @@ import { Checkbox } from '@/shared/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { ehTransferencia, type Lancamento } from '../lancamento'
 import type { CampoOrdem, Ordem } from '../ordenacao'
+import { parcelasDe, type Parcelas } from '../parcelas'
 import { descreverPeriodo, descreverRecorrencia, ROTULO_NATUREZA } from '../textos'
 
 /** Descrição, categoria, tag, natureza, recorrência, valor e ações. */
@@ -92,6 +94,12 @@ export function TabelaLancamentos({
   const agrupar = pastas.length > 0
   const colunas = COLUNAS + (selecao ? 1 : 0)
   const todos = grupos.flatMap((g) => g.lancamentos.map((l) => l.id))
+  // Recorrentes com início e fim: quantas vezes já foram e quanto falta.
+  const [hoje] = useState(() => paraDataISO(new Date()))
+  const parcelas = useMemo(
+    () => new Map(grupos.flatMap((g) => g.lancamentos).map((l) => [l.id, parcelasDe(l, hoje)])),
+    [grupos, hoje],
+  )
 
   const linhas = (lancamentos: Lancamento[]) =>
     lancamentos.map((l) => (
@@ -103,6 +111,7 @@ export function TabelaLancamentos({
         caixa={caixas?.get(l.caixaId)}
         destino={l.caixaDestinoId ? caixas?.get(l.caixaDestinoId) : undefined}
         noPeriodo={noPeriodo && (noPeriodo.get(l.id) ?? { vezes: 0, totalCentavos: 0 })}
+        parcelas={parcelas.get(l.id) ?? undefined}
         selecionado={selecao?.ids.has(l.id)}
         onSelecionar={selecao && ((intervalo) => selecao.onAlternar(l.id, intervalo))}
         mover={
@@ -236,6 +245,8 @@ interface LinhaLancamentoProps {
   destino?: Caixa
   /** Com filtro de data: vezes e total no período. */
   noPeriodo?: { vezes: number; totalCentavos: number }
+  /** Recorrente com início e fim: quantas vezes já foram e quanto falta. */
+  parcelas?: Parcelas
   selecionado?: boolean
   /** Seleção em lote; `intervalo` com Shift. */
   onSelecionar?: (intervalo: boolean) => void
@@ -252,6 +263,7 @@ function LinhaLancamento({
   caixa,
   destino,
   noPeriodo,
+  parcelas,
   selecionado,
   onSelecionar,
   mover,
@@ -323,6 +335,7 @@ function LinhaLancamento({
             · {transferencia ? 'Transferência' : ROTULO_NATUREZA[l.natureza]} · {recorrencia}
             {periodo && ` · ${periodo}`}
           </span>
+          {parcelas && <ProgressoParcelas parcelas={parcelas} tipo={l.tipo} className="lg:hidden" />}
         </div>
       </TableCell>
       <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
@@ -338,6 +351,7 @@ function LinhaLancamento({
         <div className="flex flex-col gap-0.5">
           <span className="tabular-nums">{recorrencia}</span>
           {periodo && <span className="text-[0.7rem] text-muted-foreground tabular-nums">{periodo}</span>}
+          {parcelas && <ProgressoParcelas parcelas={parcelas} tipo={l.tipo} />}
         </div>
       </TableCell>
       <TableCell
@@ -389,5 +403,28 @@ function LinhaLancamento({
         </div>
       </TableCell>
     </TableRow>
+  )
+}
+
+const COR_BARRA: Record<Lancamento['tipo'], string> = {
+  entrada: 'bg-azul',
+  saida: 'bg-vermelho',
+  transferencia: 'bg-foreground',
+}
+
+/** "2 de 9 · faltam R$ 1.225,00", com uma barra do que já foi. */
+function ProgressoParcelas({ parcelas: p, tipo, className }: { parcelas: Parcelas; tipo: Lancamento['tipo']; className?: string }) {
+  return (
+    <span className={cn('flex max-w-48 flex-col gap-0.5 text-[0.7rem] text-muted-foreground tabular-nums', className)}>
+      <span>
+        <span className="font-semibold text-foreground">
+          {p.pagas} de {p.total}
+        </span>
+        {p.restantes > 0 ? <> · faltam {formatarBRL(p.restanteCentavos)}</> : ' · terminou'}
+      </span>
+      <span aria-hidden className="h-1.5 border border-contorno bg-muted">
+        <span className={cn('block h-full', COR_BARRA[tipo])} style={{ width: `${(p.pagas / p.total) * 100}%` }} />
+      </span>
+    </span>
   )
 }

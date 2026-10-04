@@ -115,7 +115,10 @@ function ehLancamento(l: unknown): l is Omit<Lancamento, 'caixaId'> {
     (l.natureza === 'fixa' || l.natureza === 'variavel') &&
     ehRecorrencia(l.recorrencia) &&
     (l.inicio === undefined || ehData(l.inicio)) &&
-    (l.fim === undefined || ehData(l.fim))
+    (l.fim === undefined || ehData(l.fim)) &&
+    // A partir da versão 9: valor de um dia só (0 = pulado).
+    (l.excecoes === undefined ||
+      (ehObjeto(l.excecoes) && Object.entries(l.excecoes).every(([data, v]) => ehData(data) && ehCentavos(v) && v >= 0)))
   )
 }
 

@@ -27,6 +27,8 @@ export interface RascunhoLancamento {
   apenasDiasUteis: boolean
   inicio: DataISO | undefined
   fim: DataISO | undefined
+  /** Dias com outro valor (0 = pulado), mudados no dia da planilha; só valem no recorrente. */
+  excecoes: Record<DataISO, number>
 }
 
 export type ErrosLancamento = Partial<Record<keyof RascunhoLancamento, string>>
@@ -50,6 +52,7 @@ export function rascunhoVazio(data: DataISO, caixaId: string): RascunhoLancament
     apenasDiasUteis: false,
     inicio: undefined,
     fim: undefined,
+    excecoes: {},
   }
 }
 
@@ -72,6 +75,7 @@ export function rascunhoDe(l: Lancamento, hoje: DataISO): RascunhoLancamento {
     ...(r.tipo === 'diaria' && { apenasDiasUteis: r.apenasDiasUteis }),
     inicio: l.inicio,
     fim: l.fim,
+    excecoes: l.excecoes ?? {},
   }
 }
 
@@ -114,6 +118,7 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
           : { tipo: 'diaria', apenasDiasUteis: r.apenasDiasUteis }
 
   const limites = r.recorrencia === 'unica' ? {} : { inicio: r.inicio, fim: r.fim }
+  const excecoes = r.recorrencia !== 'unica' && Object.keys(r.excecoes).length > 0 ? { excecoes: r.excecoes } : {}
   const transferencia = r.tipo === 'transferencia'
 
   return {
@@ -131,6 +136,7 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
     natureza: transferencia ? naturezaDaTransferencia(r.recorrencia) : r.natureza,
     recorrencia,
     ...limites,
+    ...excecoes,
   }
 }
 

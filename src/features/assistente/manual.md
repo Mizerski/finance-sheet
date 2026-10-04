@@ -29,6 +29,8 @@ No cabeçalho também ficam: o saldo de hoje e o saldo projetado no fim do ano (
   - **Semanal**: em dias da semana escolhidos (ex.: toda terça).
   - **Diária**: todos os dias ou só dias úteis.
 - Um lançamento que se repete pode ter **início** e **fim** (ex.: parcelas de março a junho). Sem fim, repete para sempre.
+- **Compra parcelada**: lançamento Mensal com o campo **Quantas vezes** (ex.: 10): o app calcula o fim a partir do início e mostra o total e a data da última parcela. Na lista de Lançamentos, a linha mostra quantas já foram e quanto falta ("2 de 10 · faltam R$ 1.400,00"), com uma barrinha.
+- **Mudar só um dia** (salário que veio diferente, conta que chegou com outro valor, mês sem academia): na Planilha, clique no dia e, no lançamento que se repete, no ícone de calendário ("Mudar só neste dia"). Dá para pôr outro valor só naquele dia ou "Pular este dia"; os outros meses continuam iguais. O dia mudado mostra "só neste dia" e o valor normal; o pulado aparece riscado, com um botão para voltar. No formulário do lançamento, "Mudado só em alguns dias" lista esses dias, e o × volta cada um ao normal.
 - Ao mudar um lançamento que já aconteceu, o app pergunta se a mudança vale **"Daqui para frente"** (o passado fica como estava) ou **"Desde o início"**.
 - Categoria, tag e pasta podem ser criadas no próprio formulário: opção "Nova categoria", "Nova tag" ou "Nova pasta" no fim da lista.
 - Para editar ou excluir: na lista de Lançamentos, botões da linha; ou clicando no dia da Planilha (clicar no lançamento edita, a lixeira ao lado exclui). Excluir não tem volta; num lançamento que se repete e já aconteceu, "Encerrar" para a partir de hoje e mantém o passado.

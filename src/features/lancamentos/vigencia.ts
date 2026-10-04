@@ -37,9 +37,20 @@ export function validarVigencia(original: Lancamento, aPartirDe: DataISO): strin
  */
 export function dividirEm(original: Lancamento, editado: Lancamento, aPartirDe: DataISO, novoId: string): Lancamento[] {
   if (original.inicio && aPartirDe <= original.inicio) return [editado]
-  const antigo = { ...original, fim: somarDias(aPartirDe, -1) }
-  const novo = editado.recorrencia.tipo === 'unica' ? { ...editado, id: novoId } : { ...editado, id: novoId, inicio: aPartirDe }
+  const antigo = comExcecoes({ ...original, fim: somarDias(aPartirDe, -1) }, (data) => data < aPartirDe)
+  const novo =
+    editado.recorrencia.tipo === 'unica'
+      ? { ...editado, id: novoId }
+      : comExcecoes({ ...editado, id: novoId, inicio: aPartirDe }, (data) => data >= aPartirDe)
   return [antigo, novo]
+}
+
+/** Só as exceções (dias com outro valor) cujas datas passam no filtro; sem nenhuma, sem o campo. */
+export function comExcecoes(l: Lancamento, manter: (data: DataISO) => boolean): Lancamento {
+  const excecoes = Object.fromEntries(Object.entries(l.excecoes ?? {}).filter(([data]) => manter(data)))
+  const copia = { ...l }
+  delete copia.excecoes
+  return Object.keys(excecoes).length ? { ...copia, excecoes } : copia
 }
 
 /** Para de acontecer a partir de `hoje`, mantendo as ocorrências que já passaram. */

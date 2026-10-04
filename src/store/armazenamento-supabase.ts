@@ -44,6 +44,7 @@ interface LinhaLancamento {
   recorrencia: Recorrencia
   inicio: string | null
   fim: string | null
+  excecoes: Record<string, number> | null
 }
 
 interface LinhaMeta {
@@ -64,7 +65,7 @@ interface LinhaMeta {
 
 const COLUNAS_CAIXA =
   'id, nome, cor, tipo, saldo_inicial_centavos, data_saldo_inicial, saldo_definido, entra_no_total, ordem, arquivado'
-const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
+const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim, excecoes'
 const COLUNAS_META =
   'id, caixa_id, destino_id, nome, valor_alvo_centavos, aporte_mensal_centavos, ja_guardado_centavos, dia_do_mes, inicio, prazo, ajustes, resgates, encerrada_em'
 
@@ -140,6 +141,7 @@ function deLinhaLancamento(l: LinhaLancamento): Lancamento {
     recorrencia: l.recorrencia,
     ...(l.inicio && { inicio: l.inicio }),
     ...(l.fim && { fim: l.fim }),
+    ...(l.excecoes && Object.keys(l.excecoes).length && { excecoes: l.excecoes }),
   }
 }
 
@@ -165,6 +167,7 @@ function paraLinhaLancamento(l: Lancamento, ids: IdsValidos): LinhaLancamento {
     recorrencia: l.recorrencia,
     inicio: l.inicio ?? null,
     fim: l.fim ?? null,
+    excecoes: l.excecoes ?? {},
   }
 }
 

@@ -39,9 +39,19 @@ export interface Lancamento {
   /** Limites opcionais (inclusivos) da recorrência. */
   inicio?: DataISO
   fim?: DataISO
+  /**
+   * Só em recorrentes: dias em que o valor foi outro ("mudar só este dia"), em centavos; 0 = pulado nesse dia.
+   * Ausente ou vazio = todas as ocorrências com `valorCentavos`.
+   */
+  excecoes?: Record<DataISO, number>
 }
 
 export type Transferencia = Lancamento & { tipo: 'transferencia'; caixaDestinoId: string }
+
+/** Valor do lançamento num dia em que ele acontece: o da exceção, se houver (0 = pulado). */
+export function valorNoDia(l: Lancamento, data: DataISO): number {
+  return l.excecoes?.[data] ?? l.valorCentavos
+}
 
 export function ehTransferencia(l: Lancamento): l is Transferencia {
   return l.tipo === 'transferencia' && !!l.caixaDestinoId
