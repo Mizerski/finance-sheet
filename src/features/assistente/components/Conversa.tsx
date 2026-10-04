@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Search } from 'lucide-react'
+import { Search } from '@/shared/ui/icones'
 import { Forma } from '@/shared/components/Forma'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { ROTULO } from '@/shared/lib/estilos'

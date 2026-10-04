@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from 'react'
-import { Check } from 'lucide-react'
+import { Check } from '@/shared/ui/icones'
 import { ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { GRUPOS_CORES_CATEGORIA, type CorCategoria } from '../cores'
@@ -82,7 +82,7 @@ function Quadradinho({ cor, ativo, focavel, onClick }: { cor: CorCategoria; ativ
       )}
       style={{ backgroundColor: cor.hex }}
     >
-      {ativo && <Check strokeWidth={3.5} className="size-4" />}
+      {ativo && <Check strokeWidth={3.5} className="size-6" />}
     </button>
   )
 }

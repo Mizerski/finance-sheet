@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from 'react'
-import { ArrowLeft, Download } from 'lucide-react'
+import { ArrowLeft, Download } from '@/shared/ui/icones'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { Forma } from '@/shared/components/Forma'
 import { BOTAO, ROTULO } from '@/shared/lib/estilos'

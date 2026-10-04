@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '@/shared/ui/icones'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
 import { useVisao } from '@/features/caixas/useVisao'
 import type { Categoria } from '@/features/categorias/categoria'

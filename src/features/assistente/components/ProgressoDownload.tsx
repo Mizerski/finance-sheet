@@ -1,4 +1,4 @@
-import { Pause } from 'lucide-react'
+import { Pause } from '@/shared/ui/icones'
 import { BarraProgresso } from '@/features/economias/components/BarraProgresso'
 import { BOTAO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'

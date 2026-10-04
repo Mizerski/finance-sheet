@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, FolderInput } from 'lucide-react'
+import { Check, FolderInput } from '@/shared/ui/icones'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { CAMADA, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -55,7 +55,7 @@ export function MoverParaPasta({ descricao, pastaAtual, pastas, onMover }: Mover
                 >
                   <PontoCor cor={o.cor} />
                   <span className="min-w-0 flex-1 truncate">{o.nome}</span>
-                  {ativa && <Check strokeWidth={3} className="size-4" />}
+                  {ativa && <Check strokeWidth={3} className="size-6" />}
                 </button>
               </li>
             )

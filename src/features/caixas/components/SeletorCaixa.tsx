@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ChevronDown, Settings2 } from 'lucide-react'
+import { ChevronDown, Settings2 } from '@/shared/ui/icones'
 import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import type { Projecao } from '@/features/projecao/projecao'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
@@ -135,7 +135,7 @@ export function SeletorCaixa({ className }: { className?: string }) {
             <span className="sr-only">Atenção em {avisoOutros}</span>
           </>
         )}
-        <ChevronDown aria-hidden strokeWidth={2.5} className="size-3.5 shrink-0" />
+        <ChevronDown aria-hidden strokeWidth={2.5} className="size-3 shrink-0" />
       </PopoverTrigger>
 
       <PopoverContent align="start" className={cn(CAMADA, 'w-[22rem] max-w-[calc(100vw-2rem)] gap-0 p-0')}>
@@ -159,7 +159,7 @@ export function SeletorCaixa({ className }: { className?: string }) {
               '-mx-1 flex items-center gap-1.5 px-1 py-1 font-semibold transition-colors duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring',
             )}
           >
-            <Settings2 aria-hidden className="size-3.5" />
+            <Settings2 aria-hidden className="size-3" />
             Gerenciar caixas
           </Link>
           <span className="text-[0.7rem] text-muted-foreground">Alt + número troca</span>

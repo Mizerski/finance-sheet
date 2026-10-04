@@ -1,4 +1,4 @@
-import { MessagesSquare } from 'lucide-react'
+import { MessagesSquare } from '@/shared/ui/icones'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { useAssistente } from '../assistente-context'
@@ -21,7 +21,7 @@ export function BotaoAssistente() {
       aria-expanded={aberto}
       title="Assistente (atalho A)"
     >
-      <MessagesSquare className="size-4" />
+      <MessagesSquare className="size-6" />
       {/* Download em andamento: um ponto amarelo, para a pessoa saber que continua mesmo com o painel fechado. */}
       {baixando && (
         <span aria-hidden className="absolute top-1.5 right-1.5 size-2 border border-contorno bg-amarelo motion-safe:animate-pulse" />

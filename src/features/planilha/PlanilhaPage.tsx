@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
-import { Landmark } from 'lucide-react'
+import { Landmark } from '@/shared/ui/icones'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
 import { useVisao } from '@/features/caixas/useVisao'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'

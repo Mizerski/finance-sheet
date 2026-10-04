@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight } from '@/shared/ui/icones'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { Forma } from '@/shared/components/Forma'
 import { BOTAO, CARD, ROTULO } from '@/shared/lib/estilos'

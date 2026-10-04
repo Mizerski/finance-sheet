@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { DatabaseBackup, Download, Upload } from 'lucide-react'
+import { DatabaseBackup, Download, Upload } from '@/shared/ui/icones'
 import { formatarData } from '@/shared/lib/datas'
 import { traduzirErro } from '@/shared/lib/erros'
 import { BOTAO, CAMADA } from '@/shared/lib/estilos'
@@ -66,7 +66,7 @@ export function BotaoBackup() {
             aria-label="Backup dos dados"
             title="Backup dos dados"
           >
-            <DatabaseBackup className="size-4" />
+            <DatabaseBackup className="size-6" />
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className={cn(CAMADA, 'w-80 gap-3')}>
@@ -78,11 +78,11 @@ export function BotaoBackup() {
           </PopoverHeader>
           <div className="flex flex-col gap-2">
             <Button className={cn(BOTAO, 'w-full')} onClick={exportar}>
-              <Download className="size-4" />
+              <Download className="size-6" />
               Exportar backup
             </Button>
             <Button variant="outline" className={cn(BOTAO, 'w-full')} onClick={escolher}>
-              <Upload className="size-4" />
+              <Upload className="size-6" />
               Importar backup
             </Button>
           </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
-import { ArrowUp, Square } from 'lucide-react'
+import { ArrowUp, Square } from '@/shared/ui/icones'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { ID_CAMPO_PERGUNTA, useAssistente } from '../assistente-context'

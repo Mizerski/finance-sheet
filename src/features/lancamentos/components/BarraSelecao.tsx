@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
-import { Check, FolderInput, Shapes, Tag as IconeTag, Trash2, Undo2, Wallet, X } from 'lucide-react'
+import { Check, FolderInput, Shapes, Tag as IconeTag, Trash2, Undo2, Wallet, X } from '@/shared/ui/icones'
 import type { Caixa } from '@/features/caixas/caixa'
 import type { Categoria } from '@/features/categorias/categoria'
 import { SEM_PASTA, type Pasta } from '@/features/pastas/pasta'
@@ -91,7 +91,7 @@ export function BarraSelecao({
             quantidade > 0 && 'border-b-2 border-contorno',
           )}
         >
-          <Check aria-hidden strokeWidth={3} className="size-4 shrink-0" />
+          <Check aria-hidden strokeWidth={3} className="size-6 shrink-0" />
           <p className="min-w-0 flex-1">{aviso.mensagem}</p>
           {aviso.onDesfazer && (
             <Button variant="outline" className={cn(BOTAO, 'h-8 px-3')} onClick={aviso.onDesfazer}>

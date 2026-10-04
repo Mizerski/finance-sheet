@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Archive, ArchiveRestore, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, ChevronDown, ChevronUp, Pencil, Trash2 } from '@/shared/ui/icones'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { PontoCor } from '@/shared/components/PontoCor'
@@ -203,7 +203,7 @@ function BotaoPosicao({
       title={rotulo}
       disabled={desabilitado}
       onClick={onClick}
-      className="flex h-5 w-7 items-center justify-center text-muted-foreground transition-colors duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30 [&_svg]:size-4"
+      className="flex h-5 w-7 items-center justify-center text-muted-foreground transition-colors duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30 [&_svg]:size-3"
     >
       {children}
     </button>

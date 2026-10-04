@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '@/shared/ui/icones'
 import { CabecalhoOrganizacao } from '@/features/organizacao/components/CabecalhoOrganizacao'
 import { gastosPorTag } from '@/features/projecao/projecao'
 import { useDiasDosCaixas } from '@/features/projecao/projecoes-por-caixa'

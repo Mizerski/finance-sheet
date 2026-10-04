@@ -219,6 +219,8 @@ Sem categoria: `#a39a8e`.
 | Controle segmentado | `ControleSegmentado`: faixa com contorno, divisórias, ativa em bloco preto (ou `corAtiva`) |
 | Menu | abas em blocos separados com contorno e sombra dura, que afundam ao clicar; a ativa fica afundada (preta, deslocada 2px, sem sombra); hover amarelo |
 | Badge | canto reto, borda de 1,5px, caixa alta |
+| Barra de rolagem | global em `src/index.css` (`::-webkit-scrollbar`): 14px, trilho `--muted` com régua `--contorno`, puxador quadrado em `--input` (preto no claro, cinza no escuro) que fica amarelo no hover, botões ▲▼ com setas em pixel (`--seta-*`, uma cor por tema). Não use `scrollbar-color`/`scrollbar-width` (o Chromium passa a ignorar o estilo); `[scrollbar-width:none]` só para esconder a barra, como no menu |
+| Cursor | pixel art em grade de 2px, em `public/cursores/` (`.svg` e `@2x.svg`), pelos tokens `--cursor-seta`, `--cursor-mao` (amarela, em tudo que é clicável), `--cursor-texto` (campos) e `--cursor-bloqueado` (desabilitado). As classes `cursor-pointer`, `cursor-default` e `cursor-not-allowed` já usam os tokens. Para desenho novo, mude o arquivo nas duas resoluções e o ponto de clique no token |
 
 - Sombras: `shadow-bloco-sm` (3px, botões e grupos), `shadow-bloco` (4px, cards e popovers), `shadow-bloco-lg` (6px, dialogs e avisos), na cor `--sombra`. Nunca sombra com desfoque.
 - Botões com sombra "afundam" ao clicar (`translate` de 2px e sombra zerada), exceto com `prefers-reduced-motion`. Vale para todo controle em bloco com sombra: botões, abas do menu e quadradinhos do seletor de cor. O item escolhido de um grupo (aba ativa, cor escolhida) pode ficar afundado de vez.
@@ -276,8 +278,9 @@ Cada card responde uma pergunta de relance (regra `progressive-disclosure` da ui
 
 ## Ícones
 
-- `lucide-react`, com traço padrão (traço 2,5–3 em ✓ e chevrons de destaque).
-- Tamanho `size-4` em botões. No menu, a forma da tela substitui o ícone.
+- **Pixel art:** Pixelarticons (MIT), numa grade de 24×24, importados só de `@/shared/ui/icones`. Os nomes seguem o lucide (`Trash2`, `Pencil`, `X`…) e cada um aponta para um desenho da coleção, de preferência a variante `Sharp` (cantos retos). Ícone novo: acrescente o par em `icones.tsx`. Componente do shadcn copiado com `lucide-react`: troque o import por `@/shared/ui/icones`.
+- **Tamanho só em múltiplos da grade:** `size-6` (24px, padrão dos botões) ou `size-3` (12px, ao lado de texto pequeno, em selects e no checkbox). Em 16px ou 14px os pixels borram.
+- O traço não muda (`strokeWidth` é ignorado); a ênfase vem do tamanho e da cor. No menu, a forma da tela substitui o ícone.
 - Todo botão só com ícone precisa de `aria-label`.
 
 ## Componentes

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Plus, Sparkles } from 'lucide-react'
+import { Plus, Sparkles } from '@/shared/ui/icones'
 import { COR_RISCO } from '@/features/risco/cores'
 import { DataForte, Forte, NomeNivel, SaldoForte } from '@/features/risco/components/Destaques'
 import type { AnaliseRisco } from '@/features/risco/risco'
@@ -108,7 +108,7 @@ function NovoMes({
   return (
     <>
       <Titulo>
-        <Sparkles className="size-3.5" aria-hidden />
+        <Sparkles className="size-3" aria-hidden />
         Novo mês
       </Titulo>
       <CaixaDestaque fundo={positiva ? 'bg-entrada-suave' : 'bg-negativo-suave'} faixa={positiva ? 'border-l-azul' : 'border-l-vermelho'}>

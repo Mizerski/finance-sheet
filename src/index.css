@@ -193,6 +193,15 @@
     --sidebar-accent-foreground: oklch(0.2 0.006 80);
     --sidebar-border: oklch(0.85 0.008 90);
     --sidebar-ring: oklch(0.45 0.2 264);
+    /* Cursores e setas da barra de rolagem em pixel art (ponto de clique em px da imagem 1x). */
+    --cursor-seta: image-set(url("/cursores/seta.svg") 1x, url("/cursores/seta@2x.svg") 2x) 1 1, default;
+    --cursor-mao: image-set(url("/cursores/mao.svg") 1x, url("/cursores/mao@2x.svg") 2x) 9 1, pointer;
+    --cursor-texto: image-set(url("/cursores/texto.svg") 1x, url("/cursores/texto@2x.svg") 2x) 7 16, text;
+    --cursor-bloqueado: image-set(url("/cursores/bloqueado.svg") 1x, url("/cursores/bloqueado@2x.svg") 2x) 12 12, not-allowed;
+    --seta-cima: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%25231d1b18' d='M3 0h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM6 3h1v1h-1z'/%3E%3C/svg%3E");
+    --seta-baixo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%25231d1b18' d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM1 1h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1z'/%3E%3C/svg%3E");
+    --seta-esquerda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'%3E%3Cpath fill='%25231d1b18' d='M3 0h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+    --seta-direita: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'%3E%3Cpath fill='%25231d1b18' d='M0 0h1v1h-1zM0 1h1v1h-1zM1 1h1v1h-1zM0 2h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM0 5h1v1h-1zM1 5h1v1h-1zM0 6h1v1h-1z'/%3E%3C/svg%3E");
 }
 
 /*
@@ -293,6 +302,10 @@
     --sidebar-accent-foreground: oklch(0.975 0.003 85);
     --sidebar-border: oklch(0.235 0.004 80);
     --sidebar-ring: oklch(0.78 0.1 258);
+    --seta-cima: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%2523f6f5f2' d='M3 0h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM6 3h1v1h-1z'/%3E%3C/svg%3E");
+    --seta-baixo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%2523f6f5f2' d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM1 1h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1z'/%3E%3C/svg%3E");
+    --seta-esquerda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'%3E%3Cpath fill='%2523f6f5f2' d='M3 0h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+    --seta-direita: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'%3E%3Cpath fill='%2523f6f5f2' d='M0 0h1v1h-1zM0 1h1v1h-1zM1 1h1v1h-1zM0 2h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM0 5h1v1h-1zM1 5h1v1h-1zM0 6h1v1h-1z'/%3E%3C/svg%3E");
 }
 
 @layer base {
@@ -315,10 +328,91 @@
     background-color: var(--amarelo);
     color: var(--tinta);
     }
-  /* O Tailwind 4 tira o cursor de mão dos botões; tudo que é clicável volta a mostrá-lo. */
-  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary {
-    cursor: pointer;
+  /* Cursores em pixel art (public/cursores, desenhados em grade de 2px; @2x para telas com escala). */
+  html {
+    cursor: var(--cursor-seta);
     }
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]), textarea, [contenteditable="true"] {
+    cursor: var(--cursor-texto);
+    }
+  /* O Tailwind 4 tira o cursor de mão dos botões; tudo que é clicável volta a mostrá-lo. */
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary, a[href] {
+    cursor: var(--cursor-mao);
+    }
+  /* Barra de rolagem em bloco: trilho neutro com régua preta, puxador quadrado que fica amarelo no hover. */
+  ::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+    }
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+    }
+  ::-webkit-scrollbar-track:vertical {
+    border-left: 2px solid var(--contorno);
+    }
+  ::-webkit-scrollbar-track:horizontal {
+    border-top: 2px solid var(--contorno);
+    }
+  /* O puxador é controle: usa --input (preto no claro, cinza a 4,4:1 no escuro), como os campos. */
+  ::-webkit-scrollbar-thumb {
+    background: var(--input);
+    border: 3px solid var(--muted);
+    }
+  ::-webkit-scrollbar-thumb:vertical {
+    border-left-width: 5px;
+    }
+  ::-webkit-scrollbar-thumb:horizontal {
+    border-top-width: 5px;
+    }
+  ::-webkit-scrollbar-thumb:hover, ::-webkit-scrollbar-thumb:active {
+    background: var(--amarelo);
+    }
+  ::-webkit-scrollbar-corner {
+    background: var(--muted);
+    }
+  ::-webkit-scrollbar-button:single-button {
+    display: block;
+    width: 14px;
+    height: 14px;
+    background-color: var(--card);
+    background-repeat: no-repeat;
+    background-position: center;
+    }
+  ::-webkit-scrollbar-button:single-button:hover {
+    background-color: var(--amarelo);
+    }
+  ::-webkit-scrollbar-button:single-button:vertical {
+    border-left: 2px solid var(--contorno);
+    }
+  ::-webkit-scrollbar-button:single-button:horizontal {
+    border-top: 2px solid var(--contorno);
+    }
+  ::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: var(--seta-cima);
+    border-bottom: 2px solid var(--contorno);
+    }
+  ::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: var(--seta-baixo);
+    border-top: 2px solid var(--contorno);
+    }
+  ::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background-image: var(--seta-esquerda);
+    border-right: 2px solid var(--contorno);
+    }
+  ::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background-image: var(--seta-direita);
+    border-left: 2px solid var(--contorno);
+    }
+}
+/* Fora das camadas para valer também sobre as classes de cursor do Tailwind. */
+.cursor-pointer {
+  cursor: var(--cursor-mao);
+}
+.cursor-default {
+  cursor: var(--cursor-seta);
+}
+:disabled, [aria-disabled="true"], .cursor-not-allowed {
+  cursor: var(--cursor-bloqueado);
 }
 /* Saldos ocultos: o valor fica borrado até passar o mouse em cima. */
 .valor-saldo {

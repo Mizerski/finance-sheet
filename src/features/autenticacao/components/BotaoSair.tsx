@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { LogOut } from 'lucide-react'
+import { LogOut } from '@/shared/ui/icones'
 import { Button } from '@/shared/ui/button'
 import { SessaoContext } from '../sessao-context'
 
@@ -18,7 +18,7 @@ export function BotaoSair() {
       title={`Sair (${usuario.email ?? 'conta'})`}
       onClick={sair}
     >
-      <LogOut className="size-4" />
+      <LogOut className="size-6" />
     </Button>
   )
 }

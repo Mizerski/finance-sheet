@@ -1,4 +1,4 @@
-import { Bell, BellOff, BellRing } from 'lucide-react'
+import { Bell, BellOff, BellRing } from '@/shared/ui/icones'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { formatarData } from '@/shared/lib/datas'
 import { BOTAO, CAMADA, CAMPO } from '@/shared/lib/estilos'
@@ -27,7 +27,7 @@ export function BotaoLembrete() {
           aria-label="Lembrete diário"
           title="Lembrete diário"
         >
-          <Icone className="size-4" />
+          <Icone className="size-6" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className={cn(CAMADA, 'w-80 gap-3')}>
@@ -62,7 +62,7 @@ export function BotaoLembrete() {
               />
             </Field>
             <Button variant="outline" className={cn(BOTAO, 'w-full')} onClick={testar}>
-              <BellRing className="size-4" />
+              <BellRing className="size-6" />
               Testar notificação
             </Button>
 

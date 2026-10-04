@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from '@/shared/ui/icones'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { cn } from '@/shared/lib/utils'
@@ -44,7 +44,7 @@ export function CabecalhoGrupo({ grupo, aberto, quando, colunas, onAlternar, sel
             selecao ? 'pl-2' : 'pl-3 sm:pl-4',
           )}
         >
-          <ChevronRight strokeWidth={2.5} className={cn('size-4', aberto && 'rotate-90')} />
+          <ChevronRight strokeWidth={2.5} className={cn('size-6', aberto && 'rotate-90')} />
           <PontoCor cor={cor} className="size-3" />
           <span className="font-heading text-[0.9375rem] font-bold uppercase">{nome}</span>
           <span className="text-muted-foreground tabular-nums">

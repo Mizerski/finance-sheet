@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RefreshCw, Settings2, Trash2 } from 'lucide-react'
+import { RefreshCw, Settings2, Trash2 } from '@/shared/ui/icones'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO, CAMADA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'

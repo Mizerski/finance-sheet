@@ -1,4 +1,4 @@
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from '@/shared/ui/icones'
 import { Button } from '@/shared/ui/button'
 import { useTema } from '../useTema'
 
@@ -17,7 +17,7 @@ export function BotaoTema() {
       title={rotulo}
       onClick={() => escolherTema(escuro ? 'claro' : 'escuro')}
     >
-      {escuro ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {escuro ? <Sun className="size-6" /> : <Moon className="size-6" />}
     </Button>
   )
 }

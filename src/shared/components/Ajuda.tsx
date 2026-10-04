@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CircleHelp } from 'lucide-react'
+import { CircleHelp } from '@/shared/ui/icones'
 import { CAMADA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'

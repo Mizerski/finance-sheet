@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '@/shared/ui/icones'
 import type { TipoMovimento } from '@/features/lancamentos/lancamento'
 import { totalPorCategoria } from '@/features/projecao/projecao'
 import { useDiasDosCaixas } from '@/features/projecao/projecoes-por-caixa'

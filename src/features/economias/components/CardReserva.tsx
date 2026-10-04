@@ -1,4 +1,4 @@
-import { Plus, RefreshCw } from 'lucide-react'
+import { Plus, RefreshCw } from '@/shared/ui/icones'
 import { DinheiroForte, Forte } from '@/features/risco/components/Destaques'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'

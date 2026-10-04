@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { SquarePen, X } from 'lucide-react'
+import { SquarePen, X } from '@/shared/ui/icones'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { Forma } from '@/shared/components/Forma'
 import { TITULO_CARD } from '@/shared/lib/estilos'
