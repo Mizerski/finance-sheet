@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Pencil, PiggyBank, Plus } from 'lucide-react'
+import { Pencil, PiggyBank, Plus, Trash2 } from 'lucide-react'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import type { Aporte } from '@/features/economias/aportes'
 import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
@@ -19,6 +19,8 @@ interface DetalheDiaProps {
   categorias: Map<string, Categoria>
   /** Abre a edição do lançamento que gerou a ocorrência. */
   onEditar: (lancamentoId: string) => void
+  /** Pede a confirmação para excluir o lançamento que gerou a ocorrência. */
+  onExcluir: (lancamentoId: string) => void
   /** Abre um lançamento novo já com a data deste dia. */
   onAdicionar: () => void
   /** Risco do caixa no dia; null sem risco (benefício, dia fora do cálculo). */
@@ -26,7 +28,7 @@ interface DetalheDiaProps {
 }
 
 /** Conteúdo do popover: lançamentos de um dia da planilha. */
-export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = null }: DetalheDiaProps) {
+export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, nivel = null }: DetalheDiaProps) {
   const quantidade = dia.ocorrencias.length + dia.aportes.length
 
   return (
@@ -59,6 +61,7 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = nul
               ocorrencia={o}
               categoria={categorias.get(o.categoriaId) ?? CATEGORIA_DESCONHECIDA}
               onEditar={() => onEditar(o.lancamentoId)}
+              onExcluir={() => onExcluir(o.lancamentoId)}
             />
           ))}
           {dia.aportes.map((a) => (
@@ -100,10 +103,10 @@ export function DetalheDia({ dia, categorias, onEditar, onAdicionar, nivel = nul
 /** Aporte de uma meta: leva à tela Economias, onde a meta é editada. */
 function ItemAporte({ aporte }: { aporte: Aporte }) {
   return (
-    <li>
+    <li className="group/item flex items-start transition-colors hover:bg-selecao-forte">
       <Link
         to="/economias"
-        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-selecao-forte focus-visible:outline-2 focus-visible:outline-ring"
+        className="flex min-w-0 flex-1 items-start justify-between gap-3 py-1.5 pl-2 text-left outline-none focus-visible:outline-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate font-semibold">{aporte.nome}</span>
@@ -120,6 +123,8 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
           <span className="text-economia tabular-nums">− {formatarBRL(aporte.valorCentavos)}</span>
         </span>
       </Link>
+      {/* Aporte não se exclui aqui (é da meta); o espaço mantém os valores alinhados com os lançamentos. */}
+      <span aria-hidden className="mx-0.5 size-7 shrink-0" />
     </li>
   )
 }
@@ -128,19 +133,22 @@ function ItemOcorrencia({
   ocorrencia,
   categoria,
   onEditar,
+  onExcluir,
 }: {
   ocorrencia: Ocorrencia
   categoria: Pick<Categoria, 'nome' | 'cor'>
   onEditar: () => void
+  onExcluir: () => void
 }) {
   const entrada = ocorrencia.tipo === 'entrada'
 
   return (
-    <li>
+    // O véu do hover fica no item todo, para a lixeira fazer parte da mesma linha.
+    <li className="group/item flex items-start transition-colors hover:bg-selecao-forte">
       <button
         type="button"
         onClick={onEditar}
-        className="group/item flex w-full items-start justify-between gap-3 px-2 py-1.5 text-left transition-colors outline-none hover:bg-selecao-forte focus-visible:outline-2 focus-visible:outline-ring"
+        className="flex min-w-0 flex-1 items-start justify-between gap-3 py-1.5 pl-2 text-left outline-none focus-visible:outline-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate font-semibold">
@@ -168,6 +176,16 @@ function ItemOcorrencia({
           </span>
         </span>
       </button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="mx-0.5 mt-0.5 shrink-0 rounded-full text-muted-foreground hover:text-destructive"
+        onClick={onExcluir}
+        aria-label={`Excluir ${ocorrencia.descricao}`}
+        title="Excluir lançamento"
+      >
+        <Trash2 className="size-3.5" />
+      </Button>
     </li>
   )
 }

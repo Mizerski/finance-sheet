@@ -13,7 +13,8 @@ import type { Tag } from '../tag'
 interface FormularioTagProps {
   /** Ausente = nova tag. */
   tag?: Tag
-  onConcluir: () => void
+  /** Recebe a tag salva (ex.: para escolhê-la no lançamento). */
+  onConcluir: (tag: Tag) => void
 }
 
 const OPCOES_EVITAVEL = [
@@ -40,12 +41,15 @@ export function FormularioTag({ tag, onConcluir }: FormularioTagProps) {
 
   function salvar(e: FormEvent) {
     e.preventDefault()
+    // O dialog pode abrir de dentro de outro formulário (o de lançamento); o submit não deve chegar lá.
+    e.stopPropagation()
     if (validar()) {
       setTentouSalvar(true)
       return
     }
-    dispatch({ tipo: 'tag/salvar', tag: { id: tag?.id ?? crypto.randomUUID(), nome: nome.trim(), cor, evitavel } })
-    onConcluir()
+    const salva = { id: tag?.id ?? crypto.randomUUID(), nome: nome.trim(), cor, evitavel }
+    dispatch({ tipo: 'tag/salvar', tag: salva })
+    onConcluir(salva)
   }
 
   return (

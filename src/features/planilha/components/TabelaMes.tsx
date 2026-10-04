@@ -29,6 +29,7 @@ interface TabelaMesProps {
   categorias: Map<string, Categoria>
   /** Abre a edição de um lançamento a partir do popover do dia. */
   onEditar: (lancamentoId: string) => void
+  onExcluir: (lancamentoId: string) => void
   /** Abre um lançamento novo na data do dia clicado. */
   onAdicionar: (data: DataISO) => void
   /** Mostra a coluna Economia (quando há metas de economia). */
@@ -73,6 +74,7 @@ export function TabelaMes({
   hoje,
   categorias,
   onEditar,
+  onExcluir,
   onAdicionar,
   comEconomia,
   nivelDoDia,
@@ -157,6 +159,7 @@ export function TabelaMes({
               ehHoje={dia.data === hoje}
               categorias={categorias}
               onEditar={onEditar}
+              onExcluir={onExcluir}
               onAdicionar={onAdicionar}
               comEconomia={comEconomia}
               nivel={niveis[i]}

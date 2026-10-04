@@ -1,5 +1,6 @@
 import { validarPeriodo, type Periodo } from '@/shared/lib/periodo'
 import type { Lancamento, Natureza, TipoMovimento } from './lancamento'
+import { validarOrdem, type TextoOrdem } from './ordenacao'
 
 /** Filtros da tela de lançamentos, guardados na URL. */
 export interface FiltrosLancamento {
@@ -38,10 +39,12 @@ export function periodoDoFiltro(f: FiltrosLancamento): Periodo | null {
   return f.de && f.ate ? { de: f.de, ate: f.ate } : null
 }
 
-/** Busca da rota /lancamentos: os filtros e as pastas fechadas na lista. */
+/** Busca da rota /lancamentos: os filtros, as pastas fechadas e a coluna que ordena a lista. */
 export interface BuscaLancamentos extends FiltrosLancamento {
   /** Chaves dos grupos de pasta fechados (id da pasta ou CHAVE_SEM_PASTA). */
   fechadas?: string[]
+  /** Coluna clicada no cabeçalho; sem ela, entradas primeiro e depois saídas, na ordem de cadastro. */
+  ordem?: TextoOrdem
 }
 
 /** `validateSearch` da rota /lancamentos. */
@@ -49,6 +52,8 @@ export function validarBusca(search: Record<string, unknown>): BuscaLancamentos 
   const busca: BuscaLancamentos = validarFiltros(search)
   const fechadas = Array.isArray(search.fechadas) ? search.fechadas.filter((c) => typeof c === 'string' && c) : []
   if (fechadas.length > 0) busca.fechadas = fechadas
+  const ordem = validarOrdem(search.ordem)
+  if (ordem) busca.ordem = ordem
   return busca
 }
 

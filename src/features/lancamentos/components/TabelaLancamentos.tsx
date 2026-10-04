@@ -1,5 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil, Trash2 } from 'lucide-react'
 import type { Caixa } from '@/features/caixas/caixa'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import { CabecalhoGrupo } from '@/features/pastas/components/CabecalhoGrupo'
@@ -17,6 +17,7 @@ import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import type { Lancamento } from '../lancamento'
+import type { CampoOrdem, Ordem } from '../ordenacao'
 import { descreverPeriodo, descreverRecorrencia, ROTULO_NATUREZA } from '../textos'
 
 /** Descrição, categoria, tag, natureza, recorrência, valor e ações. */
@@ -47,6 +48,9 @@ interface TabelaLancamentosProps {
   /** Com filtro de data: quantas vezes cada lançamento acontece no período e quanto soma. */
   noPeriodo?: Map<string, { vezes: number; totalCentavos: number }>
   selecao?: SelecaoTabela
+  /** Coluna que ordena a lista (null = ordem padrão). */
+  ordem: Ordem | null
+  onOrdenar: (campo: CampoOrdem) => void
   onAlternarGrupo: (chave: string) => void
   onMover: (l: Lancamento, pastaId: string | undefined) => void
   onEditar: (l: Lancamento) => void
@@ -69,11 +73,22 @@ export function TabelaLancamentos({
   quando,
   noPeriodo,
   selecao,
+  ordem,
+  onOrdenar,
   onAlternarGrupo,
   onMover,
   onEditar,
   onExcluir,
 }: TabelaLancamentosProps) {
+  const cabecalho = (campo: CampoOrdem, rotulo: string, className?: string) => (
+    <CabecalhoOrdenavel
+      campo={campo}
+      rotulo={rotulo}
+      ordem={ordem}
+      onOrdenar={onOrdenar}
+      className={cn(TABELA.cabecalho, className)}
+    />
+  )
   const agrupar = pastas.length > 0
   const colunas = COLUNAS + (selecao ? 1 : 0)
   const todos = grupos.flatMap((g) => g.lancamentos.map((l) => l.id))
@@ -120,12 +135,12 @@ export function TabelaLancamentos({
               />
             </TableHead>
           )}
-          <TableHead className={cn(TABELA.cabecalho, selecao ? 'pl-2' : TABELA.primeira)}>Descrição</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Categoria</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Tag</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Natureza</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'hidden lg:table-cell')}>Recorrência</TableHead>
-          <TableHead className={cn(TABELA.cabecalho, 'text-right')}>Valor</TableHead>
+          {cabecalho('descricao', 'Descrição', selecao ? 'pl-2' : TABELA.primeira)}
+          {cabecalho('categoria', 'Categoria', 'hidden lg:table-cell')}
+          {cabecalho('tag', 'Tag', 'hidden lg:table-cell')}
+          {cabecalho('natureza', 'Natureza', 'hidden lg:table-cell')}
+          {cabecalho('recorrencia', 'Recorrência', 'hidden lg:table-cell')}
+          {cabecalho('valor', 'Valor', 'text-right')}
           <TableHead className={cn(TABELA.cabecalho, TABELA.ultima, 'w-0')}>
             <span className="sr-only">Ações</span>
           </TableHead>
@@ -154,6 +169,46 @@ export function TabelaLancamentos({
         <TableBody>{linhas(grupos.flatMap((g) => g.lancamentos))}</TableBody>
       )}
     </Table>
+  )
+}
+
+const NOME_DIRECAO = { asc: 'crescente', desc: 'decrescente' } as const
+
+/** Cabeçalho que reorganiza a lista ao clicar (sem filtrar): uma vez, outra na direção contrária, a terceira desfaz. */
+function CabecalhoOrdenavel({
+  campo,
+  rotulo,
+  ordem,
+  onOrdenar,
+  className,
+}: {
+  campo: CampoOrdem
+  rotulo: string
+  ordem: Ordem | null
+  onOrdenar: (campo: CampoOrdem) => void
+  className?: string
+}) {
+  const direcao = ordem?.campo === campo ? ordem.direcao : null
+  const Icone = direcao === 'asc' ? ArrowUp : direcao === 'desc' ? ArrowDown : ChevronsUpDown
+
+  return (
+    <TableHead
+      aria-sort={direcao === 'asc' ? 'ascending' : direcao === 'desc' ? 'descending' : undefined}
+      className={className}
+    >
+      <button
+        type="button"
+        onClick={() => onOrdenar(campo)}
+        title={direcao ? `Ordenado por ${rotulo.toLowerCase()} (${NOME_DIRECAO[direcao]})` : `Ordenar por ${rotulo.toLowerCase()}`}
+        className={cn(
+          '-mx-1 inline-flex items-center gap-1 px-1 py-0.5 uppercase transition-colors duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-ring',
+          direcao && 'bg-foreground text-background hover:text-tinta',
+        )}
+      >
+        {rotulo}
+        <Icone aria-hidden strokeWidth={direcao ? 3 : 2} className={cn('size-3', !direcao && 'opacity-50')} />
+      </button>
+    </TableHead>
   )
 }
 

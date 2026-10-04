@@ -9,9 +9,11 @@ interface DialogPastaProps {
   onOpenChange: (aberto: boolean) => void
   /** Ausente = nova pasta. */
   pasta?: Pasta
+  /** Chamado com a pasta depois de salvar (ex.: para escolhê-la no lançamento). */
+  onSalvar?: (pasta: Pasta) => void
 }
 
-export function DialogPasta({ aberto, onOpenChange, pasta }: DialogPastaProps) {
+export function DialogPasta({ aberto, onOpenChange, pasta, onSalvar }: DialogPastaProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
@@ -21,7 +23,13 @@ export function DialogPasta({ aberto, onOpenChange, pasta }: DialogPastaProps) {
           </DialogTitle>
           <DialogDescription>A pasta agrupa lançamentos na lista, sem mudar a projeção.</DialogDescription>
         </DialogHeader>
-        <FormularioPasta pasta={pasta} onConcluir={() => onOpenChange(false)} />
+        <FormularioPasta
+          pasta={pasta}
+          onConcluir={(salva) => {
+            onSalvar?.(salva)
+            onOpenChange(false)
+          }}
+        />
       </DialogContent>
     </Dialog>
   )

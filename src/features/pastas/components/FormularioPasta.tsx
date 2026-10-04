@@ -12,7 +12,8 @@ import type { Pasta } from '../pasta'
 interface FormularioPastaProps {
   /** Ausente = nova pasta. */
   pasta?: Pasta
-  onConcluir: () => void
+  /** Recebe a pasta salva (ex.: para escolhê-la no lançamento). */
+  onConcluir: (pasta: Pasta) => void
 }
 
 export function FormularioPasta({ pasta, onConcluir }: FormularioPastaProps) {
@@ -33,12 +34,15 @@ export function FormularioPasta({ pasta, onConcluir }: FormularioPastaProps) {
 
   function salvar(e: FormEvent) {
     e.preventDefault()
+    // O dialog pode abrir de dentro de outro formulário (o de lançamento); o submit não deve chegar lá.
+    e.stopPropagation()
     if (validar()) {
       setTentouSalvar(true)
       return
     }
-    dispatch({ tipo: 'pasta/salvar', pasta: { id: pasta?.id ?? crypto.randomUUID(), nome: nome.trim(), cor } })
-    onConcluir()
+    const salva = { id: pasta?.id ?? crypto.randomUUID(), nome: nome.trim(), cor }
+    dispatch({ tipo: 'pasta/salvar', pasta: salva })
+    onConcluir(salva)
   }
 
   return (
