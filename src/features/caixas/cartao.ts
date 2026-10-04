@@ -1,4 +1,4 @@
-import { addMonths } from 'date-fns'
+import { addDays, addMonths } from 'date-fns'
 import { deDataISO, diasNoMes, paraDataISO, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
 import type { DiaProjetado } from '@/features/projecao/projecao'
 import type { CicloCartao } from './caixa'
@@ -88,4 +88,26 @@ export function resumirCartao(
     aberta: fatura(proximoFechamento(hoje, ciclo)),
     disponivelCentavos: ciclo.limiteCentavos === undefined ? null : ciclo.limiteCentavos - devendo,
   }
+}
+
+/** Os últimos `quantos` fechamentos até hoje (inclusive), do mais recente ao mais antigo. */
+export function fechamentosRecentes(hoje: DataISO, ciclo: CicloCartao, quantos = 3): DataISO[] {
+  const lista: DataISO[] = []
+  // Hoje conta se for dia de fechamento: o anterior a amanhã.
+  let fechamento = fechamentoAnterior(paraDataISO(addDays(deDataISO(hoje), 1)), ciclo)
+  while (lista.length < quantos) {
+    lista.push(fechamento)
+    fechamento = fechamentoAnterior(fechamento, ciclo)
+  }
+  return lista
+}
+
+/** Valor da fatura que fechou em `fechamento`, pelos dias projetados do cartão (0 se não se devia nada). */
+export function valorDaFatura(dias: DiaProjetado[], fechamento: DataISO): number {
+  for (const d of dias) {
+    if (d.data <= fechamento) continue
+    const pago = d.transferencias.find((m) => m.fatura?.fechamento === fechamento && m.sentido === 'entrada')
+    if (pago) return pago.valorCentavos
+  }
+  return 0
 }
