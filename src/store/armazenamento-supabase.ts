@@ -53,6 +53,7 @@ interface LinhaMeta {
   nome: string
   valor_alvo_centavos: number | null
   aporte_mensal_centavos: number
+  ja_guardado_centavos: number
   dia_do_mes: number
   inicio: string
   prazo: string | null
@@ -65,7 +66,7 @@ const COLUNAS_CAIXA =
   'id, nome, cor, tipo, saldo_inicial_centavos, data_saldo_inicial, saldo_definido, entra_no_total, ordem, arquivado'
 const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
 const COLUNAS_META =
-  'id, caixa_id, destino_id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, prazo, ajustes, resgates, encerrada_em'
+  'id, caixa_id, destino_id, nome, valor_alvo_centavos, aporte_mensal_centavos, ja_guardado_centavos, dia_do_mes, inicio, prazo, ajustes, resgates, encerrada_em'
 
 /** Gravações em lote vão em partes: a exclusão leva os ids na URL, que tem limite de tamanho. */
 const TAMANHO_LOTE = 100
@@ -175,6 +176,7 @@ function deLinhaMeta(m: LinhaMeta): MetaEconomia {
     nome: m.nome,
     ...(m.valor_alvo_centavos !== null && { valorAlvoCentavos: m.valor_alvo_centavos }),
     aporteMensalCentavos: m.aporte_mensal_centavos,
+    ...(m.ja_guardado_centavos > 0 && { jaGuardadoCentavos: m.ja_guardado_centavos }),
     diaDoMes: m.dia_do_mes,
     inicio: m.inicio,
     ...(m.prazo && { prazo: m.prazo }),
@@ -192,6 +194,7 @@ function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
     nome: m.nome,
     valor_alvo_centavos: m.valorAlvoCentavos ?? null,
     aporte_mensal_centavos: m.aporteMensalCentavos,
+    ja_guardado_centavos: m.jaGuardadoCentavos ?? 0,
     dia_do_mes: m.diaDoMes,
     inicio: m.inicio,
     prazo: m.prazo ?? null,

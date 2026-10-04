@@ -128,6 +128,8 @@ function ehMeta(m: unknown): m is Omit<MetaEconomia, 'caixaId'> {
     (m.valorAlvoCentavos === undefined || (ehCentavos(m.valorAlvoCentavos) && m.valorAlvoCentavos > 0)) &&
     ehCentavos(m.aporteMensalCentavos) &&
     m.aporteMensalCentavos >= 0 &&
+    // A partir da versão 8: o que já estava guardado fora do app.
+    (m.jaGuardadoCentavos === undefined || (ehCentavos(m.jaGuardadoCentavos) && m.jaGuardadoCentavos > 0)) &&
     Number.isInteger(m.diaDoMes) &&
     (m.diaDoMes as number) >= 1 &&
     (m.diaDoMes as number) <= 31 &&
@@ -217,13 +219,28 @@ export function lerBackup(texto: string): Backup {
       categorias: atual.categorias.map(({ id, nome, cor, tipo }) => ({ id, nome, cor, tipo })),
       lancamentos: atual.lancamentos,
       metas: atual.metas.map(
-        ({ id, caixaId, destinoId, nome, valorAlvoCentavos, aporteMensalCentavos, diaDoMes, inicio, prazo, ajustes, resgates, encerradaEm }) => ({
+        ({
+          id,
+          caixaId,
+          destinoId,
+          nome,
+          valorAlvoCentavos,
+          aporteMensalCentavos,
+          jaGuardadoCentavos,
+          diaDoMes,
+          inicio,
+          prazo,
+          ajustes,
+          resgates,
+          encerradaEm,
+        }) => ({
           id,
           caixaId,
           ...(destinoId && { destinoId }),
           nome,
           ...(valorAlvoCentavos !== undefined && { valorAlvoCentavos }),
           aporteMensalCentavos,
+          ...(jaGuardadoCentavos && { jaGuardadoCentavos }),
           diaDoMes,
           inicio,
           ...(prazo && { prazo }),

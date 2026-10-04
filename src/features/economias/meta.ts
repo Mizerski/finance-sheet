@@ -25,6 +25,11 @@ export interface MetaEconomia {
   valorAlvoCentavos?: number
   /** Quanto guardar por mês. */
   aporteMensalCentavos: number
+  /**
+   * Dinheiro que a pessoa já tinha guardado fora do app ao criar a meta (ausente = 0). Conta para o progresso,
+   * para o alvo e para o que dá para usar, mas não mexe no saldo: ele já existia.
+   */
+  jaGuardadoCentavos?: number
   /** Dia do aporte; se o mês não tiver esse dia, vale o último dia do mês. */
   diaDoMes: number
   /** Nenhum aporte acontece antes desta data. */

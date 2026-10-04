@@ -2,7 +2,7 @@ import { ehAjusteDeSaldo } from '@/features/lancamentos/ajuste'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import type { DiaProjetado } from '@/features/projecao/projecao'
 import { somarDias, type DataISO } from '@/shared/lib/datas'
-import { aportesDaMeta } from './aportes'
+import { aportesDaMeta, jaGuardado } from './aportes'
 import { arredondar, periodoDaCapacidade } from './capacidade'
 import type { MetaEconomia } from './meta'
 
@@ -108,7 +108,7 @@ function planejadoNoMes(meta: MetaEconomia, mes: string): number {
  */
 export function aplicarAumento(meta: MetaEconomia, mes: string, extraCentavos: number): MetaEconomia | null {
   const antes = aportesDaMeta(meta, somarDias(`${mes}-01`, -1))
-  const guardado = antes.reduce((t, a) => t + a.valorCentavos, 0)
+  const guardado = jaGuardado(meta) + antes.reduce((t, a) => t + a.valorCentavos, 0)
   if (guardado >= (meta.valorAlvoCentavos ?? Infinity)) return null
 
   const ajustes = { ...meta.ajustes }
@@ -133,7 +133,7 @@ function aporteDepoisDe(meta: MetaEconomia, data: DataISO) {
 export function aplicarExtra(meta: MetaEconomia, data: DataISO, extraCentavos: number): MetaEconomia | null {
   const aporte = aporteDepoisDe(meta, data)
   if (!aporte) return null
-  const antes = aportesDaMeta(meta, somarDias(aporte.data, -1)).reduce((t, a) => t + a.valorCentavos, 0)
+  const antes = jaGuardado(meta) + aportesDaMeta(meta, somarDias(aporte.data, -1)).reduce((t, a) => t + a.valorCentavos, 0)
   const valor = Math.min(planejadoNoMes(meta, aporte.mes) + extraCentavos, (meta.valorAlvoCentavos ?? Infinity) - antes)
   return { ...meta, ajustes: { ...meta.ajustes, [aporte.mes]: valor } }
 }
