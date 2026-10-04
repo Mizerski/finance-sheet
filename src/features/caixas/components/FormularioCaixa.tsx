@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { ehTransferencia } from '@/features/lancamentos/lancamento'
 import { proximaCorLivre } from '@/features/categorias/cores'
 import { SeletorCor } from '@/features/categorias/components/SeletorCor'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
@@ -70,6 +71,9 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
     if (caixa && tipo === 'beneficio' && caixa.tipo === 'conta') {
       if (ehUltimaConta(caixa, estado.caixas)) erros.tipo = 'É a única conta: o app precisa de pelo menos uma.'
       else if (metasDoCaixa(estado.metas, caixa.id).length > 0) erros.tipo = 'Este caixa tem metas, e metas só ficam em contas.'
+      else if (estado.lancamentos.some((l) => ehTransferencia(l) && (l.caixaId === caixa.id || l.caixaDestinoId === caixa.id))) {
+        erros.tipo = 'Este caixa tem transferências, e transferência é só entre contas.'
+      }
     }
     return erros
   }

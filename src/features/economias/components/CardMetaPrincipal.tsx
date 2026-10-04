@@ -9,13 +9,13 @@ import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import type { ResumoMeta } from '../aportes'
 import type { Marco, ProgressoMeta } from '../marcos'
-import type { MetaEconomia } from '../meta'
+import type { MetaComAlvo } from '../meta'
 import { BarraProgresso } from './BarraProgresso'
 import { Previsao, SituacaoPrazo } from './CardMeta'
 
 interface CardMetaPrincipalProps {
   /** Ausente quando não há meta em andamento. */
-  principal?: { meta: MetaEconomia; resumo: ResumoMeta; progresso: ProgressoMeta }
+  principal?: { meta: MetaComAlvo; resumo: ResumoMeta; progresso: ProgressoMeta }
   /** Quantas metas existem (para diferenciar "nenhuma meta" de "todas atingidas"). */
   totalDeMetas: number
   hoje: DataISO

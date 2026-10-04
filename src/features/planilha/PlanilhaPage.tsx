@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
 import { Landmark } from '@/shared/ui/icones'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
 import { useVisao } from '@/features/caixas/useVisao'
+import { useGuardadoSeparado } from '@/features/economias/useGuardado'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useAno } from '@/features/projecao/useAno'
@@ -70,6 +71,7 @@ export function PlanilhaPage() {
   const telaMedia = useMediaQuery(layout.doisMeses)
   const quantidade = telaGrande ? 3 : telaMedia ? 2 : 1
   const [hoje] = useState(() => paraDataISO(new Date()))
+  const separado = useGuardadoSeparado(hoje)
   const mesDeHoje = hoje.startsWith(String(ano)) ? Number(hoje.slice(5, 7)) - 1 : 0
 
   // Meses contados desde o ano zero, para a janela atravessar a virada do ano (dez → jan).
@@ -137,6 +139,7 @@ export function PlanilhaPage() {
               Saldo inicial de{' '}
               <span className={`font-medium text-foreground ${VALOR_SALDO}`}>{formatarBRL(abertura.valorCentavos)}</span>{' '}
               em {formatarData(abertura.data)} · <BotaoSaldoInicial onClick={() => setEditandoSaldo(true)} />
+              <Separado centavos={separado} />
             </>
           ) : (
             <>
@@ -236,6 +239,22 @@ export function PlanilhaPage() {
 
       <DialogConferirSaldo aberto={conferindo} onOpenChange={setConferindo} />
     </div>
+  )
+}
+
+/** Dinheiro separado nas metas hoje: está na conta, mas fora do saldo da planilha (que é o disponível). */
+function Separado({ centavos }: { centavos: number }) {
+  if (centavos <= 0) return null
+  return (
+    <>
+      {' · '}
+      <Link
+        to="/economias"
+        className="underline decoration-amarelo decoration-2 underline-offset-4 outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        <span className={`font-medium text-foreground ${VALOR_SALDO}`}>{formatarBRL(centavos)}</span> separados nas metas
+      </Link>
+    </>
   )
 }
 

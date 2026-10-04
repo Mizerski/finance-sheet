@@ -1,5 +1,5 @@
 import { validarPeriodo, type Periodo } from '@/shared/lib/periodo'
-import type { Lancamento, Natureza, TipoMovimento } from './lancamento'
+import type { Lancamento, Natureza, TipoLancamento } from './lancamento'
 import { validarOrdem, type TextoOrdem } from './ordenacao'
 
 /** Filtros da tela de lançamentos, guardados na URL. */
@@ -9,7 +9,7 @@ export interface FiltrosLancamento {
   ate?: string
   /** Texto buscado na descrição. */
   q?: string
-  tipo?: TipoMovimento
+  tipo?: TipoLancamento
   categoria?: string
   natureza?: Natureza
   /** Id da tag ou FILTRO_SEM_TAG. */
@@ -27,7 +27,7 @@ function validarFiltros(search: Record<string, unknown>): FiltrosLancamento {
   const filtros: FiltrosLancamento = {}
   // Sem trim: o espaço digitado no fim precisa continuar no campo.
   if (typeof search.q === 'string' && search.q) filtros.q = search.q
-  if (search.tipo === 'entrada' || search.tipo === 'saida') filtros.tipo = search.tipo
+  if (search.tipo === 'entrada' || search.tipo === 'saida' || search.tipo === 'transferencia') filtros.tipo = search.tipo
   if (search.natureza === 'fixa' || search.natureza === 'variavel') filtros.natureza = search.natureza
   if (typeof search.categoria === 'string' && search.categoria) filtros.categoria = search.categoria
   if (typeof search.tag === 'string' && search.tag) filtros.tag = search.tag
@@ -79,7 +79,7 @@ function passaNaTag(l: Lancamento, tag: string | undefined, idsTags: Set<string>
 }
 
 /**
- * Aplica os filtros e ordena: entradas primeiro, depois saídas, na ordem de cadastro.
+ * Aplica os filtros e ordena: entradas primeiro, depois saídas e transferências, na ordem de cadastro.
  * `noPeriodo` tem os lançamentos que acontecem no período do filtro de data (ausente sem ele).
  */
 export function filtrarLancamentos(
@@ -99,5 +99,7 @@ export function filtrarLancamentos(
         (!f.natureza || l.natureza === f.natureza) &&
         passaNaTag(l, f.tag, idsTags),
     )
-    .sort((a, b) => (a.tipo === b.tipo ? 0 : a.tipo === 'entrada' ? -1 : 1))
+    .sort((a, b) => ORDEM_TIPO[a.tipo] - ORDEM_TIPO[b.tipo])
 }
+
+const ORDEM_TIPO: Record<TipoLancamento, number> = { entrada: 0, saida: 1, transferencia: 2 }

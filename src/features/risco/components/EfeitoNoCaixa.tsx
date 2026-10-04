@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { Lancamento, TipoMovimento } from '@/features/lancamentos/lancamento'
+import type { Lancamento, TipoLancamento } from '@/features/lancamentos/lancamento'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { ROTULO } from '@/shared/lib/estilos'
 import { COR_RISCO } from '../cores'
@@ -14,7 +14,8 @@ interface EfeitoNoCaixaProps {
   simulados: Lancamento[] | null
   /** O lançamento em edição, que os simulados substituem. */
   substitui?: string
-  tipo: TipoMovimento
+  /** Transferência conta como saída da conta de origem (`caixaId`). */
+  tipo: TipoLancamento
   /** Caixa do lançamento: o efeito é no risco dele (benefício não tem risco). */
   caixaId: string
 }

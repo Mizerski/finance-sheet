@@ -12,10 +12,12 @@ export function recorrenteEmAndamento(l: Lancamento, hoje: DataISO): boolean {
   return l.recorrencia.tipo !== 'unica' && (!l.inicio || l.inicio < hoje) && (!l.fim || l.fim >= hoje)
 }
 
-/** A edição muda o valor, as datas ou a classificação das ocorrências (não só o nome ou a pasta). */
+/** A edição muda o valor, as datas, as contas ou a classificação das ocorrências (não só o nome ou a pasta). */
 export function mudaOcorrencias(original: Lancamento, editado: Lancamento): boolean {
   return (
     original.tipo !== editado.tipo ||
+    original.caixaId !== editado.caixaId ||
+    (original.caixaDestinoId ?? '') !== (editado.caixaDestinoId ?? '') ||
     original.valorCentavos !== editado.valorCentavos ||
     original.categoriaId !== editado.categoriaId ||
     (original.tagId ?? '') !== (editado.tagId ?? '') ||

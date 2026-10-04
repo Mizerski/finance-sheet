@@ -94,6 +94,7 @@ Texto sobre bloco vermelho ou azul é `text-sobre-bloco` (papel no claro, tinta 
 | Economia (metas) | `text-economia` (ocre escuro) | `bg-economia-suave` (amarelo claro) |
 
 - Um valor de entrada é **sempre** azul, um de saída **sempre** vermelho, um aporte de economia **sempre** amarelo/ocre e um saldo negativo **sempre** `text-negativo`, em qualquer tela.
+- **Transferência** entre contas não é entrada nem saída: valor em `text-foreground` com as setas (`ArrowLeftRight`), sem sinal na lista; a opção ativa do tipo fica no bloco preto. Na planilha de uma conta ela soma nas colunas de entrada e saída, como num extrato.
 - Todos os pares de texto e fundo acima passam de 4,5:1 (conferido ao criar a paleta).
 - Na planilha, as combinações ficam em `COR_COLUNA` (`src/features/planilha/cores.ts`). Reaproveite essas constantes.
 - Seletores de tipo (Saída/Entrada) pintam a opção ativa com `COR_ATIVA_TIPO` (`src/features/lancamentos/cores.ts`).

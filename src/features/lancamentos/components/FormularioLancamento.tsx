@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Plus } from '@/shared/ui/icones'
+import { caixasAtivos, type Caixa } from '@/features/caixas/caixa'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
 import { useVisao } from '@/features/caixas/useVisao'
 import type { Categoria } from '@/features/categorias/categoria'
@@ -28,7 +29,7 @@ import {
   type RascunhoLancamento,
 } from '../formulario'
 import { COR_ATIVA_TIPO } from '../cores'
-import type { Lancamento, TipoMovimento } from '../lancamento'
+import type { Lancamento, TipoLancamento } from '../lancamento'
 import { ROTULO_NATUREZA, ROTULO_TIPO } from '../textos'
 import { SeletorDiasSemana } from './SeletorDiasSemana'
 import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../vigencia'
@@ -41,11 +42,12 @@ interface FormularioLancamentoProps {
   onConcluir: () => void
 }
 
-const OPCOES_TIPO = (['saida', 'entrada'] as const).map((valor) => ({
-  valor,
-  rotulo: ROTULO_TIPO[valor],
-  corAtiva: COR_ATIVA_TIPO[valor],
-}))
+const opcaoTipo = (valor: TipoLancamento) => ({ valor, rotulo: ROTULO_TIPO[valor], corAtiva: COR_ATIVA_TIPO[valor] })
+const OPCOES_TIPO = (['saida', 'entrada'] as const).map(opcaoTipo)
+/** Com duas contas ou mais, o dinheiro também pode mudar de conta. */
+const OPCOES_TIPO_COM_TRANSFERENCIA = (['saida', 'entrada', 'transferencia'] as const).map(opcaoTipo)
+/** Transferência é só entre contas: o benefício é carimbado e recebe só a recarga. */
+const ehConta = (c: Caixa) => c.tipo === 'conta'
 const OPCOES_NATUREZA = (['fixa', 'variavel'] as const).map((valor) => ({ valor, rotulo: ROTULO_NATUREZA[valor] }))
 const OPCOES_RECORRENCIA = [
   { valor: 'unica' as const, rotulo: 'Única' },
@@ -85,13 +87,16 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   const [criandoPasta, setCriandoPasta] = useState(false)
 
   const saida = rascunho.tipo === 'saida'
+  const transferencia = rascunho.tipo === 'transferencia'
+  const contas = caixasAtivos(estado.caixas).filter(ehConta)
+  const opcoesTipo = contas.length >= 2 || transferencia ? OPCOES_TIPO_COM_TRANSFERENCIA : OPCOES_TIPO
   const categoriasDoTipo = estado.categorias.filter((c) => c.tipo === rascunho.tipo)
   const idsValidos = new Set(categoriasDoTipo.map((c) => c.id))
   const erros = tentouSalvar ? validarLancamento(rascunho, idsValidos) : {}
 
   // Recorrente que já aconteceu: pergunta se a mudança vale para os meses que passaram.
   // Quem mexe no início ou no fim já está cuidando do período, então não pergunta.
-  const editado = lancamento && paraLancamento(rascunho, lancamento.id, lancamento)
+  const editado = lancamento && paraLancamento(rascunho, lancamento.id)
   const perguntarVigencia =
     !!lancamento &&
     !!editado &&
@@ -149,10 +154,22 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
     if (categoria.tipo === rascunho.tipo) alterar('categoriaId', categoria.id)
   }
 
-  function alterarTipo(tipo: TipoMovimento) {
+  function alterarTipo(tipo: TipoLancamento) {
     // A categoria precisa ser do mesmo tipo do lançamento.
     const categoria = estado.categorias.find((c) => c.id === rascunho.categoriaId)
-    setRascunho((r) => ({ ...r, tipo, categoriaId: categoria?.tipo === tipo ? r.categoriaId : '' }))
+    setRascunho((r) => {
+      const novo = { ...r, tipo, categoriaId: categoria?.tipo === tipo ? r.categoriaId : '' }
+      if (tipo !== 'transferencia') return novo
+      // Transferência sai de uma conta para outra: já sugere as duas.
+      const origem = contas.some((c) => c.id === r.caixaId) ? r.caixaId : (contas[0]?.id ?? r.caixaId)
+      const destino = r.caixaDestinoId && r.caixaDestinoId !== origem ? r.caixaDestinoId : contas.find((c) => c.id !== origem)?.id
+      return { ...novo, caixaId: origem, caixaDestinoId: destino ?? '' }
+    })
+  }
+
+  /** Escolher como origem a conta que era o destino troca as duas de lugar. */
+  function alterarOrigem(caixaId: string) {
+    setRascunho((r) => ({ ...r, caixaId, caixaDestinoId: r.caixaDestinoId === caixaId ? r.caixaId : r.caixaDestinoId }))
   }
 
   function salvar(e: FormEvent) {
@@ -174,9 +191,33 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
   return (
     <form noValidate onSubmit={salvar} className="flex flex-col gap-4">
-      <ControleSegmentado rotulo="Tipo" valor={rascunho.tipo} opcoes={OPCOES_TIPO} onChange={alterarTipo} />
+      <ControleSegmentado rotulo="Tipo" valor={rascunho.tipo} opcoes={opcoesTipo} onChange={alterarTipo} />
 
-      <CampoCaixa id="lanc-caixa" valor={rascunho.caixaId} onChange={(id) => alterar('caixaId', id)} />
+      {transferencia ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <CampoCaixa
+            id="lanc-origem"
+            rotulo="Sai de"
+            valor={rascunho.caixaId}
+            onChange={alterarOrigem}
+            filtro={ehConta}
+            sempre
+          />
+          <CampoCaixa
+            id="lanc-destino"
+            rotulo="Entra em"
+            valor={rascunho.caixaDestinoId}
+            onChange={(id) => alterar('caixaDestinoId', id)}
+            filtro={(c) => ehConta(c) && c.id !== rascunho.caixaId}
+            placeholder="Escolher"
+            descricao="Não conta como gasto nem como entrada."
+            erro={erros.caixaDestinoId}
+            sempre
+          />
+        </div>
+      ) : (
+        <CampoCaixa id="lanc-caixa" valor={rascunho.caixaId} onChange={(id) => alterar('caixaId', id)} />
+      )}
 
       <Field data-invalid={!!erros.descricao || undefined}>
         <FieldLabel htmlFor="lanc-descricao">Descrição</FieldLabel>
@@ -185,7 +226,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           autoFocus
           value={rascunho.descricao}
           onChange={(e) => alterar('descricao', e.target.value)}
-          placeholder="Ex.: Mercado"
+          placeholder={transferencia ? 'Ex.: Guardar na poupança' : 'Ex.: Mercado'}
           aria-invalid={!!erros.descricao || undefined}
           className={CAMPO}
         />
@@ -204,109 +245,114 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           <FieldError>{erros.valorCentavos}</FieldError>
         </Field>
 
-        <Field data-invalid={!!erros.categoriaId || undefined}>
-          <FieldLabel htmlFor="lanc-categoria">Categoria</FieldLabel>
-          <Select value={rascunho.categoriaId} onValueChange={escolherCategoria}>
-            <SelectTrigger
-              id="lanc-categoria"
-              aria-invalid={!!erros.categoriaId || undefined}
-              className={CAMPO_SELECT}
-            >
-              <SelectValue placeholder="Escolher" />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              {categoriasDoTipo.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  <PontoCor cor={c.cor} />
-                  {c.nome}
-                </SelectItem>
-              ))}
-              {categoriasDoTipo.length > 0 && <SelectSeparator />}
-              <SelectItem value={NOVA} className="font-semibold">
-                <Plus />
-                Nova categoria
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          {categoriasDoTipo.length === 0 ? (
-            <FieldDescription>
-              Nenhuma categoria de {ROTULO_TIPO[rascunho.tipo].toLowerCase()}.{' '}
-              <button
-                type="button"
-                onClick={() => setCriandoCategoria(true)}
-                className="underline underline-offset-4 hover:text-primary"
+        {/* Transferência não é entrada nem gasto: não tem categoria, tag nem natureza. */}
+        {!transferencia && (
+          <Field data-invalid={!!erros.categoriaId || undefined}>
+            <FieldLabel htmlFor="lanc-categoria">Categoria</FieldLabel>
+            <Select value={rascunho.categoriaId} onValueChange={escolherCategoria}>
+              <SelectTrigger
+                id="lanc-categoria"
+                aria-invalid={!!erros.categoriaId || undefined}
+                className={CAMPO_SELECT}
               >
-                Criar categoria
-              </button>
-            </FieldDescription>
-          ) : (
-            <FieldError>{erros.categoriaId}</FieldError>
-          )}
-          <DialogCategoria
-            aberto={criandoCategoria}
-            onOpenChange={setCriandoCategoria}
-            tipoInicial={rascunho.tipo}
-            onSalvar={categoriaCriada}
-          />
-        </Field>
-      </div>
-
-      <div className={cn('grid gap-4', saida && 'sm:grid-cols-2')}>
-        <Field>
-          <FieldLabel htmlFor="lanc-natureza">Natureza</FieldLabel>
-          <ControleSegmentado
-            id="lanc-natureza"
-            rotulo="Natureza"
-            valor={rascunho.natureza}
-            opcoes={OPCOES_NATUREZA}
-            onChange={(v) => alterar('natureza', v)}
-          />
-        </Field>
-
-        {/* Tag só existe em saídas: diz se o gasto era necessário ou evitável. */}
-        {saida && (
-          <Field>
-            <FieldLabel htmlFor="lanc-tag">
-              Tag <span className="font-normal text-muted-foreground">(opcional)</span>
-            </FieldLabel>
-            <Select value={rascunho.tagId || NENHUMA} onValueChange={(v) => escolherOpcional('tagId', v)}>
-              <SelectTrigger id="lanc-tag" className={CAMPO_SELECT}>
-                <SelectValue />
+                <SelectValue placeholder="Escolher" />
               </SelectTrigger>
               <SelectContent position="popper">
-                <SelectItem value={NENHUMA}>
-                  Sem tag
-                </SelectItem>
-                {estado.tags.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    <PontoCor cor={t.cor} />
-                    {t.nome}
-                    {t.evitavel && <span className="text-muted-foreground">· evitável</span>}
+                {categoriasDoTipo.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    <PontoCor cor={c.cor} />
+                    {c.nome}
                   </SelectItem>
                 ))}
-                <SelectSeparator />
+                {categoriasDoTipo.length > 0 && <SelectSeparator />}
                 <SelectItem value={NOVA} className="font-semibold">
                   <Plus />
-                  Nova tag
+                  Nova categoria
                 </SelectItem>
               </SelectContent>
             </Select>
-            {estado.tags.length === 0 && (
+            {categoriasDoTipo.length === 0 ? (
               <FieldDescription>
-                Nenhuma tag ainda.{' '}
+                Nenhuma categoria de {ROTULO_TIPO[rascunho.tipo].toLowerCase()}.{' '}
                 <button
                   type="button"
-                  onClick={() => setCriandoTag(true)}
+                  onClick={() => setCriandoCategoria(true)}
                   className="underline underline-offset-4 hover:text-primary"
                 >
-                  Criar tag
+                  Criar categoria
                 </button>
               </FieldDescription>
+            ) : (
+              <FieldError>{erros.categoriaId}</FieldError>
             )}
-            <DialogTag aberto={criandoTag} onOpenChange={setCriandoTag} onSalvar={(t) => alterar('tagId', t.id)} />
+            <DialogCategoria
+              aberto={criandoCategoria}
+              onOpenChange={setCriandoCategoria}
+              tipoInicial={rascunho.tipo === 'entrada' ? 'entrada' : 'saida'}
+              onSalvar={categoriaCriada}
+            />
           </Field>
         )}
       </div>
+
+      {!transferencia && (
+        <div className={cn('grid gap-4', saida && 'sm:grid-cols-2')}>
+          <Field>
+            <FieldLabel htmlFor="lanc-natureza">Natureza</FieldLabel>
+            <ControleSegmentado
+              id="lanc-natureza"
+              rotulo="Natureza"
+              valor={rascunho.natureza}
+              opcoes={OPCOES_NATUREZA}
+              onChange={(v) => alterar('natureza', v)}
+            />
+          </Field>
+
+          {/* Tag só existe em saídas: diz se o gasto era necessário ou evitável. */}
+          {saida && (
+            <Field>
+              <FieldLabel htmlFor="lanc-tag">
+                Tag <span className="font-normal text-muted-foreground">(opcional)</span>
+              </FieldLabel>
+              <Select value={rascunho.tagId || NENHUMA} onValueChange={(v) => escolherOpcional('tagId', v)}>
+                <SelectTrigger id="lanc-tag" className={CAMPO_SELECT}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  <SelectItem value={NENHUMA}>
+                    Sem tag
+                  </SelectItem>
+                  {estado.tags.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      <PontoCor cor={t.cor} />
+                      {t.nome}
+                      {t.evitavel && <span className="text-muted-foreground">· evitável</span>}
+                    </SelectItem>
+                  ))}
+                  <SelectSeparator />
+                  <SelectItem value={NOVA} className="font-semibold">
+                    <Plus />
+                    Nova tag
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {estado.tags.length === 0 && (
+                <FieldDescription>
+                  Nenhuma tag ainda.{' '}
+                  <button
+                    type="button"
+                    onClick={() => setCriandoTag(true)}
+                    className="underline underline-offset-4 hover:text-primary"
+                  >
+                    Criar tag
+                  </button>
+                </FieldDescription>
+              )}
+              <DialogTag aberto={criandoTag} onOpenChange={setCriandoTag} onSalvar={(t) => alterar('tagId', t.id)} />
+            </Field>
+          )}
+        </div>
+      )}
 
       <Field>
         <FieldLabel htmlFor="lanc-pasta">

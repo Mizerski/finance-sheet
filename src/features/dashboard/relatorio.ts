@@ -58,18 +58,27 @@ export function agrupar(dias: DiaProjetado[], unidade: Unidade): DadoPeriodo[] {
   const variosAnos = dias.length > 0 && anoDe(dias[0].data) !== anoDe(dias[dias.length - 1].data)
 
   return [...grupos].map(([chave, doGrupo]) => {
-    const soma = (campo: 'entradasCentavos' | 'saidasFixasCentavos' | 'saidasVariaveisCentavos' | 'economiaCentavos') =>
-      doGrupo.reduce((t, d) => t + d[campo], 0)
+    const soma = (
+      campo:
+        | 'entradasCentavos'
+        | 'saidasFixasCentavos'
+        | 'saidasVariaveisCentavos'
+        | 'economiaCentavos'
+        | 'transferenciaEntradaCentavos'
+        | 'transferenciaSaidaCentavos',
+    ) => doGrupo.reduce((t, d) => t + d[campo], 0)
     const entradas = soma('entradasCentavos')
     const saidas = soma('saidasFixasCentavos') + soma('saidasVariaveisCentavos')
     const economia = soma('economiaCentavos')
+    // Transferência não é entrada nem gasto, mas muda o saldo de uma conta (no Total, as internas já se anularam).
+    const transferido = soma('transferenciaEntradaCentavos') - soma('transferenciaSaidaCentavos')
     return {
       chave,
       ...rotulos(unidade, doGrupo[0], doGrupo[doGrupo.length - 1], variosAnos),
       entradas,
       saidas,
       economia,
-      sobra: entradas - saidas - economia,
+      sobra: entradas - saidas - economia + transferido,
       saldo: doGrupo[doGrupo.length - 1].saldoCentavos,
     }
   })

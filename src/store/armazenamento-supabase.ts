@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { contaPrincipal, type Caixa, type TipoCaixa } from '@/features/caixas/caixa'
 import type { Categoria } from '@/features/categorias/categoria'
-import type { MetaEconomia } from '@/features/economias/meta'
-import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from '@/features/lancamentos/lancamento'
+import type { MetaEconomia, Resgate } from '@/features/economias/meta'
+import type { Lancamento, Natureza, Recorrencia, TipoLancamento, TipoMovimento } from '@/features/lancamentos/lancamento'
 import type { Pasta } from '@/features/pastas/pasta'
 import type { Tag } from '@/features/tags/tag'
 import type { Armazenamento } from './armazenamento'
@@ -35,7 +35,7 @@ interface LinhaLancamento {
   caixa_id: string
   caixa_destino_id: string | null
   descricao: string
-  tipo: TipoMovimento
+  tipo: TipoLancamento
   valor_centavos: number
   categoria_id: string | null
   tag_id: string | null
@@ -49,19 +49,23 @@ interface LinhaLancamento {
 interface LinhaMeta {
   id: string
   caixa_id: string
+  destino_id: string | null
   nome: string
-  valor_alvo_centavos: number
+  valor_alvo_centavos: number | null
   aporte_mensal_centavos: number
   dia_do_mes: number
   inicio: string
   prazo: string | null
   ajustes: Record<string, number>
+  resgates: Resgate[] | null
+  encerrada_em: string | null
 }
 
 const COLUNAS_CAIXA =
   'id, nome, cor, tipo, saldo_inicial_centavos, data_saldo_inicial, saldo_definido, entra_no_total, ordem, arquivado'
 const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim'
-const COLUNAS_META = 'id, caixa_id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, prazo, ajustes'
+const COLUNAS_META =
+  'id, caixa_id, destino_id, nome, valor_alvo_centavos, aporte_mensal_centavos, dia_do_mes, inicio, prazo, ajustes, resgates, encerrada_em'
 
 /** Gravações em lote vão em partes: a exclusão leva os ids na URL, que tem limite de tamanho. */
 const TAMANHO_LOTE = 100
@@ -167,13 +171,16 @@ function deLinhaMeta(m: LinhaMeta): MetaEconomia {
   return {
     id: m.id,
     caixaId: m.caixa_id,
+    ...(m.destino_id && { destinoId: m.destino_id }),
     nome: m.nome,
-    valorAlvoCentavos: m.valor_alvo_centavos,
+    ...(m.valor_alvo_centavos !== null && { valorAlvoCentavos: m.valor_alvo_centavos }),
     aporteMensalCentavos: m.aporte_mensal_centavos,
     diaDoMes: m.dia_do_mes,
     inicio: m.inicio,
     ...(m.prazo && { prazo: m.prazo }),
     ajustes: m.ajustes ?? {},
+    ...(m.resgates?.length && { resgates: m.resgates }),
+    ...(m.encerrada_em && { encerradaEm: m.encerrada_em }),
   }
 }
 
@@ -181,13 +188,16 @@ function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
   return {
     id: m.id,
     caixa_id: m.caixaId,
+    destino_id: m.destinoId ?? null,
     nome: m.nome,
-    valor_alvo_centavos: m.valorAlvoCentavos,
+    valor_alvo_centavos: m.valorAlvoCentavos ?? null,
     aporte_mensal_centavos: m.aporteMensalCentavos,
     dia_do_mes: m.diaDoMes,
     inicio: m.inicio,
     prazo: m.prazo ?? null,
     ajustes: m.ajustes,
+    resgates: m.resgates ?? [],
+    encerrada_em: m.encerradaEm ?? null,
   }
 }
 

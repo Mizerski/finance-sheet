@@ -26,12 +26,14 @@ interface DiagnosticoMetaProps {
 /**
  * Diz quanto guardar para cumprir o prazo, se o aporte cabe no fluxo projetado e como fica o risco do caixa,
  * com atalhos para usar o valor. A caixa ganha a cor do nível que o caixa teria com a meta.
+ * Com o valor por mês em branco, sugere um (o maior que não piora o risco).
  */
 export function DiagnosticoMeta({ rascunho, avaliacao, hoje, onUsarAporte }: DiagnosticoMetaProps) {
   const { prazo, aporteMensalCentavos: aporte } = rascunho
   const paraOPrazo = aporteParaOPrazo(rascunho)
   const avaliar = avaliacao !== null && aporte > 0
-  if (paraOPrazo === null && !avaliar) return null
+  const sugerir = avaliacao !== null && aporte === 0
+  if (paraOPrazo === null && !avaliar && !sugerir) return null
 
   const nivel = avaliar ? avaliacao.nivel : null
   const cores = nivel ? COR_RISCO[nivel] : null
@@ -60,6 +62,7 @@ export function DiagnosticoMeta({ rascunho, avaliacao, hoje, onUsarAporte }: Dia
               <Forte>Sem piorar</Forte> é o maior aporte que deixa o risco como está; <Forte>no limite</Forte> é o maior
               que ainda cabe.
             </p>
+            <p>Com o valor por mês em branco, o app sugere o maior que não piora o risco do caixa.</p>
           </Ajuda>
         </div>
         {nivel && (
@@ -79,7 +82,64 @@ export function DiagnosticoMeta({ rascunho, avaliacao, hoje, onUsarAporte }: Dia
       )}
 
       {avaliar && <Folga rascunho={rascunho} avaliacao={avaliacao} hoje={hoje} onUsarAporte={onUsarAporte} />}
+      {sugerir && <Sugestao rascunho={rascunho} avaliacao={avaliacao} hoje={hoje} onUsarAporte={onUsarAporte} />}
     </section>
+  )
+}
+
+/** Valor por mês em branco: o app sugere o maior que não piora o risco (ou, se qualquer um piora, o maior que cabe). */
+function Sugestao({
+  rascunho,
+  avaliacao,
+  hoje,
+  onUsarAporte,
+}: Omit<DiagnosticoMetaProps, 'avaliacao'> & { avaliacao: AvaliacaoMeta }) {
+  const { negativoSemMeta, maximoCentavos: maximo, semPiorarCentavos: semPiorar, nivelSemMeta } = avaliacao
+
+  if (negativoSemMeta) {
+    return (
+      <Linha situacao={<Situacao cabe={false} />}>
+        <Forte>Seu saldo já fica negativo, mesmo sem esta meta:</Forte>{' '}
+        <SaldoForte centavos={negativoSemMeta.valorCentavos} /> em <DataForte data={negativoSemMeta.data} />. Primeiro
+        corte gastos ou adie contas.
+      </Linha>
+    )
+  }
+  if (maximo === 0) {
+    return (
+      <Linha>
+        <Forte>Não sobra dinheiro para guardar</Forte> nos próximos 12 meses sem deixar o saldo negativo.
+      </Linha>
+    )
+  }
+
+  const valor = semPiorar > 0 ? semPiorar : maximo
+  const resumo = resumirMeta({ ...rascunho, aporteMensalCentavos: valor }, hoje)
+
+  return (
+    <Linha acao={<Usar centavos={valor} onUsarAporte={onUsarAporte} />}>
+      <Forte>Sugestão:</Forte> guarde <DinheiroForte centavos={valor} className="text-economia" /> por mês
+      {semPiorar > 0 ? (
+        <>
+          , sem piorar seu caixa (continua <NomeNivel nivel={nivelSemMeta} />).
+        </>
+      ) : (
+        <>. É o máximo que cabe, e o caixa fica mais apertado.</>
+      )}
+      {resumo.conclusaoNoPlano ? (
+        <>
+          {' '}
+          A meta fica completa em <Forte>{formatarMesAno(resumo.conclusaoNoPlano)}</Forte>.
+        </>
+      ) : (
+        rascunho.valorAlvoCentavos === undefined && (
+          <>
+            {' '}
+            Em 12 meses, <DinheiroForte centavos={resumo.emUmAnoCentavos} />.
+          </>
+        )
+      )}
+    </Linha>
   )
 }
 

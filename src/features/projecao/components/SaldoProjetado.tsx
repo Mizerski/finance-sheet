@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from '@/shared/ui/icones'
+import { useGuardadoSeparado } from '@/features/economias/useGuardado'
 import { formatarData, paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
@@ -19,6 +20,7 @@ export function SaldoProjetado() {
   const projecoes = useProjecoes()
   const [hoje] = useState(() => paraDataISO(new Date()))
   const ocultos = estado.saldosOcultos
+  const separado = useGuardadoSeparado(hoje)
 
   const doAnoDeHoje = projecoes[Number(hoje.slice(0, 4)) - intervalo.min]
   const saldoHoje = doAnoDeHoje?.dias.find((d) => d.data === hoje)?.saldoCentavos ?? null
@@ -32,7 +34,15 @@ export function SaldoProjetado() {
   return (
     <div className="flex items-center gap-2 sm:gap-3">
       {/* Régua vertical entre os dois saldos, como nas colunas de um cartaz. */}
-      <Saldo rotulo="Hoje" titulo={`Saldo no fim de hoje, ${formatarData(hoje)}`} centavos={saldoHoje} />
+      <Saldo
+        rotulo="Hoje"
+        titulo={
+          separado > 0 && !ocultos
+            ? `Disponível no fim de hoje, ${formatarData(hoje)}. Além dele, ${formatarBRL(separado)} separados nas metas.`
+            : `Saldo no fim de hoje, ${formatarData(hoje)}`
+        }
+        centavos={saldoHoje}
+      />
       <span aria-hidden className="h-7 w-0.5 bg-contorno" />
       <Saldo
         rotulo={`Fim de ${ano}`}

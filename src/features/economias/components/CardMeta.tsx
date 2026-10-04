@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CalendarCheck, Pencil, Trash2 } from '@/shared/ui/icones'
+import { CalendarCheck, Pencil, PiggyBank, Trash2 } from '@/shared/ui/icones'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
@@ -19,15 +19,33 @@ interface CardMetaProps {
   principal?: boolean
   resumo: ResumoMeta
   hoje: DataISO
+  /** Nome da conta que recebe os aportes, quando o dinheiro vai para outra conta. */
+  destino?: string
   onEditar: () => void
   onAjustar: () => void
+  /** Tirar dinheiro da meta para usar. */
+  onUsar: () => void
+  /** Voltar a guardar numa meta encerrada. */
+  onRetomar: () => void
   onExcluir: () => void
 }
 
-export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, onExcluir }: CardMetaProps) {
+export function CardMeta({
+  meta,
+  principal,
+  resumo,
+  hoje,
+  destino,
+  onEditar,
+  onAjustar,
+  onUsar,
+  onRetomar,
+  onExcluir,
+}: CardMetaProps) {
   const percentual = Math.floor(resumo.percentual * 100)
   const fimDoAno = `${hoje.slice(0, 4)}-12-31`
   const atrasada = !!meta.prazo && !resumo.concluida && !resumo.noPrazo
+  const alvo = meta.valorAlvoCentavos
 
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
@@ -43,11 +61,17 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
               {principal && (
                 <Badge className="shrink-0 border-contorno bg-amarelo text-tinta">Principal</Badge>
               )}
+              {resumo.encerrada && (
+                <Badge variant="outline" className="shrink-0 text-muted-foreground">
+                  Encerrada
+                </Badge>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">
               <span className="tabular-nums">{formatarBRL(meta.aporteMensalCentavos)}</span> todo dia {meta.diaDoMes} ·
               desde {formatarData(meta.inicio)}
               {meta.prazo && <> · até {formatarMesAno(meta.prazo, 'curto')}</>}
+              {destino && <> · vai para {destino}</>}
             </p>
           </div>
           <div className="flex shrink-0">
@@ -73,25 +97,46 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
         </div>
       </header>
 
-      <div className="flex flex-col gap-3 px-4 pt-4 pb-4 sm:px-5">
-        <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+      {alvo === undefined ? (
+        // Cofrinho: sem alvo não há percentual nem barra; o número principal é o que já foi guardado.
+        <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 px-4 pt-4 pb-4 sm:px-5">
           <p className="flex items-baseline gap-2">
-            <span className={cn('text-[2.75rem]', VALOR_DESTAQUE)}>{percentual}%</span>
-            <span className={cn(ROTULO, 'text-muted-foreground')}>{resumo.concluida ? 'meta atingida' : 'guardado'}</span>
+            <span className={cn('text-[2rem] sm:text-[2.75rem]', VALOR_DESTAQUE)}>
+              {formatarBRL(resumo.guardadoCentavos)}
+            </span>
+            <span className={cn(ROTULO, 'text-muted-foreground')}>guardado</span>
           </p>
-          <p className="pb-1 text-sm text-muted-foreground tabular-nums">
-            <span className="font-semibold text-foreground">{formatarBRL(resumo.guardadoCentavos)}</span> de{' '}
-            {formatarBRL(meta.valorAlvoCentavos)}
-          </p>
+          <p className="pb-1 text-sm text-muted-foreground">sem valor alvo</p>
         </div>
-        <BarraProgresso percentual={resumo.percentual} rotulo={`Progresso de ${meta.nome}`} />
-      </div>
+      ) : (
+        <div className="flex flex-col gap-3 px-4 pt-4 pb-4 sm:px-5">
+          <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+            <p className="flex items-baseline gap-2">
+              <span className={cn('text-[2.75rem]', VALOR_DESTAQUE)}>{percentual}%</span>
+              <span className={cn(ROTULO, 'text-muted-foreground')}>{resumo.concluida ? 'meta atingida' : 'guardado'}</span>
+            </p>
+            <p className="pb-1 text-sm text-muted-foreground tabular-nums">
+              <span className="font-semibold text-foreground">{formatarBRL(resumo.guardadoCentavos)}</span> de{' '}
+              {formatarBRL(alvo)}
+            </p>
+          </div>
+          <BarraProgresso percentual={resumo.percentual} rotulo={`Progresso de ${meta.nome}`} />
+        </div>
+      )}
 
       {/* Três dados em colunas separadas por réguas, como uma tabela de cartaz. */}
       <dl className="grid grid-cols-3 border-y-2 border-contorno">
-        <Dado rotulo="Falta">{formatarBRL(resumo.faltaCentavos)}</Dado>
+        {alvo === undefined ? (
+          <Dado rotulo="Por mês">{formatarBRL(meta.aporteMensalCentavos)}</Dado>
+        ) : (
+          <Dado rotulo="Falta">{formatarBRL(resumo.faltaCentavos)}</Dado>
+        )}
         <Dado rotulo="Média por mês">{resumo.mediaCentavos === null ? '—' : formatarBRL(resumo.mediaCentavos)}</Dado>
-        <Dado rotulo={`Até ${formatarMesAno(fimDoAno, 'curto')}`}>{formatarBRL(resumo.previstoFimDoAnoCentavos)}</Dado>
+        {alvo === undefined ? (
+          <Dado rotulo="Em 12 meses">{formatarBRL(resumo.emUmAnoCentavos)}</Dado>
+        ) : (
+          <Dado rotulo={`Até ${formatarMesAno(fimDoAno, 'curto')}`}>{formatarBRL(resumo.previstoFimDoAnoCentavos)}</Dado>
+        )}
       </dl>
 
       <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
@@ -100,19 +145,44 @@ export function CardMeta({ meta, principal, resumo, hoje, onEditar, onAjustar, o
           faixa={atrasada ? 'border-l-vermelho' : 'border-l-amarelo'}
         >
           <p>
-            <Previsao resumo={resumo} />
+            {resumo.encerrada ? (
+              <>
+                <strong className="font-bold text-foreground">Encerrada em {formatarData(meta.encerradaEm!)}:</strong> não
+                guarda mais. Na meta:{' '}
+                <span className="font-semibold text-foreground tabular-nums">{formatarBRL(resumo.guardadoCentavos)}</span>.
+              </>
+            ) : alvo === undefined ? (
+              <>
+                <strong className="font-bold text-foreground">Guarda todo mês, sem fim:</strong> daqui a 12 meses, terá{' '}
+                <span className="font-semibold text-foreground tabular-nums">{formatarBRL(resumo.emUmAnoCentavos)}</span>{' '}
+                nesta meta.
+              </>
+            ) : (
+              <Previsao resumo={resumo} />
+            )}
           </p>
-          {meta.prazo && !resumo.concluida && (
+          {meta.prazo && !resumo.concluida && !resumo.encerrada && (
             <p>
               <SituacaoPrazo prazo={meta.prazo} resumo={resumo} hoje={hoje} />
             </p>
           )}
         </CaixaDestaque>
 
-        <Button variant="outline" className={cn(BOTAO, 'self-start')} onClick={onAjustar}>
-          <CalendarCheck />
-          Quanto guardei em cada mês
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className={BOTAO} onClick={onAjustar}>
+            <CalendarCheck />
+            Quanto guardei em cada mês
+          </Button>
+          <Button variant="outline" className={BOTAO} onClick={onUsar}>
+            <PiggyBank />
+            Usar dinheiro
+          </Button>
+          {resumo.encerrada && (
+            <Button variant="outline" className={BOTAO} onClick={onRetomar}>
+              Voltar a guardar
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   )

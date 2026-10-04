@@ -1,5 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react'
-import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil, Trash2 } from '@/shared/ui/icones'
+import { ArrowDown, ArrowLeftRight, ArrowUp, ChevronsUpDown, Pencil, Trash2 } from '@/shared/ui/icones'
 import type { Caixa } from '@/features/caixas/caixa'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import { CabecalhoGrupo } from '@/features/pastas/components/CabecalhoGrupo'
@@ -16,7 +16,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import type { Lancamento } from '../lancamento'
+import { ehTransferencia, type Lancamento } from '../lancamento'
 import type { CampoOrdem, Ordem } from '../ordenacao'
 import { descreverPeriodo, descreverRecorrencia, ROTULO_NATUREZA } from '../textos'
 
@@ -101,6 +101,7 @@ export function TabelaLancamentos({
         categoria={categorias.get(l.categoriaId) ?? CATEGORIA_DESCONHECIDA}
         tag={l.tagId ? tags.get(l.tagId) : undefined}
         caixa={caixas?.get(l.caixaId)}
+        destino={l.caixaDestinoId ? caixas?.get(l.caixaDestinoId) : undefined}
         noPeriodo={noPeriodo && (noPeriodo.get(l.id) ?? { vezes: 0, totalCentavos: 0 })}
         selecionado={selecao?.ids.has(l.id)}
         onSelecionar={selecao && ((intervalo) => selecao.onAlternar(l.id, intervalo))}
@@ -212,12 +213,27 @@ function CabecalhoOrdenavel({
   )
 }
 
+/** "Conta → Poupança", com a bolinha da cor de cada conta. */
+function Rota({ origem, destino }: { origem?: Caixa; destino?: Caixa }) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-1.5">
+      {origem && <PontoCor cor={origem.cor} className="rounded-full" />}
+      {origem?.nome ?? 'Outra conta'}
+      <span aria-label="para">→</span>
+      {destino && <PontoCor cor={destino.cor} className="rounded-full" />}
+      {destino?.nome ?? 'outra conta'}
+    </span>
+  )
+}
+
 interface LinhaLancamentoProps {
   lancamento: Lancamento
   categoria: Pick<Categoria, 'nome' | 'cor'>
   tag?: Tag
   /** Caixa do lançamento, quando há mais de um. */
   caixa?: Caixa
+  /** Conta que recebe a transferência. */
+  destino?: Caixa
   /** Com filtro de data: vezes e total no período. */
   noPeriodo?: { vezes: number; totalCentavos: number }
   selecionado?: boolean
@@ -234,6 +250,7 @@ function LinhaLancamento({
   categoria,
   tag,
   caixa,
+  destino,
   noPeriodo,
   selecionado,
   onSelecionar,
@@ -242,6 +259,16 @@ function LinhaLancamento({
   onExcluir,
 }: LinhaLancamentoProps) {
   const entrada = l.tipo === 'entrada'
+  const transferencia = ehTransferencia(l)
+  // Transferência não tem categoria: no lugar dela, de onde sai e para onde vai.
+  const classificacao = transferencia ? (
+    <Rota origem={caixa} destino={destino} />
+  ) : (
+    <>
+      <PontoCor cor={categoria.cor} />
+      {categoria.nome}
+    </>
+  )
   const recorrencia = descreverRecorrencia(l)
   const periodo = descreverPeriodo(l)
   const selecionar = (e: MouseEvent) => {
@@ -285,8 +312,7 @@ function LinhaLancamento({
           </span>
           {/* No celular, categoria, tag, natureza e recorrência vêm empilhadas sob a descrição. */}
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground lg:hidden">
-            <PontoCor cor={categoria.cor} />
-            {categoria.nome}
+            {classificacao}
             {tag && (
               <>
                 {' · '}
@@ -294,21 +320,18 @@ function LinhaLancamento({
                 {tag.nome}
               </>
             )}{' '}
-            · {ROTULO_NATUREZA[l.natureza]} · {recorrencia}
+            · {transferencia ? 'Transferência' : ROTULO_NATUREZA[l.natureza]} · {recorrencia}
             {periodo && ` · ${periodo}`}
           </span>
         </div>
       </TableCell>
       <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
-        <span className="flex items-center gap-1.5">
-          <PontoCor cor={categoria.cor} />
-          {categoria.nome}
-        </span>
+        <span className="flex items-center gap-1.5">{classificacao}</span>
       </TableCell>
       <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>{tag && <PilulaTag tag={tag} />}</TableCell>
       <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
         <Badge variant="outline" className="text-muted-foreground">
-          {ROTULO_NATUREZA[l.natureza]}
+          {transferencia ? 'Transferência' : ROTULO_NATUREZA[l.natureza]}
         </Badge>
       </TableCell>
       <TableCell className={cn(TABELA.celula, 'hidden lg:table-cell')}>
@@ -317,8 +340,24 @@ function LinhaLancamento({
           {periodo && <span className="text-[0.7rem] text-muted-foreground tabular-nums">{periodo}</span>}
         </div>
       </TableCell>
-      <TableCell className={cn(TABELA.celula, 'text-right font-semibold tabular-nums', entrada ? 'text-entrada' : 'text-saida')}>
-        {entrada ? '+' : '−'} {formatarBRL(l.valorCentavos)}
+      <TableCell
+        className={cn(
+          TABELA.celula,
+          'text-right font-semibold tabular-nums',
+          transferencia ? 'text-foreground' : entrada ? 'text-entrada' : 'text-saida',
+        )}
+      >
+        {/* Transferência só muda o dinheiro de conta: sem sinal e em preto, com as setas no lugar. */}
+        {transferencia ? (
+          <span className="inline-flex items-center gap-1">
+            <ArrowLeftRight aria-label="Transferência" className="size-3" />
+            {formatarBRL(l.valorCentavos)}
+          </span>
+        ) : (
+          <>
+            {entrada ? '+' : '−'} {formatarBRL(l.valorCentavos)}
+          </>
+        )}
         {/* Com filtro de data, o recorrente diz quantas vezes acontece no período e quanto soma. */}
         {noPeriodo && noPeriodo.vezes > 1 && (
           <span className="block text-[0.7rem] font-normal text-muted-foreground">

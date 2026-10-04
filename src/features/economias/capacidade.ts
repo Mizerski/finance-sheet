@@ -78,7 +78,13 @@ export function capacidadeDePoupanca(dias: DiaProjetado[], hoje: DataISO, pisoCe
     if (!menorSaldo || saldo < menorSaldo.valorCentavos) menorSaldo = { data: d.data, valorCentavos: saldo }
 
     if (d.data >= primeiroAporte) {
-      sobra += d.entradasCentavos - d.saidasFixasCentavos - d.saidasVariaveisCentavos - d.economiaCentavos
+      sobra +=
+        d.entradasCentavos -
+        d.saidasFixasCentavos -
+        d.saidasVariaveisCentavos -
+        d.economiaCentavos +
+        d.transferenciaEntradaCentavos -
+        d.transferenciaSaidaCentavos
       economia += d.economiaCentavos
     }
 

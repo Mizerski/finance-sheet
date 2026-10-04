@@ -257,17 +257,24 @@ export function montarRetrato(e: EntradaRetrato): string {
   if (e.metas.length) {
     const principal = metaPrincipal(e.metas, resumos)
     const linhas = ['## Metas de economia']
+    const usado = (m: (typeof e.metas)[number]) =>
+      (m.resgates ?? []).filter((x) => x.data <= hoje).reduce((t, x) => t + x.valorCentavos, 0)
     for (const m of e.metas) {
       const r = resumos.get(m.id)!
       const detalhes = [
-        `${brl(r.guardadoCentavos)} de ${brl(m.valorAlvoCentavos)} (${Math.round(r.percentual * 100)}%)`,
+        m.valorAlvoCentavos === undefined
+          ? `${brl(r.guardadoCentavos)} guardados, sem valor alvo (cofrinho: guarda todo mês, sem fim; em 12 meses terá ${brl(r.emUmAnoCentavos)})`
+          : `${brl(r.guardadoCentavos)} de ${brl(m.valorAlvoCentavos)} (${Math.round(r.percentual * 100)}%)`,
         r.concluida ? 'concluída' : `guarda ${brl(m.aporteMensalCentavos)} todo dia ${m.diaDoMes}`,
         !r.concluida && r.conclusaoNoPlano ? `termina em ${data(r.conclusaoNoPlano)} pelo plano` : '',
-        !r.concluida && !r.conclusaoNoPlano ? 'com o aporte atual não termina' : '',
+        m.valorAlvoCentavos !== undefined && !r.concluida && !r.conclusaoNoPlano ? 'com o aporte atual não termina' : '',
         m.prazo && !r.concluida
           ? `prazo ${data(m.prazo)}: ${r.noPrazo ? 'no prazo' : `atrasada; precisaria de ${brl(r.aporteParaOPrazoCentavos ?? 0)} por mês`}`
           : '',
         variosCaixas ? `conta ${nomeDaConta(m.caixaId)}` : '',
+        m.destinoId ? `o dinheiro vai para a conta ${nomeDaConta(m.destinoId)}` : 'o dinheiro fica separado na conta (fora do saldo disponível)',
+        usado(m) ? `já usou ${brl(usado(m))}` : '',
+        r.encerrada ? 'encerrada (não guarda mais)' : '',
       ].filter(Boolean)
       linhas.push(`- ${m.nome}${m.id === principal?.id ? ' (principal)' : ''}: ${detalhes.join('; ')}.`)
     }

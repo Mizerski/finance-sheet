@@ -2,7 +2,7 @@ import type { Caixa } from '@/features/caixas/caixa'
 import type { Categoria } from '@/features/categorias/categoria'
 import type { Pasta } from '@/features/pastas/pasta'
 import type { Tag } from '@/features/tags/tag'
-import type { Lancamento } from './lancamento'
+import { ehTransferencia, type Lancamento } from './lancamento'
 
 /** Uma mudança aplicada a vários lançamentos de uma vez (id ausente = tirar a tag ou a pasta). */
 export type AlteracaoLote =
@@ -77,7 +77,11 @@ export function aplicarEmLote(selecionados: Lancamento[], alteracao: AlteracaoLo
     }
     case 'caixa': {
       const caixa = nomes.caixas.find((c) => c.id === alteracao.id)!
+      // A transferência sai de uma conta para outra: não vai para um benefício nem para a conta que a recebe.
+      aptos = selecionados.filter((l) => !ehTransferencia(l) || (caixa.tipo === 'conta' && l.caixaDestinoId !== caixa.id))
       mudar = (l) => ({ ...l, caixaId: caixa.id })
+      porque =
+        caixa.tipo === 'conta' ? `já são transferências para ${caixa.nome}` : 'transferência é só entre contas'
       feito = (n) => `${contar(n, 'lançamento movido', 'lançamentos movidos')} para ${caixa.nome}.`
       break
     }

@@ -21,6 +21,8 @@ interface FiltrosLancamentosProps {
   filtros: FiltrosLancamento
   categorias: Categoria[]
   tags: Tag[]
+  /** Oferece filtrar as transferências (só quando há alguma). */
+  comTransferencia: boolean
   onChange: (filtros: FiltrosLancamento) => void
 }
 
@@ -31,6 +33,20 @@ const OPCOES_TIPO = [
   { valor: 'todos' as const, rotulo: 'Todos' },
   { valor: 'entrada' as const, rotulo: 'Entradas', corAtiva: COR_ATIVA_TIPO.entrada },
   { valor: 'saida' as const, rotulo: 'Saídas', corAtiva: COR_ATIVA_TIPO.saida },
+]
+const OPCOES_TIPO_COM_TRANSFERENCIA = [
+  ...OPCOES_TIPO,
+  {
+    valor: 'transferencia' as const,
+    // No celular, abreviado para as quatro opções caberem na largura.
+    rotulo: (
+      <>
+        <span className="sm:hidden">Transf.</span>
+        <span className="hidden sm:inline">Transferências</span>
+      </>
+    ),
+    corAtiva: COR_ATIVA_TIPO.transferencia,
+  },
 ]
 const OPCOES_NATUREZA = [
   { valor: 'todas' as const, rotulo: 'Todas' },
@@ -129,7 +145,7 @@ function CampoBusca({ valor, onChange }: { valor: string; onChange: (q: string) 
   )
 }
 
-function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosProps) {
+function Controles({ filtros, categorias, tags, comTransferencia, onChange }: FiltrosLancamentosProps) {
   const { intervalo } = useAno()
   const [hoje] = useState(() => paraDataISO(new Date()))
   // Com um tipo escolhido, só faz sentido listar categorias desse tipo.
@@ -151,7 +167,7 @@ function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosPr
       <ControleSegmentado
         rotulo="Filtrar por tipo"
         valor={filtros.tipo ?? 'todos'}
-        opcoes={OPCOES_TIPO}
+        opcoes={comTransferencia || filtros.tipo === 'transferencia' ? OPCOES_TIPO_COM_TRANSFERENCIA : OPCOES_TIPO}
         onChange={(v) => {
           const tipo = v === 'todos' ? undefined : v
           const categoria = categorias.find((c) => c.id === filtros.categoria)
@@ -160,7 +176,7 @@ function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosPr
             tipo,
             categoria: tipo && categoria && categoria.tipo !== tipo ? undefined : filtros.categoria,
             // Só saídas têm tag.
-            tag: tipo === 'entrada' ? undefined : filtros.tag,
+            tag: tipo === 'entrada' || tipo === 'transferencia' ? undefined : filtros.tag,
           })
         }}
         className="w-full sm:w-auto"
@@ -174,27 +190,30 @@ function Controles({ filtros, categorias, tags, onChange }: FiltrosLancamentosPr
         className="w-full sm:w-auto"
       />
 
-      <Select
-        value={filtros.categoria ?? TODAS}
-        onValueChange={(v) => onChange({ ...filtros, categoria: v === TODAS ? undefined : v })}
-      >
-        <SelectTrigger aria-label="Filtrar por categoria" className={cn(CAMPO_SELECT, 'sm:w-56')}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent position="popper">
-          <SelectItem value={TODAS}>
-            Todas as categorias
-          </SelectItem>
-          {categoriasVisiveis.map((c) => (
-            <SelectItem key={c.id} value={c.id}>
-              <PontoCor cor={c.cor} />
-              {c.nome}
+      {/* Transferência não tem categoria nem tag. */}
+      {filtros.tipo !== 'transferencia' && (
+        <Select
+          value={filtros.categoria ?? TODAS}
+          onValueChange={(v) => onChange({ ...filtros, categoria: v === TODAS ? undefined : v })}
+        >
+          <SelectTrigger aria-label="Filtrar por categoria" className={cn(CAMPO_SELECT, 'sm:w-56')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectItem value={TODAS}>
+              Todas as categorias
             </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+            {categoriasVisiveis.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                <PontoCor cor={c.cor} />
+                {c.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
-      {filtros.tipo !== 'entrada' && (
+      {filtros.tipo !== 'entrada' && filtros.tipo !== 'transferencia' && (
         <Select
           value={filtros.tag ?? TODAS}
           onValueChange={(v) => onChange({ ...filtros, tag: v === TODAS ? undefined : v })}

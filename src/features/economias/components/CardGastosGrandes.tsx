@@ -42,9 +42,9 @@ export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGasto
               gasta num mês). A cor do saldo mostra o risco do caixa no dia.
             </p>
             <p>
-              <Forte>Não crie uma meta para eles.</Forte> A projeção já tira esses gastos do saldo no dia certo (e
-              "Quanto dá para guardar" deixa espaço para eles). Com uma meta, o dinheiro sairia duas vezes: uma para o
-              cofrinho e outra no pagamento.
+              <Forte>Não precisa de meta para eles.</Forte> A projeção já tira esses gastos do saldo no dia certo (e
+              "Quanto dá para guardar" deixa espaço para eles). Se quiser separar o dinheiro aos poucos, crie uma meta e,
+              no dia do pagamento, use o dinheiro dela ("Usar dinheiro"); sem isso, ele sairia duas vezes.
             </p>
           </Ajuda>
         }

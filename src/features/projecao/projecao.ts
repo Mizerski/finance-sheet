@@ -1,7 +1,14 @@
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import { indexarAportes, type Aporte } from '@/features/economias/aportes'
 import type { MetaEconomia } from '@/features/economias/meta'
-import type { Lancamento, Natureza, TipoMovimento } from '@/features/lancamentos/lancamento'
+import {
+  ehMovimento,
+  ehTransferencia,
+  type Lancamento,
+  type Natureza,
+  type TipoMovimento,
+  type Transferencia,
+} from '@/features/lancamentos/lancamento'
 import { SEM_PASTA, type Pasta } from '@/features/pastas/pasta'
 import { SEM_TAG, type Tag } from '@/features/tags/tag'
 import { anoDe, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
@@ -19,6 +26,30 @@ export interface Ocorrencia {
   valorCentavos: number
 }
 
+/**
+ * Um lado de uma transferência num caixa: a saída na conta de origem ou a entrada na de destino.
+ * Muda o saldo, mas não é entrada nem gasto (fica fora das ocorrências e dos relatórios).
+ */
+export interface MovimentoTransferencia {
+  lancamentoId: string
+  descricao: string
+  sentido: 'entrada' | 'saida'
+  /** Coluna de saída na planilha da origem. */
+  natureza: Natureza
+  /** O outro lado: o destino (na saída) ou a origem (na entrada). */
+  outroCaixaId: string
+  pastaId?: string
+  valorCentavos: number
+  /**
+   * Aporte (entrada) ou resgate (saída) de uma meta que manda o dinheiro para esta conta; `lancamentoId` é o id dela.
+   * Ausente = transferência lançada.
+   */
+  metaId?: string
+}
+
+/** O que a projeção precisa de um caixa: o saldo inicial e o id (para saber o lado de cada transferência). */
+export type CaixaDaProjecao = Configuracao & { id: string }
+
 export interface DiaProjetado {
   data: DataISO
   mes: number
@@ -34,6 +65,10 @@ export interface DiaProjetado {
   /** Aportes das metas de economia no dia (descontados do saldo, como uma saída). */
   aportes: Aporte[]
   economiaCentavos: number
+  /** Transferências do dia. No Total, as que vão de um caixa do total para outro se anulam e ficam de fora. */
+  transferencias: MovimentoTransferencia[]
+  transferenciaEntradaCentavos: number
+  transferenciaSaidaCentavos: number
   /**
    * No Total: saldo inicial de um caixa que começa neste dia, depois dos outros. Soma no saldo, mas não é entrada.
    * Num caixa só, sempre 0 (o saldo inicial fica antes do primeiro dia).
@@ -50,6 +85,8 @@ export interface ResumoMes {
   saidasVariaveisCentavos: number
   saidasCentavos: number
   economiaCentavos: number
+  transferenciaEntradaCentavos: number
+  transferenciaSaidaCentavos: number
   /** Saldo antes do primeiro dia calculado do mês (= saldo final do mês anterior). */
   saldoInicialCentavos: number | null
   /** Saldo ao fim do último dia do mês. */
@@ -116,7 +153,7 @@ export function ocorreEm(lancamento: Lancamento, dia: DiaCalendario): boolean {
   }
 }
 
-function paraOcorrencia(l: Lancamento): Ocorrencia {
+function paraOcorrencia(l: Lancamento & { tipo: TipoMovimento }): Ocorrencia {
   return {
     lancamentoId: l.id,
     descricao: l.descricao,
@@ -129,9 +166,38 @@ function paraOcorrencia(l: Lancamento): Ocorrencia {
   }
 }
 
-function somar(ocorrencias: Ocorrencia[], filtro: (o: Ocorrencia) => boolean): number {
-  return ocorrencias.reduce((total, o) => (filtro(o) ? total + o.valorCentavos : total), 0)
+function somar<T extends { valorCentavos: number }>(itens: T[], filtro: (item: T) => boolean = () => true): number {
+  return itens.reduce((total, item) => (filtro(item) ? total + item.valorCentavos : total), 0)
 }
+
+/** O lado da transferência que acontece no caixa: saída na origem, entrada no destino. */
+function ladoNoCaixa(l: Transferencia, caixaId: string): MovimentoTransferencia[] {
+  const saida = l.caixaId === caixaId
+  if (!saida && l.caixaDestinoId !== caixaId) return []
+  return [
+    {
+      lancamentoId: l.id,
+      descricao: l.descricao,
+      sentido: saida ? 'saida' : 'entrada',
+      natureza: l.natureza,
+      outroCaixaId: saida ? l.caixaDestinoId : l.caixaId,
+      ...(l.pastaId && { pastaId: l.pastaId }),
+      valorCentavos: l.valorCentavos,
+    },
+  ]
+}
+
+/** Sem as transferências que aparecem dos dois lados (de um caixa somado para outro): no Total, elas se anulam. */
+function semTransferenciasInternas(movimentos: MovimentoTransferencia[]): MovimentoTransferencia[] {
+  const saidas = new Set(movimentos.filter((m) => m.sentido === 'saida').map((m) => m.lancamentoId))
+  const internas = new Set(
+    movimentos.filter((m) => m.sentido === 'entrada' && saidas.has(m.lancamentoId)).map((m) => m.lancamentoId),
+  )
+  return internas.size ? movimentos.filter((m) => !internas.has(m.lancamentoId)) : movimentos
+}
+
+const entra = (m: MovimentoTransferencia) => m.sentido === 'entrada'
+const sai = (m: MovimentoTransferencia) => m.sentido === 'saida'
 
 /** Lançamentos únicos por data e recorrentes à parte, para não testar todos a cada dia. */
 interface IndiceLancamentos {
@@ -163,9 +229,10 @@ function lancamentosDoDia(indice: IndiceLancamentos, dia: DiaCalendario): Lancam
  * o saldo inicial da configuração, ou o saldo final do ano anterior.
  */
 function projetarDias(
-  config: Configuracao,
+  config: CaixaDaProjecao,
   indice: IndiceLancamentos,
   aportes: Map<DataISO, Aporte[]>,
+  chegadas: Map<DataISO, MovimentoTransferencia[]>,
   ano: number,
   saldoAbertura: number,
 ): DiaProjetado[] {
@@ -184,18 +251,28 @@ function projetarDias(
         saidasVariaveisCentavos: 0,
         aportes: [],
         economiaCentavos: 0,
+        transferencias: [],
+        transferenciaEntradaCentavos: 0,
+        transferenciaSaidaCentavos: 0,
         aberturaCentavos: 0,
         saldoCentavos: null,
       }
     }
 
-    const ocorrencias = lancamentosDoDia(indice, dia).map(paraOcorrencia)
+    const doDia = lancamentosDoDia(indice, dia)
+    const ocorrencias = doDia.filter(ehMovimento).map(paraOcorrencia)
+    const transferencias = [
+      ...doDia.filter(ehTransferencia).flatMap((l) => ladoNoCaixa(l, config.id)),
+      ...(chegadas.get(dia.data) ?? []),
+    ]
+    const entrou = somar(transferencias, entra)
+    const saiu = somar(transferencias, sai)
     const entradas = somar(ocorrencias, (o) => o.tipo === 'entrada')
     const fixas = somar(ocorrencias, (o) => o.tipo === 'saida' && o.natureza === 'fixa')
     const variaveis = somar(ocorrencias, (o) => o.tipo === 'saida' && o.natureza === 'variavel')
-    const doDia = aportes.get(dia.data) ?? []
-    const economia = doDia.reduce((t, a) => t + a.valorCentavos, 0)
-    saldo += entradas - fixas - variaveis - economia
+    const aportesDoDia = aportes.get(dia.data) ?? []
+    const economia = somar(aportesDoDia)
+    saldo += entradas - fixas - variaveis - economia + entrou - saiu
 
     return {
       ...base,
@@ -204,8 +281,11 @@ function projetarDias(
       entradasCentavos: entradas,
       saidasFixasCentavos: fixas,
       saidasVariaveisCentavos: variaveis,
-      aportes: doDia,
+      aportes: aportesDoDia,
       economiaCentavos: economia,
+      transferencias,
+      transferenciaEntradaCentavos: entrou,
+      transferenciaSaidaCentavos: saiu,
       aberturaCentavos: 0,
       saldoCentavos: saldo,
     }
@@ -221,7 +301,9 @@ export function saldoAntesDoDia(d: DiaProjetado): number | null {
     d.entradasCentavos +
     d.saidasFixasCentavos +
     d.saidasVariaveisCentavos +
-    d.economiaCentavos
+    d.economiaCentavos -
+    d.transferenciaEntradaCentavos +
+    d.transferenciaSaidaCentavos
   )
 }
 
@@ -241,6 +323,8 @@ export function agregarPorMes(dias: DiaProjetado[]): ResumoMes[] {
       saidasVariaveisCentavos: variaveis,
       saidasCentavos: fixas + variaveis,
       economiaCentavos: economia,
+      transferenciaEntradaCentavos: calculados.reduce((t, d) => t + d.transferenciaEntradaCentavos, 0),
+      transferenciaSaidaCentavos: calculados.reduce((t, d) => t + d.transferenciaSaidaCentavos, 0),
       saldoInicialCentavos: calculados.length ? saldoAntesDoDia(calculados[0]) : null,
       saldoFinalCentavos: doMes.at(-1)?.saldoCentavos ?? null,
     }
@@ -334,24 +418,32 @@ export function diasNoPeriodo(projecoes: Projecao[], { de, ate }: Periodo): DiaP
     .flatMap((p) => p.dias.filter((d) => d.data >= de && d.data <= ate))
 }
 
+/**
+ * Cada acontecimento de lançamento nos dias (ocorrências e transferências), um por vez. Com dias de vários caixas,
+ * a transferência conta uma vez só: pelo lado da saída, ou pelo da entrada se a origem não estiver nos dias.
+ */
+function* acontecimentos(dias: DiaProjetado[]): Generator<{ lancamentoId: string; valorCentavos: number }> {
+  const comSaida = new Set(dias.flatMap((d) => d.transferencias.filter(sai).map((m) => m.lancamentoId)))
+  for (const d of dias) {
+    yield* d.ocorrencias
+    for (const m of d.transferencias) if (m.sentido === 'saida' || !comSaida.has(m.lancamentoId)) yield m
+  }
+}
+
 /** Quantas vezes cada lançamento acontece nos dias e quanto isso soma, pelo id (só os que acontecem). */
 export function ocorrenciasPorLancamento(dias: DiaProjetado[]): Map<string, { vezes: number; totalCentavos: number }> {
   const porId = new Map<string, { vezes: number; totalCentavos: number }>()
-  for (const d of dias) {
-    for (const o of d.ocorrencias) {
-      const atual = porId.get(o.lancamentoId) ?? { vezes: 0, totalCentavos: 0 }
-      porId.set(o.lancamentoId, { vezes: atual.vezes + 1, totalCentavos: atual.totalCentavos + o.valorCentavos })
-    }
+  for (const o of acontecimentos(dias)) {
+    const atual = porId.get(o.lancamentoId) ?? { vezes: 0, totalCentavos: 0 }
+    porId.set(o.lancamentoId, { vezes: atual.vezes + 1, totalCentavos: atual.totalCentavos + o.valorCentavos })
   }
   return porId
 }
 
-/** Total projetado nos dias (todas as ocorrências somadas) de cada lançamento, pelo id. */
+/** Total projetado nos dias (ocorrências e transferências somadas) de cada lançamento, pelo id. */
 export function totalPorLancamento(dias: DiaProjetado[]): Map<string, number> {
   const totais = new Map<string, number>()
-  for (const d of dias) {
-    for (const o of d.ocorrencias) totais.set(o.lancamentoId, (totais.get(o.lancamentoId) ?? 0) + o.valorCentavos)
-  }
+  for (const o of acontecimentos(dias)) totais.set(o.lancamentoId, (totais.get(o.lancamentoId) ?? 0) + o.valorCentavos)
   return totais
 }
 
@@ -404,32 +496,59 @@ export function resumirAno(dias: DiaProjetado[]): ResumoAno {
 /**
  * Projeta os anos de `de` a `ate`, um resultado por ano.
  * O saldo é encadeado desde o ano de dataSaldoInicial: o fim de um ano é a abertura do seguinte.
- * Os aportes das metas de economia saem do saldo como uma saída à parte.
+ * Os aportes das metas de economia saem do saldo como uma saída à parte (e os resgates voltam); as transferências
+ * mudam o saldo do lado do caixa (saída na origem, entrada no destino). A meta que manda o dinheiro para este caixa
+ * (`destinoId`) chega aqui como transferência.
  */
 export function projetarAnos(
-  config: Configuracao,
+  config: CaixaDaProjecao,
   lancamentos: Lancamento[],
   metas: MetaEconomia[],
   de: number,
   ate: number,
 ): Projecao[] {
   const indice = indexar(lancamentos)
-  const aportes = indexarAportes(metas, `${ate}-12-31`)
+  const fim = `${ate}-12-31`
+  const chegando = (m: MetaEconomia) => m.destinoId === config.id && m.caixaId !== config.id
+  const aportes = indexarAportes(metas.filter((m) => !chegando(m)), fim)
+  const chegadas = chegadasDasMetas(metas.filter(chegando), fim)
   const projecoes: Projecao[] = []
   let saldo = config.saldoInicialCentavos
 
   for (let ano = Math.min(de, anoDe(config.dataSaldoInicial)); ano <= ate; ano++) {
-    const dias = projetarDias(config, indice, aportes, ano, saldo)
+    const dias = projetarDias(config, indice, aportes, chegadas, ano, saldo)
     saldo = dias.at(-1)?.saldoCentavos ?? config.saldoInicialCentavos
     if (ano >= de) projecoes.push({ ano, dias, meses: agregarPorMes(dias), resumo: resumirAno(dias) })
   }
   return projecoes
 }
 
+/** Aportes e resgates das metas que mandam o dinheiro para o caixa, como transferências (entrada e saída), por data. */
+function chegadasDasMetas(metas: MetaEconomia[], ate: DataISO): Map<DataISO, MovimentoTransferencia[]> {
+  const origem = new Map(metas.map((m) => [m.id, m.caixaId]))
+  const porData = new Map<DataISO, MovimentoTransferencia[]>()
+  for (const [data, lista] of indexarAportes(metas, ate)) {
+    porData.set(
+      data,
+      lista.map((a) => ({
+        lancamentoId: a.metaId,
+        metaId: a.metaId,
+        descricao: a.nome,
+        sentido: a.valorCentavos > 0 ? 'entrada' : 'saida',
+        natureza: a.resgateId ? 'variavel' : 'fixa',
+        outroCaixaId: origem.get(a.metaId)!,
+        valorCentavos: Math.abs(a.valorCentavos),
+      })),
+    )
+  }
+  return porData
+}
+
 /**
  * Total: a soma dia a dia das projeções de vários caixas (cada um com o próprio saldo inicial, lançamentos e metas),
  * não uma projeção nova com tudo misturado. Todas as listas cobrem os mesmos anos, de `de` a `ate`.
  * O saldo inicial de um caixa que começa depois dos outros entra no dia em `aberturaCentavos`, fora das entradas.
+ * Transferência entre dois caixas somados some (o saldo já se anula); para um caixa de fora, fica o lado de dentro.
  * Com um caixa só, devolve a própria projeção dele.
  */
 export function somarProjecoes(porCaixa: Projecao[][], de: number, ate: number): Projecao[] {
@@ -453,6 +572,7 @@ export function somarProjecoes(porCaixa: Projecao[][], de: number, ate: number):
       const noCalculo = calculados.length > 0
       somaIniciada ||= noCalculo
       const somar = (campo: (d: DiaProjetado) => number) => calculados.reduce((t, d) => t + campo(d), 0)
+      const transferencias = semTransferenciasInternas(calculados.flatMap((d) => d.transferencias))
 
       return {
         data: dia.data,
@@ -466,6 +586,9 @@ export function somarProjecoes(porCaixa: Projecao[][], de: number, ate: number):
         saidasVariaveisCentavos: somar((d) => d.saidasVariaveisCentavos),
         aportes: calculados.flatMap((d) => d.aportes),
         economiaCentavos: somar((d) => d.economiaCentavos),
+        transferencias,
+        transferenciaEntradaCentavos: transferencias.filter(entra).reduce((t, m) => t + m.valorCentavos, 0),
+        transferenciaSaidaCentavos: transferencias.filter(sai).reduce((t, m) => t + m.valorCentavos, 0),
         aberturaCentavos: abertura + somar((d) => d.aberturaCentavos),
         saldoCentavos: noCalculo ? somar((d) => d.saldoCentavos!) : null,
       }
