@@ -8,8 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "desktop": "tauri dev",
-    "desktop:build": "tauri build",
+    "desktop": "node scripts/baixar-llama.mjs && tauri dev",
+    "desktop:build": "node scripts/baixar-llama.mjs && tauri build",
     "tauri": "tauri"
   },
   "dependencies": {

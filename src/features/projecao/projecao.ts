@@ -213,7 +213,7 @@ function projetarDias(
 }
 
 /** Saldo antes do dia: sem o movimento do dia nem o saldo inicial de um caixa que começa nele. */
-function saldoAntesDoDia(d: DiaProjetado): number | null {
+export function saldoAntesDoDia(d: DiaProjetado): number | null {
   if (d.saldoCentavos === null) return null
   return (
     d.saldoCentavos -

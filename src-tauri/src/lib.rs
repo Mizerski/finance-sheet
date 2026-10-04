@@ -1,8 +1,10 @@
+mod assistente;
+
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager, WindowEvent};
+use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
 
 /// Argumento do início automático com o sistema: o app abre direto na bandeja.
 const ARG_MINIMIZADO: &str = "--minimized";
@@ -51,6 +53,9 @@ fn criar_bandeja(app: &AppHandle) -> tauri::Result<()> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // reqwest usa rustls sem provedor embutido (o mesmo do updater): instala o ring antes de criar os clientes.
+    let _ = rustls::crypto::ring::default_provider().install_default();
+
     tauri::Builder::default()
         // Uma instância só: abrir o app de novo traz a janela que está na bandeja. Precisa ser o primeiro plugin.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| mostrar_janela(app)))
@@ -67,7 +72,19 @@ pub fn run() {
         // Dados do app num arquivo JSON na pasta de dados do usuário.
         .plugin(tauri_plugin_store::Builder::new().build())
         .manage(Bandeja(AtomicBool::new(true)))
-        .invoke_handler(tauri::generate_handler![definir_bandeja])
+        .manage(assistente::Assistente::new())
+        .invoke_handler(tauri::generate_handler![
+            definir_bandeja,
+            assistente::assistente_estado,
+            assistente::assistente_placa_de_video,
+            assistente::assistente_baixar,
+            assistente::assistente_cancelar_download,
+            assistente::assistente_excluir_modelo,
+            assistente::assistente_ligar,
+            assistente::assistente_desligar,
+            assistente::assistente_responder,
+            assistente::assistente_parar_resposta,
+        ])
         .on_window_event(|janela, evento| {
             if let WindowEvent::CloseRequested { api, .. } = evento {
                 if janela.state::<Bandeja>().0.load(Ordering::Relaxed) {
@@ -85,12 +102,18 @@ pub fn run() {
                 )?;
             }
             criar_bandeja(app.handle())?;
+            assistente::vigiar_ociosidade(app.handle().clone());
             // A janela nasce escondida (tauri.conf.json); só aparece se o app não abriu com o sistema.
             if !std::env::args().any(|arg| arg == ARG_MINIMIZADO) {
                 mostrar_janela(app.handle());
             }
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while building tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, evento| {
+            if let RunEvent::Exit = evento {
+                app.state::<assistente::Assistente>().encerrar();
+            }
+        });
 }

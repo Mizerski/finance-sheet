@@ -1,4 +1,6 @@
 import { Link, Outlet } from '@tanstack/react-router'
+import { BotaoAssistente } from '@/features/assistente/components/BotaoAssistente'
+import { PainelAssistente } from '@/features/assistente/components/PainelAssistente'
 import { BotaoSair } from '@/features/autenticacao/components/BotaoSair'
 import { SeletorCaixa } from '@/features/caixas/components/SeletorCaixa'
 import { useAtalhosDeCaixa } from '@/features/caixas/useAtalhosDeCaixa'
@@ -61,6 +63,7 @@ export function AppLayout() {
             <div className="flex min-w-0 items-center gap-1">
               {!telaLarga && <SeletorCaixa className="mr-1 mb-[3px] max-w-[11rem]" />}
               <Menu linha={linha} />
+              {EH_DESKTOP && <BotaoAssistente />}
               {EH_DESKTOP && <BotaoLembrete />}
               {EH_DESKTOP && <BotaoBackup />}
               <BotaoTema />
@@ -74,6 +77,7 @@ export function AppLayout() {
         </main>
 
         <AtalhosGlobais />
+        {EH_DESKTOP && <PainelAssistente />}
       </div>
     </MemoriaNavegacaoProvider>
   )

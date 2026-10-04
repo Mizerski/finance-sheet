@@ -2877,9 +2877,13 @@ dependencies = [
 name = "projecao-financeira"
 version = "0.4.11"
 dependencies = [
+ "futures-util",
  "log",
+ "reqwest",
+ "rustls",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
@@ -2891,6 +2895,8 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
  "tauri-plugin-updater",
+ "tokio",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
