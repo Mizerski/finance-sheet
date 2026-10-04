@@ -7,6 +7,7 @@ import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoIn
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useAno } from '@/features/projecao/useAno'
 import { DialogLancamento } from '@/features/lancamentos/components/DialogLancamento'
+import { ExcluirLancamento } from '@/features/lancamentos/components/ExcluirLancamento'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
 import { ResumoRiscoPlanilha } from '@/features/risco/components/ResumoRiscoPlanilha'
 import { useRisco } from '@/features/risco/useRisco'
@@ -58,6 +59,7 @@ export function PlanilhaPage() {
   const search = useSearch({ from: '/' })
   const navigate = useNavigate({ from: '/' })
   const [edicao, setEdicao] = useState<Edicao>({ aberto: false })
+  const [exclusao, setExclusao] = useState<{ aberto: boolean; lancamento?: Lancamento }>({ aberto: false })
   const [editandoSaldo, setEditandoSaldo] = useState(false)
   const [conferindo, setConferindo] = useState(false)
 
@@ -89,6 +91,11 @@ export function PlanilhaPage() {
   const editar = (lancamentoId: string) => {
     const lancamento = estado.lancamentos.find((l) => l.id === lancamentoId)
     if (lancamento) setEdicao({ aberto: true, lancamento })
+  }
+
+  const excluir = (lancamentoId: string) => {
+    const lancamento = estado.lancamentos.find((l) => l.id === lancamentoId)
+    if (lancamento) setExclusao({ aberto: true, lancamento })
   }
 
   const adicionar = (data: DataISO) => setEdicao({ aberto: true, data })
@@ -204,6 +211,7 @@ export function PlanilhaPage() {
             hoje={hoje}
             categorias={categorias}
             onEditar={editar}
+            onExcluir={excluir}
             onAdicionar={adicionar}
             comEconomia={comEconomia}
             nivelDoDia={risco?.nivelDoDia ?? null}
@@ -216,6 +224,12 @@ export function PlanilhaPage() {
         lancamento={edicao.lancamento}
         dataInicial={edicao.data}
         onOpenChange={(aberto) => setEdicao((e) => ({ ...e, aberto }))}
+      />
+
+      <ExcluirLancamento
+        aberto={exclusao.aberto}
+        lancamento={exclusao.lancamento}
+        onOpenChange={(aberto) => setExclusao((e) => ({ ...e, aberto }))}
       />
 
       <DialogSaldoInicial aberto={editandoSaldo} onOpenChange={setEditandoSaldo} />

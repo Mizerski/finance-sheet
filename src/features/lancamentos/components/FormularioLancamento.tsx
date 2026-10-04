@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
 import { useVisao } from '@/features/caixas/useVisao'
 import type { Categoria } from '@/features/categorias/categoria'
 import { DialogCategoria } from '@/features/categorias/components/DialogCategoria'
+import { DialogPasta } from '@/features/pastas/components/DialogPasta'
+import { DialogTag } from '@/features/tags/components/DialogTag'
 import { EfeitoNoCaixa } from '@/features/risco/components/EfeitoNoCaixa'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
@@ -54,8 +55,8 @@ const OPCOES_RECORRENCIA = [
 ]
 /** O Select do Radix não aceita valor vazio, então "sem tag" e "sem pasta" usam um valor sentinela. */
 const NENHUMA = '__nenhuma__'
-/** Item do seletor de categoria que abre o cadastro em vez de escolher. */
-const NOVA_CATEGORIA = '__nova__'
+/** Item dos seletores de categoria, tag e pasta que abre o cadastro em vez de escolher. */
+const NOVA = '__nova__'
 
 const OPCOES_DIAS = [
   { valor: 'todos' as const, rotulo: 'Todos os dias' },
@@ -80,6 +81,8 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   const [vigencia, setVigencia] = useState<Vigencia>('daqui')
   const [aPartirDe, setAPartirDe] = useState<DataISO>(hoje)
   const [criandoCategoria, setCriandoCategoria] = useState(false)
+  const [criandoTag, setCriandoTag] = useState(false)
+  const [criandoPasta, setCriandoPasta] = useState(false)
 
   const saida = rascunho.tipo === 'saida'
   const categoriasDoTipo = estado.categorias.filter((c) => c.tipo === rascunho.tipo)
@@ -130,8 +133,15 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
     // Logo depois de criar uma categoria, o <select> oculto do Radix ainda não tem a opção nova e avisa
     // um valor vazio; a lista não tem opção vazia, então ignorar não perde nenhuma escolha real.
     if (!valor) return
-    if (valor === NOVA_CATEGORIA) setCriandoCategoria(true)
+    if (valor === NOVA) setCriandoCategoria(true)
     else alterar('categoriaId', valor)
+  }
+
+  /** Tag e pasta: "Sem" limpa, "Nova" abre o cadastro; a criada já fica escolhida. Vazio: ver `escolherCategoria`. */
+  function escolherOpcional(campo: 'tagId' | 'pastaId', valor: string) {
+    if (!valor) return
+    if (valor === NOVA) (campo === 'tagId' ? setCriandoTag : setCriandoPasta)(true)
+    else alterar(campo, valor === NENHUMA ? '' : valor)
   }
 
   /** A categoria criada no meio do lançamento já fica escolhida (se for do mesmo tipo). */
@@ -212,7 +222,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
                 </SelectItem>
               ))}
               {categoriasDoTipo.length > 0 && <SelectSeparator />}
-              <SelectItem value={NOVA_CATEGORIA} className="font-semibold">
+              <SelectItem value={NOVA} className="font-semibold">
                 <Plus />
                 Nova categoria
               </SelectItem>
@@ -259,10 +269,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
             <FieldLabel htmlFor="lanc-tag">
               Tag <span className="font-normal text-muted-foreground">(opcional)</span>
             </FieldLabel>
-            <Select
-              value={rascunho.tagId || NENHUMA}
-              onValueChange={(v) => alterar('tagId', v === NENHUMA ? '' : v)}
-            >
+            <Select value={rascunho.tagId || NENHUMA} onValueChange={(v) => escolherOpcional('tagId', v)}>
               <SelectTrigger id="lanc-tag" className={CAMPO_SELECT}>
                 <SelectValue />
               </SelectTrigger>
@@ -277,16 +284,26 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
                     {t.evitavel && <span className="text-muted-foreground">· evitável</span>}
                   </SelectItem>
                 ))}
+                <SelectSeparator />
+                <SelectItem value={NOVA} className="font-semibold">
+                  <Plus />
+                  Nova tag
+                </SelectItem>
               </SelectContent>
             </Select>
             {estado.tags.length === 0 && (
               <FieldDescription>
                 Nenhuma tag ainda.{' '}
-                <Link to="/organizacao" search={{ aba: 'tags' }}>
-                  Criar tags
-                </Link>
+                <button
+                  type="button"
+                  onClick={() => setCriandoTag(true)}
+                  className="underline underline-offset-4 hover:text-primary"
+                >
+                  Criar tag
+                </button>
               </FieldDescription>
             )}
+            <DialogTag aberto={criandoTag} onOpenChange={setCriandoTag} onSalvar={(t) => alterar('tagId', t.id)} />
           </Field>
         )}
       </div>
@@ -295,10 +312,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
         <FieldLabel htmlFor="lanc-pasta">
           Pasta <span className="font-normal text-muted-foreground">(opcional)</span>
         </FieldLabel>
-        <Select
-          value={rascunho.pastaId || NENHUMA}
-          onValueChange={(v) => alterar('pastaId', v === NENHUMA ? '' : v)}
-        >
+        <Select value={rascunho.pastaId || NENHUMA} onValueChange={(v) => escolherOpcional('pastaId', v)}>
           <SelectTrigger id="lanc-pasta" className={CAMPO_SELECT}>
             <SelectValue />
           </SelectTrigger>
@@ -312,16 +326,26 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
                 {p.nome}
               </SelectItem>
             ))}
+            <SelectSeparator />
+            <SelectItem value={NOVA} className="font-semibold">
+              <Plus />
+              Nova pasta
+            </SelectItem>
           </SelectContent>
         </Select>
         {estado.pastas.length === 0 && (
           <FieldDescription>
             Pastas agrupam a lista de lançamentos.{' '}
-            <Link to="/organizacao" search={{ aba: 'pastas' }}>
-              Criar pastas
-            </Link>
+            <button
+              type="button"
+              onClick={() => setCriandoPasta(true)}
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Criar pasta
+            </button>
           </FieldDescription>
         )}
+        <DialogPasta aberto={criandoPasta} onOpenChange={setCriandoPasta} onSalvar={(p) => alterar('pastaId', p.id)} />
       </Field>
 
       <Field>

@@ -110,6 +110,11 @@ jobs:
 
       - run: npm ci
 
+      # Motor do assistente local (llama-server), que vai dentro do instalador. Num Mac gerando para
+      # Intel, defina LLAMA_ALVO=darwin-x64.
+      - name: Baixar o llama.cpp
+        run: node scripts/baixar-llama.mjs
+
       # Sem a chave pública no tauri.conf.json, os apps instalados não conseguiriam conferir as atualizações.
       - name: Conferir chave do atualizador
         shell: bash

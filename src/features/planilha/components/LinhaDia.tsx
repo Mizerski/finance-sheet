@@ -15,6 +15,7 @@ interface LinhaDiaProps {
   ehHoje: boolean
   categorias: Map<string, Categoria>
   onEditar: (lancamentoId: string) => void
+  onExcluir: (lancamentoId: string) => void
   onAdicionar: (data: DataISO) => void
   comEconomia: boolean
   /** Nível de risco do dia, para pintar o saldo; null sem risco. */
@@ -34,7 +35,7 @@ const VEU = {
 /** Espaço que um dia cheio pede abaixo da linha; com menos que isso, o popover abre para cima se lá couber mais. */
 const ALTURA_CONFORTAVEL = 420
 
-export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEconomia, nivel }: LinhaDiaProps) {
+export function LinhaDia({ dia, ehHoje, categorias, onEditar, onExcluir, onAdicionar, comEconomia, nivel }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
   const [lado, setLado] = useState<'top' | 'bottom'>('bottom')
   const linhaRef = useRef<HTMLTableRowElement>(null)
@@ -115,6 +116,10 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onAdicionar, comEc
           onEditar={(id) => {
             setAberto(false)
             onEditar(id)
+          }}
+          onExcluir={(id) => {
+            setAberto(false)
+            onExcluir(id)
           }}
           onAdicionar={() => {
             setAberto(false)

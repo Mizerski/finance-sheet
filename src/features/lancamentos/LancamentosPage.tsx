@@ -13,7 +13,7 @@ import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
-import { anoDe, formatarData, paraDataISO, somarDias } from '@/shared/lib/datas'
+import { anoDe } from '@/shared/lib/datas'
 import { BOTAO, CARD } from '@/shared/lib/estilos'
 import { rotuloDoPeriodo, tipoDoPeriodo, type Periodo } from '@/shared/lib/periodo'
 import { cn } from '@/shared/lib/utils'
@@ -22,12 +22,13 @@ import { Card } from '@/shared/ui/card'
 import { useFinancas } from '@/store/financas-context'
 import { BarraSelecao, type AvisoLote } from './components/BarraSelecao'
 import { DialogLancamento } from './components/DialogLancamento'
+import { ExcluirLancamento } from './components/ExcluirLancamento'
 import { FiltrosLancamentos } from './components/FiltrosLancamentos'
 import { TabelaLancamentos, type SelecaoTabela } from './components/TabelaLancamentos'
 import { filtrarLancamentos, periodoDoFiltro, temFiltro, type FiltrosLancamento } from './filtros'
 import type { Lancamento } from './lancamento'
 import { aplicarEmLote, type AlteracaoLote } from './lote'
-import { encerrar, recorrenteEmAndamento } from './vigencia'
+import { lerOrdem, ordenarLancamentos, proximaOrdem, type CampoOrdem } from './ordenacao'
 
 /** O item continua guardado ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Selecao {
@@ -50,7 +51,7 @@ function quandoDoPeriodo(periodo: Periodo): string {
 
 export function LancamentosPage() {
   const { estado, dispatch } = useFinancas()
-  const { fechadas, ...filtros } = useSearch({ from: '/lancamentos' })
+  const { fechadas, ordem: textoOrdem, ...filtros } = useSearch({ from: '/lancamentos' })
   const navigate = useNavigate({ from: '/lancamentos' })
   // A lista é do caixa escolhido ou, no Total, de todos os caixas (inclusive os que não entram no total).
   const { caixa, lancamentosDaLista } = useVisao()
@@ -62,7 +63,6 @@ export function LancamentosPage() {
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
   // Quantos vão ser excluídos fica guardado, para o título não mudar durante a animação de saída.
   const [exclusaoLote, setExclusaoLote] = useState({ aberto: false, quantos: 0 })
-  const [hoje] = useState(() => paraDataISO(new Date()))
 
   const categorias = useMemo(() => new Map(estado.categorias.map((c) => [c.id, c])), [estado.categorias])
   const tags = useMemo(() => new Map(estado.tags.map((t) => [t.id, t])), [estado.tags])
@@ -78,7 +78,13 @@ export function LancamentosPage() {
       noPeriodo ? new Map([...noPeriodo].map(([id, { totalCentavos }]) => [id, totalCentavos])) : totalPorLancamento(dias),
     [noPeriodo, dias],
   )
-  const visiveis = filtrarLancamentos(lancamentosDaLista, filtros, new Set(tags.keys()), noPeriodo ?? undefined)
+  const ordem = lerOrdem(textoOrdem)
+  const visiveis = ordenarLancamentos(
+    filtrarLancamentos(lancamentosDaLista, filtros, new Set(tags.keys()), noPeriodo ?? undefined),
+    ordem,
+    categorias,
+    tags,
+  )
   const grupos = agruparPorPasta(visiveis, estado.pastas, totais)
   const total = lancamentosDaLista.length
   const filtrando = temFiltro(filtros)
@@ -187,7 +193,7 @@ export function LancamentosPage() {
     })
   }
 
-  // Os grupos fechados continuam fechados ao trocar ou limpar os filtros.
+  // Os grupos fechados e a ordem das colunas continuam ao trocar ou limpar os filtros.
   // O ano das outras telas acompanha o início do período, como no Dashboard.
   const alterarFiltros = (novos: FiltrosLancamento) =>
     navigate({
@@ -196,6 +202,7 @@ export function LancamentosPage() {
         return {
           ...novos,
           fechadas,
+          ordem: s.ordem,
           ...(mudouPeriodo && { ano: anoDe(novos.de!) === anoAtual ? undefined : anoDe(novos.de!) }),
         }
       },
@@ -211,13 +218,13 @@ export function LancamentosPage() {
       replace: true,
       resetScroll: false,
     })
+  const ordenar = (campo: CampoOrdem) =>
+    navigate({ search: (s) => ({ ...s, ordem: proximaOrdem(ordem, campo) }), replace: true, resetScroll: false })
   const mover = (l: Lancamento, pastaId: string | undefined) => {
     const { pastaId: _, ...semPasta } = l
     dispatch({ tipo: 'lancamento/salvar', lancamento: pastaId ? { ...semPasta, pastaId } : semPasta })
   }
   const novo = () => setEdicao({ aberto: true })
-  // Recorrente que já aconteceu: encerrar mantém os meses que passaram, excluir apaga tudo.
-  const encerravel = exclusao.lancamento && recorrenteEmAndamento(exclusao.lancamento, hoje) ? exclusao.lancamento : undefined
   const barraVisivel = selecionados.length > 0 || !!aviso
 
   return (
@@ -235,6 +242,10 @@ export function LancamentosPage() {
             <p>
               <strong className="font-semibold">Data:</strong> mostra só o que acontece no período escolhido, com quantas
               vezes e quanto soma cada lançamento que se repete.
+            </p>
+            <p>
+              <strong className="font-semibold">Ordenar:</strong> clique no nome de uma coluna (descrição, valor…).
+              Clicar de novo inverte a ordem; na terceira vez, volta ao normal.
             </p>
             {selecionavel && (
               <p>
@@ -276,6 +287,8 @@ export function LancamentosPage() {
             quando={quando}
             noPeriodo={noPeriodo ?? undefined}
             selecao={selecao}
+            ordem={ordem}
+            onOrdenar={ordenar}
             onAlternarGrupo={alternarGrupo}
             onMover={mover}
             onEditar={(lancamento) => setEdicao({ aberto: true, lancamento })}
@@ -333,33 +346,10 @@ export function LancamentosPage() {
         onOpenChange={(aberto) => setEdicao((e) => ({ ...e, aberto }))}
       />
 
-      <ConfirmarExclusao
+      <ExcluirLancamento
         aberto={exclusao.aberto}
+        lancamento={exclusao.lancamento}
         onOpenChange={(aberto) => setExclusao((e) => ({ ...e, aberto }))}
-        titulo="Excluir lançamento?"
-        descricao={
-          encerravel ? (
-            <>
-              <span className="font-medium text-foreground">{encerravel.descricao}</span> já aconteceu antes de hoje.
-              Encerrar mantém o histórico até {formatarData(somarDias(hoje, -1))} e para a partir de hoje. Excluir de
-              vez apaga também os meses que passaram, sem desfazer.
-            </>
-          ) : (
-            <>
-              <span className="font-medium text-foreground">{exclusao.lancamento?.descricao}</span> sai da planilha e
-              da projeção. Não dá para desfazer.
-            </>
-          )
-        }
-        alternativa={
-          encerravel && {
-            rotulo: 'Encerrar',
-            onClick: () => dispatch({ tipo: 'lancamento/salvar', lancamento: encerrar(encerravel, hoje) }),
-          }
-        }
-        onConfirmar={() =>
-          exclusao.lancamento && dispatch({ tipo: 'lancamento/excluir', id: exclusao.lancamento.id })
-        }
       />
 
       <ConfirmarExclusao

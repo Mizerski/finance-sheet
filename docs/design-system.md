@@ -161,6 +161,7 @@ Sem categoria: `#a39a8e`.
 | Caixas | preto, círculo amarelo |
 | Benefício até a recarga (`CardBeneficio`) | preto com quarto de círculo amarelo; se o saldo acaba antes da recarga, vermelho com triângulo papel |
 | Entradas vs saídas · gastos no ano · saldo | azul com quadrado vermelho · azul com quarto amarelo · preto com quarto vermelho |
+| Assistente (painel lateral, só desktop) | preto com as três formas da marca (círculo azul, triângulo amarelo, quadrado vermelho) |
 
 - A marca (`Marca`) é quadrado vermelho, círculo azul e triângulo amarelo, com o nome em duas linhas.
 - `Composicao` é a grade 4×4 de cartaz das telas avulsas (login, carregamento). `EstadoVazio` mostra três formas soltas.
@@ -206,6 +207,7 @@ Sem categoria: `#a39a8e`.
 | Cabeçalho de card | `CabecalhoCard` (faixa de cor opcional à esquerda, que vira bloco com forma quando há `forma`; contagem em bloco preto, destaque à direita) |
 | Mensagem principal de um card | `CaixaDestaque`: contorno preto, faixa grossa de cor à esquerda (`border-l-8`) e fundo suave da cor do assunto (economia, risco, saída); texto em preto, não cinza |
 | Popover, Dialog | `CAMADA` — `border-2 border-contorno shadow-bloco-lg`; todo dialog tem a faixa vermelho/azul/amarelo no topo. Popover nunca passa da tela: com conteúdo demais, rola por dentro (numa lista, só a lista rola) |
+| Painel lateral (assistente) | preso à direita, altura toda, `border-l-2 border-contorno shadow-bloco-lg`, faixa das três primárias no topo; não modal (o app e os atalhos continuam funcionando), Esc fecha. Mensagens da pessoa em bloco preto à direita; as do assistente em bloco de papel com contorno e `shadow-bloco-sm` à esquerda; erro em `CaixaDestaque` vermelha |
 | Checkbox (`src/shared/ui/checkbox.tsx`) | quadrado de 18px com contorno preto de 2px, hover amarelo; marcado ou parcial, bloco preto com ✓ ou – |
 | Barra de seleção (lote) | presa embaixo (`fixed inset-x-4 bottom-4`), `shadow-bloco-lg`; a contagem em bloco amarelo à esquerda, ações em botões `outline`, aviso do que mudou com "Desfazer" na linha de cima. A página ganha folga embaixo para a barra não cobrir a última linha |
 | Seletor de caixa | um botão em bloco (`shadow-bloco-sm`) com a bolinha da cor, o nome e ▾, que afunda e fica amarelo quando aberto; a lista numera os atalhos em quadradinhos (preto no escolhido) |
