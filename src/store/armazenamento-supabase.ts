@@ -28,6 +28,10 @@ interface LinhaCaixa {
   entra_no_total: boolean
   ordem: number
   arquivado: boolean
+  dia_fechamento: number | null
+  dia_vencimento: number | null
+  conta_pagadora_id: string | null
+  limite_centavos: number | null
 }
 
 interface LinhaLancamento {
@@ -64,7 +68,7 @@ interface LinhaMeta {
 }
 
 const COLUNAS_CAIXA =
-  'id, nome, cor, tipo, saldo_inicial_centavos, data_saldo_inicial, saldo_definido, entra_no_total, ordem, arquivado'
+  'id, nome, cor, tipo, saldo_inicial_centavos, data_saldo_inicial, saldo_definido, entra_no_total, ordem, arquivado, dia_fechamento, dia_vencimento, conta_pagadora_id, limite_centavos'
 const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim, excecoes'
 const COLUNAS_META =
   'id, caixa_id, destino_id, nome, valor_alvo_centavos, aporte_mensal_centavos, ja_guardado_centavos, dia_do_mes, inicio, prazo, ajustes, resgates, encerrada_em'
@@ -108,6 +112,17 @@ function deLinhaCaixa(c: LinhaCaixa): Caixa {
     entraNoTotal: c.entra_no_total,
     ordem: c.ordem,
     ...(c.arquivado && { arquivado: true }),
+    ...(c.tipo === 'cartao' &&
+      c.dia_fechamento !== null &&
+      c.dia_vencimento !== null &&
+      c.conta_pagadora_id && {
+        cartao: {
+          diaFechamento: c.dia_fechamento,
+          diaVencimento: c.dia_vencimento,
+          contaPagadoraId: c.conta_pagadora_id,
+          ...(c.limite_centavos !== null && { limiteCentavos: c.limite_centavos }),
+        },
+      }),
   }
 }
 
@@ -123,6 +138,10 @@ function paraLinhaCaixa(c: Caixa): LinhaCaixa {
     entra_no_total: c.entraNoTotal,
     ordem: c.ordem,
     arquivado: c.arquivado ?? false,
+    dia_fechamento: c.cartao?.diaFechamento ?? null,
+    dia_vencimento: c.cartao?.diaVencimento ?? null,
+    conta_pagadora_id: c.cartao?.contaPagadoraId ?? null,
+    limite_centavos: c.cartao?.limiteCentavos ?? null,
   }
 }
 

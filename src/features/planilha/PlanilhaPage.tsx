@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
 import { Landmark } from '@/shared/ui/icones'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
+import { CardCartao } from '@/features/caixas/components/CardCartao'
 import { useVisao } from '@/features/caixas/useVisao'
 import { useGuardadoSeparado } from '@/features/economias/useGuardado'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
@@ -210,6 +211,8 @@ export function PlanilhaPage() {
       )}
       {/* Benefício não tem risco: a pergunta dele é quanto sobra até a recarga. */}
       {visao.ehBeneficio && visao.caixa && <CardBeneficio caixa={visao.caixa} />}
+      {/* Cartão também não tem risco: a pergunta dele é quanto vem na fatura e de que conta sai. */}
+      {visao.ehCartao && visao.caixa && <CardCartao caixa={visao.caixa} />}
 
       <div className={cn('grid items-start gap-4', layout.grade)}>
         {visiveis.map(({ projecao, resumo }) => (
@@ -225,6 +228,7 @@ export function PlanilhaPage() {
             onMudarDia={mudarDia}
             onAdicionar={adicionar}
             comEconomia={comEconomia}
+            divida={visao.ehCartao}
             nivelDoDia={risco?.nivelDoDia ?? null}
           />
         ))}

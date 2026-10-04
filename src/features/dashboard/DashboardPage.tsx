@@ -45,7 +45,7 @@ import { agrupamentoPara, agrupar } from './relatorio'
 export function DashboardPage() {
   // Categorias, tags e pastas são de todos os caixas; saldos, metas e gastos são do que a tela mostra.
   const { estado } = useFinancas()
-  const { projecoes, projecoesDoRelatorio, metas, dataInicial, ehBeneficio } = useVisao()
+  const { projecoes, projecoesDoRelatorio, metas, dataInicial, ehBeneficio, ehCartao } = useVisao()
   const { ano, anoAtual, intervalo } = useAno()
   const search = useSearch({ from: '/dashboard' })
   const navigate = useNavigate({ from: '/dashboard' })
@@ -143,7 +143,7 @@ export function DashboardPage() {
       <Indicadores resumo={resumo} evitaveis={evitaveis} periodo={periodo} />
 
       {/* Benefício não tem metas: o card só convidaria a criar uma no lugar errado. */}
-      {!ehBeneficio && <CardMetaPrincipal principal={principal} totalDeMetas={metas.length} hoje={hoje} />}
+      {!ehBeneficio && !ehCartao && <CardMetaPrincipal principal={principal} totalDeMetas={metas.length} hoje={hoje} />}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Saldo na largura toda: com o gráfico de tags, a grade fica sem buracos. */}

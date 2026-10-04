@@ -32,6 +32,8 @@ export interface Visao {
   saldoDefinido: boolean
   /** Benefício (vale): sem risco, metas, reserva e capacidade. */
   ehBeneficio: boolean
+  /** Cartão de crédito: também sem risco, metas, reserva e capacidade (o risco é da conta que paga a fatura). */
+  ehCartao: boolean
   /** Caixa de um lançamento novo: o escolhido ou, no Total, a primeira conta. */
   caixaPadrao: Caixa | undefined
   /** Caixa de uma meta nova (sempre conta): o escolhido, se for conta, ou a primeira conta. */
@@ -97,6 +99,7 @@ export function useVisao(): Visao {
     dataInicial: primeiraData(caixasDaVisao) ?? primeiraData(todosOsCaixas) ?? configPadrao().dataSaldoInicial,
     saldoDefinido: caixasDaVisao.every((c) => c.saldoDefinido),
     ehBeneficio: caixa?.tipo === 'beneficio',
+    ehCartao: caixa?.tipo === 'cartao',
     caixaPadrao: caixa ?? primeiraConta(todosOsCaixas),
     contaPadrao: caixa?.tipo === 'conta' ? caixa : primeiraConta(todosOsCaixas),
   }

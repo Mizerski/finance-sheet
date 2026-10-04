@@ -34,6 +34,9 @@ export function gastoEssencial(dias: DiaProjetado[], tags: Tag[], hoje: DataISO)
       saidas += o.valorCentavos
       if (o.tagId && evitaveis.has(o.tagId)) evitavel += o.valorCentavos
     }
+    // Fatura de cartão que sai da conta: são os gastos do cartão (as compras ficam no caixa dele). No Total com o
+    // cartão somado, o pagamento se anula e as compras já contam acima.
+    for (const m of d.transferencias) if (m.fatura && m.sentido === 'saida') saidas += m.valorCentavos
   }
 
   const saidasMensais = Math.round(saidas / MESES_DA_CAPACIDADE)

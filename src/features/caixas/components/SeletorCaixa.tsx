@@ -15,8 +15,9 @@ import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { NOME_TOTAL, somaNoTotal, type Caixa } from '../caixa'
-import { resumoCurtoBeneficio } from '../textos'
+import { resumoCurtoBeneficio, resumoCurtoCartao } from '../textos'
 import { useBeneficios } from '../useBeneficio'
+import { useCartoes } from '../useCartao'
 import { useEscolherCaixa, useVisao } from '../useVisao'
 
 /** A partir deste nível, o risco aparece no próprio botão: alerta fica sempre à vista, o "tudo certo" fica na lista. */
@@ -39,12 +40,16 @@ function saldoDoDia(projecoes: Projecao[] | undefined, hoje: DataISO): number | 
   return projecoes?.find((p) => p.ano === ano)?.dias.find((d) => d.data === hoje)?.saldoCentavos ?? null
 }
 
-/** Lista do seletor: Total, as contas e os benefícios, com o saldo de hoje e o risco (contas) ou a recarga (benefícios). */
-function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; noTotal: Caixa[] } {
+/**
+ * Lista do seletor: Total, as contas, os benefícios e os cartões, com o saldo de hoje e o risco (contas), a recarga
+ * (benefícios) ou a fatura (cartões).
+ */
+function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; cartoes: Opcao[]; noTotal: Caixa[] } {
   const { caixas } = useVisao()
   const { porCaixa, todos } = useProjecoesDosCaixas()
   const riscos = useRiscosDasContas()
   const beneficios = useBeneficios()
+  const cartoes = useCartoes()
   const [hoje] = useState(() => paraDataISO(new Date()))
 
   return useMemo(() => {
@@ -53,6 +58,7 @@ function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; noTo
     // O risco do Total é o da conta mais apertada entre as que somam nele.
     const niveisDoTotal = noTotal.flatMap((c) => nivelPorConta.get(c.id) ?? [])
     const resumoPorBeneficio = new Map(beneficios.map((b) => [b.caixa.id, b.resumo]))
+    const resumoPorCartao = new Map(cartoes.map((c) => [c.caixa.id, c.resumo]))
 
     return {
       noTotal,
@@ -80,8 +86,14 @@ function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; noTo
           const { texto, alerta } = resumoCurtoBeneficio(c, resumoPorBeneficio.get(c.id) ?? null)
           return { caixa: c, nome: c.nome, detalhe: texto, alerta, saldoCentavos: saldoDoDia(porCaixa.get(c.id), hoje), nivel: null }
         }),
+      cartoes: caixas
+        .filter((c) => c.tipo === 'cartao')
+        .map((c) => {
+          const { texto, alerta } = resumoCurtoCartao(c, resumoPorCartao.get(c.id) ?? null)
+          return { caixa: c, nome: c.nome, detalhe: texto, alerta, saldoCentavos: saldoDoDia(porCaixa.get(c.id), hoje), nivel: null }
+        }),
     }
-  }, [caixas, porCaixa, todos, riscos, beneficios, hoje])
+  }, [caixas, porCaixa, todos, riscos, beneficios, cartoes, hoje])
 }
 
 /**
@@ -92,10 +104,10 @@ export function SeletorCaixa({ className }: { className?: string }) {
   const { caixas, caixa } = useVisao()
   const escolher = useEscolherCaixa()
   const [aberto, setAberto] = useState(false)
-  const { total, contas, beneficios, noTotal } = useOpcoes()
+  const { total, contas, beneficios, cartoes, noTotal } = useOpcoes()
   if (caixas.length < 2) return null
 
-  const opcoes = [total, ...contas, ...beneficios]
+  const opcoes = [total, ...contas, ...beneficios, ...cartoes]
   const atual = opcoes.find((o) => o.caixa?.id === caixa?.id) ?? total
   const temAlerta = (o: Opcao) => o.alerta || (o.nivel !== null && o.nivel >= NIVEL_ALERTA)
   // Alerta de outro caixa (ex.: o vale acaba antes da recarga) também fica à vista: um triângulo vermelho no botão.
@@ -128,7 +140,9 @@ export function SeletorCaixa({ className }: { className?: string }) {
         {atual.caixa ? <PontoCor cor={atual.caixa.cor} className="size-3 rounded-full" /> : <PontosDoTotal caixas={noTotal} />}
         <span className="truncate">{atual.nome}</span>
         {atual.nivel && atual.nivel >= NIVEL_ALERTA && <SeloRisco nivel={atual.nivel} curto />}
-        {atual.alerta && <Badge className="border-contorno bg-vermelho text-sobre-bloco">Falta</Badge>}
+        {atual.alerta && (
+          <Badge className="border-contorno bg-vermelho text-sobre-bloco">{atual.caixa?.tipo === 'cartao' ? 'Limite' : 'Falta'}</Badge>
+        )}
         {alertasDeOutros.length > 0 && (
           <>
             <Forma forma="triangulo" cor="vermelho" className="size-3" />
@@ -141,12 +155,18 @@ export function SeletorCaixa({ className }: { className?: string }) {
       <PopoverContent align="start" className={cn(CAMADA, 'w-[22rem] max-w-[calc(100vw-2rem)] gap-0 p-0')}>
         <p className={cn(ROTULO, 'border-b-2 border-contorno px-3 py-2 font-semibold')}>Ver o caixa</p>
         <ul className="flex flex-col py-1">{item(total)}</ul>
-        {beneficios.length > 0 && <TituloGrupo>Contas</TituloGrupo>}
+        {(beneficios.length > 0 || cartoes.length > 0) && <TituloGrupo>Contas</TituloGrupo>}
         <ul className="flex flex-col py-1">{contas.map(item)}</ul>
         {beneficios.length > 0 && (
           <>
             <TituloGrupo>Benefícios · fora do total</TituloGrupo>
             <ul className="flex flex-col py-1">{beneficios.map(item)}</ul>
+          </>
+        )}
+        {cartoes.length > 0 && (
+          <>
+            <TituloGrupo>Cartões de crédito</TituloGrupo>
+            <ul className="flex flex-col py-1">{cartoes.map(item)}</ul>
           </>
         )}
         <div className="flex items-center justify-between gap-3 border-t-2 border-contorno px-3 py-2">

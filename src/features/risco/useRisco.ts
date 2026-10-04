@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { caixasAtivos, lancamentosDoCaixa, metasDoCaixa } from '@/features/caixas/caixa'
 import { useVisao } from '@/features/caixas/useVisao'
-import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
+import { paraProjetar, useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import { paraDataISO } from '@/shared/lib/datas'
 import { useFinancas } from '@/store/financas-context'
 import { analisarRisco, type AnaliseRisco } from './risco'
@@ -35,7 +35,7 @@ export interface RiscoDeUmaConta {
 /** Risco de hoje de uma conta, independente do que a tela mostra. null em benefício (sem risco) ou sem dias no período. */
 export function useRiscoDaConta(caixaId: string | undefined): RiscoDeUmaConta | null {
   const { estado } = useFinancas()
-  const { porCaixa } = useProjecoesDosCaixas()
+  const { porCaixa, faturas } = useProjecoesDosCaixas()
   const [hoje] = useState(() => paraDataISO(new Date()))
   const caixa = estado.caixas.find((c) => c.id === caixaId)
   const projecoes = caixa && porCaixa.get(caixa.id)
@@ -46,13 +46,13 @@ export function useRiscoDaConta(caixaId: string | undefined): RiscoDeUmaConta | 
     const atual = analisarRisco(projecoes.flatMap((p) => p.dias), hoje)
     if (!atual) return null
     const contexto = {
-      caixa,
+      caixa: paraProjetar(caixa, faturas),
       lancamentos: lancamentosDoCaixa(lancamentos, caixa.id),
       metas: metasDoCaixa(metas, caixa.id),
       hoje,
     }
     return { atual, contexto }
-  }, [caixa, projecoes, lancamentos, metas, hoje])
+  }, [caixa, projecoes, faturas, lancamentos, metas, hoje])
 }
 
 /** Risco de hoje de cada conta ativa, na ordem do seletor, independente do que a tela mostra (detalhe do cabeçalho). */

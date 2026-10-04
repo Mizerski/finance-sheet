@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { paraProjetar, useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import { lancamentosDoCaixa, metasDoCaixa } from '@/features/caixas/caixa'
 import type { DataISO } from '@/shared/lib/datas'
 import { useFinancas } from '@/store/financas-context'
@@ -15,7 +16,10 @@ export function useAvaliacaoMeta(rascunho: MetaEconomia | null, hoje: DataISO): 
   const { estado } = useFinancas()
   const id = rascunho?.id
   const caixaId = rascunho?.caixaId
-  const config = estado.caixas.find((c) => c.id === caixaId)
+  const { faturas } = useProjecoesDosCaixas()
+  const caixa = estado.caixas.find((c) => c.id === caixaId)
+  // Com as faturas de cartão que saem da conta, para a simulação descontá-las.
+  const config = useMemo(() => caixa && paraProjetar(caixa, faturas), [caixa, faturas])
   const lancamentos = useMemo(() => lancamentosDoCaixa(estado.lancamentos, caixaId ?? ''), [estado.lancamentos, caixaId])
   const outrasMetas = useMemo(
     () => metasDoCaixa(estado.metas, caixaId ?? '').filter((m) => m.id !== id),

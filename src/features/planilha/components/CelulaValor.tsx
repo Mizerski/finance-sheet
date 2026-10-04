@@ -43,11 +43,19 @@ export function CelulaSaldo({
   className,
   compacta,
   nivel,
-}: CelulaProps & { centavos: number | null; nivel?: NivelRisco | null }) {
+  divida = false,
+}: CelulaProps & {
+  centavos: number | null
+  nivel?: NivelRisco | null
+  /** Cartão de crédito: o saldo negativo é o que se deve, não um alerta (vermelho só no texto, sem fundo nem faixa). */
+  divida?: boolean
+}) {
   const cor =
     centavos === null
       ? COR_COLUNA.foraDoCalculo
-      : centavos < 0
+      : centavos < 0 && divida
+        ? cn(COR_COLUNA.saldo, 'text-negativo')
+        : centavos < 0
         ? cn(COR_COLUNA.saldoNegativo, COR_RISCO[5].marca)
         : nivel != null
           ? cn('text-saldo', COR_RISCO[nivel].suave, COR_RISCO[nivel].marca)

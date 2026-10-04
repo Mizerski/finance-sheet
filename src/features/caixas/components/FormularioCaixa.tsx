@@ -16,7 +16,16 @@ import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { useFinancas } from '@/store/financas-context'
-import { ehUltimaConta, metasDoCaixa, ROTULO_TIPO_CAIXA, type Caixa, type TipoCaixa } from '../caixa'
+import {
+  caixasAtivos,
+  cartoesPagosPor,
+  ehUltimaConta,
+  metasDoCaixa,
+  ROTULO_TIPO_CAIXA,
+  type Caixa,
+  type TipoCaixa,
+} from '../caixa'
+import { CampoCaixa } from './CampoCaixa'
 import { EXPLICACAO_TIPO } from '../textos'
 
 interface FormularioCaixaProps {
@@ -38,9 +47,17 @@ const OPCOES_SINAL = [
 const FORMA_TIPO: Record<TipoCaixa, Omit<FormaDaPagina, 'cor'>> = {
   conta: { forma: 'circulo' },
   beneficio: { forma: 'quarto' },
+  cartao: { forma: 'quadrado' },
 }
+const TIPOS: TipoCaixa[] = ['conta', 'beneficio', 'cartao']
 
-type Erros = Partial<Record<'nome' | 'tipo', string>>
+type Erros = Partial<Record<'nome' | 'tipo' | 'fechamento' | 'vencimento' | 'pagadora', string>>
+
+/** Dia do mês digitado (1–31) ou null. */
+function lerDia(texto: string): number | null {
+  const dia = Number(texto)
+  return texto.trim() && Number.isInteger(dia) && dia >= 1 && dia <= 31 ? dia : null
+}
 
 export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
   const { estado, dispatch } = useFinancas()
@@ -54,8 +71,15 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
   // Caixa novo começa hoje: os dias anteriores ficam fora do cálculo dele.
   const [data, setData] = useState<DataISO>(() => caixa?.dataSaldoInicial ?? paraDataISO(new Date()))
   // Só a conta escolhe: benefício fica sempre fora do total (o dinheiro dele não paga qualquer conta).
-  const [contaNoTotal, setContaNoTotal] = useState(caixa?.tipo === 'conta' ? caixa.entraNoTotal : true)
+  const [contaNoTotal, setContaNoTotal] = useState(caixa && caixa.tipo !== 'beneficio' ? caixa.entraNoTotal : true)
+  // Cartão: ciclo da fatura, conta que paga e limite (opcional).
+  const contas = caixasAtivos(estado.caixas).filter((c) => c.tipo === 'conta' && c.id !== caixa?.id)
+  const [fechamento, setFechamento] = useState(caixa?.cartao ? String(caixa.cartao.diaFechamento) : '')
+  const [vencimento, setVencimento] = useState(caixa?.cartao ? String(caixa.cartao.diaVencimento) : '')
+  const [pagadora, setPagadora] = useState(caixa?.cartao?.contaPagadoraId ?? contas[0]?.id ?? '')
+  const [limite, setLimite] = useState(caixa?.cartao?.limiteCentavos ?? 0)
   const [tentouSalvar, setTentouSalvar] = useState(false)
+  const cartao = tipo === 'cartao'
 
   function validar(): Erros {
     const erros: Erros = {}
@@ -68,12 +92,19 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
     ) {
       erros.nome = 'Já existe um caixa com esse nome.'
     }
-    if (caixa && tipo === 'beneficio' && caixa.tipo === 'conta') {
+    if (caixa && tipo !== 'conta' && caixa.tipo === 'conta') {
       if (ehUltimaConta(caixa, estado.caixas)) erros.tipo = 'É a única conta: o app precisa de pelo menos uma.'
+      else if (cartoesPagosPor(estado.caixas, caixa.id).length > 0) erros.tipo = 'Esta conta paga a fatura de um cartão.'
       else if (metasDoCaixa(estado.metas, caixa.id).length > 0) erros.tipo = 'Este caixa tem metas, e metas só ficam em contas.'
       else if (estado.lancamentos.some((l) => ehTransferencia(l) && (l.caixaId === caixa.id || l.caixaDestinoId === caixa.id))) {
         erros.tipo = 'Este caixa tem transferências, e transferência é só entre contas.'
       }
+    }
+    if (cartao) {
+      if (lerDia(fechamento) === null) erros.fechamento = 'Use um dia entre 1 e 31.'
+      if (lerDia(vencimento) === null) erros.vencimento = 'Use um dia entre 1 e 31.'
+      else if (lerDia(vencimento) === lerDia(fechamento)) erros.vencimento = 'O vencimento precisa ser em outro dia.'
+      if (!contas.some((c) => c.id === pagadora)) erros.pagadora = 'Escolha a conta que paga a fatura.'
     }
     return erros
   }
@@ -92,11 +123,19 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         nome: nome.trim(),
         cor,
         tipo,
-        // Benefício não fica negativo no começo: o sinal só vale para conta.
-        saldoInicialCentavos: tipo === 'conta' && sinal === 'negativo' ? -centavos : centavos,
+        // Benefício não fica negativo no começo: o sinal só vale para conta. No cartão, o valor é o que se deve.
+        saldoInicialCentavos: cartao ? -centavos : tipo === 'conta' && sinal === 'negativo' ? -centavos : centavos,
         dataSaldoInicial: data,
         saldoDefinido: true,
-        entraNoTotal: tipo === 'conta' && contaNoTotal,
+        entraNoTotal: tipo !== 'beneficio' && contaNoTotal,
+        ...(cartao && {
+          cartao: {
+            diaFechamento: lerDia(fechamento)!,
+            diaVencimento: lerDia(vencimento)!,
+            contaPagadoraId: pagadora,
+            ...(limite > 0 && { limiteCentavos: limite }),
+          },
+        }),
         // Caixa novo entra no fim do seletor; a posição muda com as setas da lista.
         ordem: caixa?.ordem ?? Math.max(-1, ...estado.caixas.map((c) => c.ordem)) + 1,
         ...(caixa?.arquivado && { arquivado: true }),
@@ -114,7 +153,7 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
           autoFocus
           value={nome}
           onChange={(e) => setNome(e.target.value)}
-          placeholder={tipo === 'conta' ? 'Ex.: Nubank, Carteira' : 'Ex.: Vale-refeição'}
+          placeholder={tipo === 'conta' ? 'Ex.: Nubank, Carteira' : cartao ? 'Ex.: Cartão Nubank' : 'Ex.: Vale-refeição'}
           aria-invalid={!!erros.nome || undefined}
           className={CAMPO}
         />
@@ -127,10 +166,31 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         <FieldError>{erros.tipo}</FieldError>
       </Field>
 
+      {cartao && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CampoDia id="caixa-fechamento" rotulo="Fecha no dia" valor={fechamento} onChange={setFechamento} erro={erros.fechamento} />
+            <CampoDia id="caixa-vencimento" rotulo="Vence no dia" valor={vencimento} onChange={setVencimento} erro={erros.vencimento} />
+          </div>
+          <CampoCaixa
+            id="caixa-pagadora"
+            rotulo="Paga com"
+            valor={pagadora}
+            onChange={setPagadora}
+            filtro={(c) => c.tipo === 'conta' && c.id !== caixa?.id}
+            placeholder="Escolher"
+            descricao="A fatura sai desta conta no dia do vencimento."
+            erro={erros.pagadora}
+            sempre
+          />
+        </>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="caixa-saldo">Saldo inicial</FieldLabel>
+          <FieldLabel htmlFor="caixa-saldo">{cartao ? 'Quanto deve hoje' : 'Saldo inicial'}</FieldLabel>
           <CampoDinheiro id="caixa-saldo" centavos={centavos} onChange={setCentavos} />
+          {cartao && <FieldDescription>A fatura fechada mais a aberta, sem as parcelas que ainda vão vir.</FieldDescription>}
         </Field>
         <Field>
           <FieldLabel htmlFor="caixa-data">No começo do dia</FieldLabel>
@@ -157,8 +217,17 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         <SeletorCor id="caixa-cor" valor={cor} onChange={setCor} />
       </Field>
 
-      {tipo === 'conta' && (
+      {tipo !== 'beneficio' && (
         <MaisDetalhes rotulo="Mais opções" rotuloAberto="Menos opções">
+          {cartao && (
+            <Field>
+              <FieldLabel htmlFor="caixa-limite">
+                Limite <span className="font-normal text-muted-foreground">(opcional)</span>
+              </FieldLabel>
+              <CampoDinheiro id="caixa-limite" centavos={limite} onChange={setLimite} />
+              <FieldDescription>Só para mostrar quanto ainda dá para gastar no cartão.</FieldDescription>
+            </Field>
+          )}
           <Field>
             <FieldLabel htmlFor="caixa-total">Soma no total</FieldLabel>
             <ControleSegmentado
@@ -170,8 +239,9 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
               className="sm:w-60"
             />
             <FieldDescription>
-              Escolha "Não" para uma conta que fica de lado, como investimento ou poupança: ela continua com saldo e
-              risco próprios, mas não entra no saldo do Total.
+              {cartao
+                ? 'Com "Sim", o Total desconta o que você deve no cartão já no dia da compra. Com "Não", o Total só muda quando a fatura sai da conta.'
+                : 'Escolha "Não" para uma conta que fica de lado, como investimento ou poupança: ela continua com saldo e risco próprios, mas não entra no saldo do Total.'}
             </FieldDescription>
           </Field>
         </MaisDetalhes>
@@ -196,19 +266,20 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
  * (total, risco e metas na conta; quanto dá por dia até a recarga no benefício). O escolhido fica em bloco preto.
  */
 function EscolhaTipo({ valor, onChange }: { valor: TipoCaixa; onChange: (tipo: TipoCaixa) => void }) {
-  const tipos: TipoCaixa[] = ['conta', 'beneficio']
+  const tipos = TIPOS
 
   // Setas trocam a escolha, como num grupo de rádio.
   function aoTeclar(e: KeyboardEvent<HTMLDivElement>) {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
     e.preventDefault()
-    const proximo = valor === 'conta' ? 'beneficio' : 'conta'
+    const passo = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1
+    const proximo = tipos[(tipos.indexOf(valor) + passo + tipos.length) % tipos.length]
     onChange(proximo)
     e.currentTarget.querySelectorAll<HTMLButtonElement>('[role=radio]')[tipos.indexOf(proximo)]?.focus()
   }
 
   return (
-    <div role="radiogroup" aria-labelledby="caixa-tipo-rotulo" onKeyDown={aoTeclar} className="grid gap-2 sm:grid-cols-2">
+    <div role="radiogroup" aria-labelledby="caixa-tipo-rotulo" onKeyDown={aoTeclar} className="grid gap-2 sm:grid-cols-3">
       {tipos.map((t) => {
         const ativo = t === valor
         return (
@@ -237,5 +308,37 @@ function EscolhaTipo({ valor, onChange }: { valor: TipoCaixa; onChange: (tipo: T
         )
       })}
     </div>
+  )
+}
+
+function CampoDia({
+  id,
+  rotulo,
+  valor,
+  onChange,
+  erro,
+}: {
+  id: string
+  rotulo: string
+  valor: string
+  onChange: (valor: string) => void
+  erro?: string
+}) {
+  return (
+    <Field data-invalid={!!erro || undefined}>
+      <FieldLabel htmlFor={id}>{rotulo}</FieldLabel>
+      <Input
+        id={id}
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={31}
+        value={valor}
+        onChange={(e) => onChange(e.target.value)}
+        aria-invalid={!!erro || undefined}
+        className={cn(CAMPO, 'tabular-nums')}
+      />
+      <FieldError>{erro}</FieldError>
+    </Field>
   )
 }

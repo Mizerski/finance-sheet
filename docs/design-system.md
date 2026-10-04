@@ -161,6 +161,7 @@ Sem categoria: `#a39a8e`.
 | Pastas | preto, quadrado amarelo |
 | Caixas | preto, círculo amarelo |
 | Benefício até a recarga (`CardBeneficio`) | preto com quarto de círculo amarelo; se o saldo acaba antes da recarga, vermelho com triângulo papel |
+| Fatura do cartão (`CardCartao`) | preto com quadrado vermelho; se passou do limite, vermelho com triângulo papel |
 | Entradas vs saídas · gastos no ano · saldo | azul com quadrado vermelho · azul com quarto amarelo · preto com quarto vermelho |
 | Assistente (painel lateral, só desktop) | preto com as três formas da marca (círculo azul, triângulo amarelo, quadrado vermelho) |
 

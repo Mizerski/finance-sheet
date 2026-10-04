@@ -14,7 +14,7 @@ interface DialogCaixaProps {
 export function DialogCaixa({ aberto, onOpenChange, caixa }: DialogCaixaProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-lg')}>
+      <DialogContent showCloseButton={false} className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-2xl')}>
         <DialogHeader>
           <DialogTitle className={TITULO_DIALOG}>{caixa ? 'Editar caixa' : 'Novo caixa'}</DialogTitle>
           <DialogDescription>

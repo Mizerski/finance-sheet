@@ -3,7 +3,9 @@ import { Plus } from '@/shared/ui/icones'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { lancamentosDoCaixa, metasDoCaixa, NOME_TOTAL } from '@/features/caixas/caixa'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
+import { CardCartao } from '@/features/caixas/components/CardCartao'
 import { useEscolherCaixa, useVisao } from '@/features/caixas/useVisao'
+import { paraProjetar, useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import { useProjecao } from '@/features/projecao/useProjecao'
 import { CardRisco } from '@/features/risco/components/CardRisco'
 import { capacidadePorNivelDaVisao } from '@/features/risco/risco-por-conta'
@@ -48,20 +50,27 @@ interface Selecao {
 
 const FECHADO: Selecao = { aberto: false }
 
-/** Metas, reserva e capacidade são de contas: num benefício, a tela só explica isso e oferece voltar para as contas. */
+/**
+ * Metas, reserva e capacidade são de contas: num benefício ou num cartão, a tela só explica isso e oferece voltar
+ * para as contas.
+ */
 export function EconomiasPage() {
-  const { caixa, ehBeneficio } = useVisao()
+  const { caixa, ehBeneficio, ehCartao } = useVisao()
   const escolher = useEscolherCaixa()
-  if (!ehBeneficio) return <ConteudoEconomias />
+  if (!ehBeneficio && !ehCartao) return <ConteudoEconomias />
 
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina forma={FORMA_PAGINA.economias} titulo="Economias" descricao={caixa?.nome} />
-      {caixa && <CardBeneficio caixa={caixa} />}
+      {caixa && (ehCartao ? <CardCartao caixa={caixa} /> : <CardBeneficio caixa={caixa} />)}
       <Card className={CARD}>
         <EstadoVazio
           titulo="Metas ficam nas contas"
-          descricao={`${caixa?.nome} é um benefício: o dinheiro dele só paga alguns gastos, então não dá para guardar dele. Metas, reserva e risco do caixa ficam nas contas.`}
+          descricao={
+            ehCartao
+              ? `${caixa?.nome} é um cartão de crédito: ele guarda o que você deve, não dinheiro. Metas, reserva e risco do caixa ficam nas contas (a fatura já entra no risco da conta que paga).`
+              : `${caixa?.nome} é um benefício: o dinheiro dele só paga alguns gastos, então não dá para guardar dele. Metas, reserva e risco do caixa ficam nas contas.`
+          }
           acao={
             <Button variant="outline" className={BOTAO} onClick={() => escolher(null)}>
               Ver o {NOME_TOTAL}
@@ -100,15 +109,17 @@ function ConteudoEconomias() {
   const guardarSemPiorar = risco && porNivel ? porNivel[risco.nivel] : null
   // O simulador de conta nova roda na conta em destaque (a única, ou a mais apertada).
   const contaDoRisco = risco && (risco.caixa ?? risco.contas[0].caixa)
+  // As simulações descontam as faturas de cartão que saem de cada conta.
+  const { faturas } = useProjecoesDosCaixas()
   const contextoRisco: ContextoRisco | null = useMemo(
     () =>
       contaDoRisco && {
-        caixa: contaDoRisco,
+        caixa: paraProjetar(contaDoRisco, faturas),
         lancamentos: lancamentosDoCaixa(estado.lancamentos, contaDoRisco.id),
         metas: metasDoCaixa(estado.metas, contaDoRisco.id),
         hoje,
       },
-    [contaDoRisco, estado.lancamentos, estado.metas, hoje],
+    [contaDoRisco, faturas, estado.lancamentos, estado.metas, hoje],
   )
   const essencial = useMemo(() => gastoEssencial(dias, estado.tags, hoje), [dias, estado.tags, hoje])
   const grandes = useMemo(() => gastosGrandes(dias, lancamentos, hoje), [dias, lancamentos, hoje])
@@ -119,8 +130,17 @@ function ConteudoEconomias() {
     [risco],
   )
   const sugestoes = useMemo(
-    () => montarSugestoes({ caixas: estado.caixas, lancamentos, metas, projecoes, referencias, resumos, hoje }),
-    [estado.caixas, lancamentos, metas, projecoes, referencias, resumos, hoje],
+    () =>
+      montarSugestoes({
+        caixas: estado.caixas.map((c) => paraProjetar(c, faturas)),
+        lancamentos,
+        metas,
+        projecoes,
+        referencias,
+        resumos,
+        hoje,
+      }),
+    [estado.caixas, faturas, lancamentos, metas, projecoes, referencias, resumos, hoje],
   )
   const guardado = [...resumos.values()].reduce((t, r) => t + r.guardadoCentavos, 0)
   // Cofrinhos (sem valor alvo) guardam sem fim: o "de R$ …" só aparece quando toda meta tem alvo.
