@@ -20,6 +20,8 @@ interface LinhaDiaProps {
   onMudarDia: (lancamentoId: string, data: DataISO) => void
   onAdicionar: (data: DataISO) => void
   comEconomia: boolean
+  /** Cartão de crédito: saldo negativo é dívida, sem a cor de alerta. */
+  divida?: boolean
   /** Nível de risco do dia, para pintar o saldo; null sem risco. */
   nivel: NivelRisco | null
 }
@@ -47,6 +49,7 @@ export function LinhaDia({
   onAdicionar,
   comEconomia,
   nivel,
+  divida,
 }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
   const [lado, setLado] = useState<'top' | 'bottom'>('bottom')
@@ -109,7 +112,7 @@ export function LinhaDia({
           <CelulaValor centavos={colunas.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
           <CelulaValor centavos={colunas.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
           {comEconomia && <CelulaValor centavos={dia.economiaCentavos} className={COR_COLUNA.economia} compacta />}
-          <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} nivel={nivel} />
+          <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} nivel={nivel} divida={divida} />
         </TableRow>
       </PopoverAnchor>
 

@@ -1,6 +1,6 @@
 import { lancamentosDoCaixa, type Caixa } from '@/features/caixas/caixa'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
-import type { Projecao } from '@/features/projecao/projecao'
+import type { CaixaDaProjecao, Projecao } from '@/features/projecao/projecao'
 import { nivelDoSaldo, referenciaDoRisco, type NivelRisco } from '@/features/risco/risco'
 import type { DataISO } from '@/shared/lib/datas'
 import { resumirMeta, type ResumoMeta } from './aportes'
@@ -44,8 +44,8 @@ export type Sugestao =
   | ({ tipo: 'extra'; entrada: EntradaExtra; guardarCentavos: number } & SemEfeito)
 
 export interface ContextoSugestoes {
-  /** Todos os caixas: o efeito na meta é simulado na conta dela. */
-  caixas: Caixa[]
+  /** Todos os caixas (com as faturas de cartão, `paraProjetar`): o efeito na meta é simulado na conta dela. */
+  caixas: (Caixa & CaixaDaProjecao)[]
   /** Lançamentos, metas e projeção do que a tela mostra (um caixa ou o Total). */
   lancamentos: Lancamento[]
   metas: MetaEconomia[]

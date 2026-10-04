@@ -66,13 +66,25 @@ function ehCaixa(c: unknown): c is Caixa {
     ehTexto(c.id) &&
     ehTexto(c.nome) &&
     ehCor(c.cor) &&
-    (c.tipo === 'conta' || c.tipo === 'beneficio') &&
+    (c.tipo === 'conta' || c.tipo === 'beneficio' || (c.tipo === 'cartao' && ehCiclo(c.cartao))) &&
     ehCentavos(c.saldoInicialCentavos) &&
     ehData(c.dataSaldoInicial) &&
     typeof c.saldoDefinido === 'boolean' &&
     typeof c.entraNoTotal === 'boolean' &&
     Number.isInteger(c.ordem) &&
     (c.arquivado === undefined || typeof c.arquivado === 'boolean')
+  )
+}
+
+/** Ciclo do cartão de crédito (a partir da versão 10). */
+function ehCiclo(c: unknown): boolean {
+  const ehDia = (d: unknown) => Number.isInteger(d) && (d as number) >= 1 && (d as number) <= 31
+  return (
+    ehObjeto(c) &&
+    ehDia(c.diaFechamento) &&
+    ehDia(c.diaVencimento) &&
+    ehTexto(c.contaPagadoraId) &&
+    (c.limiteCentavos === undefined || (ehCentavos(c.limiteCentavos) && c.limiteCentavos > 0))
   )
 }
 

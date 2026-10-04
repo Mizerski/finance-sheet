@@ -22,6 +22,7 @@ import type { Tag } from '@/features/tags/tag'
 import { deDataISO, formatarData, formatarMesAno, nomeDoDiaDaSemana, somarDias, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { idsDeAjuste, somar, type Somas } from './somas'
+import { resumirCartao, type ResumoCartao } from '@/features/caixas/cartao'
 
 /** O que o retrato precisa: o estado salvo e as projeções que as telas já calculam. */
 export interface EntradaRetrato {
@@ -103,11 +104,21 @@ export function montarRetrato(e: EntradaRetrato): string {
     const diasDoCaixa = (e.porCaixa.get(c.id) ?? []).flatMap((p) => p.dias)
     const hojeCaixa = saldoEm(diasDoCaixa, hoje)
     const fim = saldoEm(diasDoCaixa, fimDoAno)
-    const tipo = c.tipo === 'beneficio' ? 'benefício' : idsNoTotal.has(c.id) ? 'conta' : 'conta fora do total'
+    const tipo =
+      c.tipo === 'beneficio'
+        ? 'benefício'
+        : c.tipo === 'cartao'
+          ? `cartão de crédito${idsNoTotal.has(c.id) ? '' : ' fora do total'}`
+          : idsNoTotal.has(c.id)
+            ? 'conta'
+            : 'conta fora do total'
+    const cartao = c.cartao && hojeCaixa !== null ? resumirCartao(diasDoCaixa, c.cartao, hoje) : null
     const valores =
       hojeCaixa === null
         ? `começa em ${data(c.dataSaldoInicial)}`
-        : `${brl(hojeCaixa)} hoje${fim !== null && c.tipo === 'conta' ? `; ${brl(fim)} previsto em ${data(fimDoAno)}` : ''}`
+        : cartao
+          ? `deve ${brl(cartao.devendoCentavos)} hoje; ${faturaEmTexto(cartao)}`
+          : `${brl(hojeCaixa)} hoje${fim !== null && c.tipo === 'conta' ? `; ${brl(fim)} previsto em ${data(fimDoAno)}` : ''}`
     saldos.push(`- ${c.nome} (${tipo}): ${valores}.${c.saldoDefinido ? '' : ' Saldo inicial ainda não informado: os saldos podem estar errados.'}`)
   }
   partes.push(saldos.join('\n'))
@@ -309,4 +320,12 @@ export function montarRetrato(e: EntradaRetrato): string {
   }
 
   return partes.join('\n\n')
+}
+
+/** "fatura de R$ 831,20 vence em 15/10/2026 (fechada); a aberta soma R$ 120,00 e fecha em 03/11/2026" */
+function faturaEmTexto(c: ResumoCartao): string {
+  const aberta = `a aberta soma ${brl(c.aberta.valorCentavos)} e fecha em ${data(c.aberta.fechamento)}`
+  const limite = c.disponivelCentavos === null ? '' : `; limite livre ${brl(c.disponivelCentavos)}`
+  if (!c.fechada) return `${aberta}, vence em ${data(c.aberta.vencimento)}${limite}`
+  return `fatura fechada de ${brl(c.fechada.valorCentavos)} vence em ${data(c.fechada.vencimento)}; ${aberta}${limite}`
 }

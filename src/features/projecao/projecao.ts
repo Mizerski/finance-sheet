@@ -1,3 +1,5 @@
+import type { CicloCartao } from '@/features/caixas/caixa'
+import { ehDiaDeFechamento, fechamentoAnterior, vencimentoDaFatura } from '@/features/caixas/cartao'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import { indexarAportes, type Aporte } from '@/features/economias/aportes'
 import type { MetaEconomia } from '@/features/economias/meta'
@@ -46,10 +48,39 @@ export interface MovimentoTransferencia {
    * Ausente = transferência lançada.
    */
   metaId?: string
+  /**
+   * Pagamento da fatura de um cartão, criado pela projeção (não é um lançamento): entra no cartão e sai da conta
+   * pagadora no vencimento. `lancamentoId` é `fatura:<cartão>:<fechamento>`, o mesmo dos dois lados.
+   */
+  fatura?: { cartaoId: string; fechamento: DataISO }
 }
 
-/** O que a projeção precisa de um caixa: o saldo inicial e o id (para saber o lado de cada transferência). */
-export type CaixaDaProjecao = Configuracao & { id: string }
+/**
+ * O que a projeção precisa de um caixa: o saldo inicial e o id (para saber o lado de cada transferência).
+ * No cartão, o ciclo (`cartao`) e o nome; na conta que paga cartões, as faturas que saem dela (`faturas`, por data),
+ * calculadas antes pela projeção de cada cartão (`faturasPorConta`).
+ */
+export type CaixaDaProjecao = Configuracao & {
+  id: string
+  nome?: string
+  cartao?: CicloCartao
+  faturas?: Map<DataISO, MovimentoTransferencia[]>
+}
+
+/** Faturas que fecharam e ainda vão vencer, por data de vencimento (do cartão sendo projetado). */
+type FaturasPendentes = Map<DataISO, MovimentoTransferencia>
+
+function pagamentoDaFatura(config: CaixaDaProjecao, ciclo: CicloCartao, fechamento: DataISO, valorCentavos: number) {
+  return {
+    lancamentoId: `fatura:${config.id}:${fechamento}`,
+    descricao: `Fatura ${config.nome ?? 'do cartão'}`,
+    sentido: 'entrada' as const,
+    natureza: 'fixa' as const,
+    outroCaixaId: ciclo.contaPagadoraId,
+    valorCentavos,
+    fatura: { cartaoId: config.id, fechamento },
+  }
+}
 
 export interface DiaProjetado {
   data: DataISO
@@ -239,6 +270,7 @@ function projetarDias(
   chegadas: Map<DataISO, MovimentoTransferencia[]>,
   ano: number,
   saldoAbertura: number,
+  pendentes: FaturasPendentes,
 ): DiaProjetado[] {
   let saldo = saldoAbertura
 
@@ -265,9 +297,12 @@ function projetarDias(
 
     const doDia = lancamentosDoDia(indice, dia)
     const ocorrencias = doDia.filter(ehMovimento).map(paraOcorrencia)
+    const fatura = pendentes.get(dia.data)
     const transferencias = [
       ...doDia.filter(ehTransferencia).flatMap((l) => ladoNoCaixa(l, config.id)),
       ...(chegadas.get(dia.data) ?? []),
+      ...(config.faturas?.get(dia.data) ?? []),
+      ...(fatura ? [fatura] : []),
     ]
     const entrou = somar(transferencias, entra)
     const saiu = somar(transferencias, sai)
@@ -277,6 +312,12 @@ function projetarDias(
     const aportesDoDia = aportes.get(dia.data) ?? []
     const economia = somar(aportesDoDia)
     saldo += entradas - fixas - variaveis - economia + entrou - saiu
+
+    // Cartão: no fechamento, tudo o que se deve vira a fatura, paga no vencimento (que vem antes do próximo fechamento).
+    if (config.cartao && ehDiaDeFechamento(dia, config.cartao) && saldo < 0) {
+      const vencimento = vencimentoDaFatura(dia.data, config.cartao)
+      pendentes.set(vencimento, pagamentoDaFatura(config, config.cartao, dia.data, -saldo))
+    }
 
     return {
       ...base,
@@ -518,13 +559,39 @@ export function projetarAnos(
   const chegadas = chegadasDasMetas(metas.filter(chegando), fim)
   const projecoes: Projecao[] = []
   let saldo = config.saldoInicialCentavos
+  const pendentes: FaturasPendentes = new Map()
+  // Cartão que começa entre um fechamento e o vencimento: o que se devia no começo é a fatura que já fechou.
+  if (config.cartao && saldo < 0) {
+    const fechou = fechamentoAnterior(config.dataSaldoInicial, config.cartao)
+    const vencimento = vencimentoDaFatura(fechou, config.cartao)
+    if (vencimento >= config.dataSaldoInicial) pendentes.set(vencimento, pagamentoDaFatura(config, config.cartao, fechou, -saldo))
+  }
 
   for (let ano = Math.min(de, anoDe(config.dataSaldoInicial)); ano <= ate; ano++) {
-    const dias = projetarDias(config, indice, aportes, chegadas, ano, saldo)
+    const dias = projetarDias(config, indice, aportes, chegadas, ano, saldo, pendentes)
     saldo = dias.at(-1)?.saldoCentavos ?? config.saldoInicialCentavos
     if (ano >= de) projecoes.push({ ano, dias, meses: agregarPorMes(dias), resumo: resumirAno(dias) })
   }
   return projecoes
+}
+
+/**
+ * Faturas que cada conta paga, pela projeção dos cartões: o mesmo pagamento, do lado da conta (saída para o cartão).
+ * Vai em `faturas` da conta pagadora ao projetá-la.
+ */
+export function faturasPorConta(projecoesDosCartoes: Projecao[][]): Map<string, Map<DataISO, MovimentoTransferencia[]>> {
+  const porConta = new Map<string, Map<DataISO, MovimentoTransferencia[]>>()
+  for (const projecoes of projecoesDosCartoes) {
+    for (const d of projecoes.flatMap((p) => p.dias)) {
+      for (const m of d.transferencias) {
+        if (!m.fatura || m.sentido !== 'entrada') continue
+        const conta = porConta.get(m.outroCaixaId) ?? new Map<DataISO, MovimentoTransferencia[]>()
+        conta.set(d.data, [...(conta.get(d.data) ?? []), { ...m, sentido: 'saida', outroCaixaId: m.fatura.cartaoId }])
+        porConta.set(m.outroCaixaId, conta)
+      }
+    }
+  }
+  return porConta
 }
 
 /** Aportes e resgates das metas que mandam o dinheiro para o caixa, como transferências (entrada e saída), por data. */

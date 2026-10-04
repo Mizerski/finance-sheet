@@ -10,13 +10,13 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { ehUltimaConta, NOME_TOTAL, ROTULO_TIPO_CAIXA, somaNoTotal, type Caixa } from '../caixa'
+import { ehCartao, ehUltimaConta, NOME_TOTAL, ROTULO_TIPO_CAIXA, somaNoTotal, type Caixa, type usosDoCaixa } from '../caixa'
 import { EXPLICACAO_TIPO } from '../textos'
 
 interface CardCaixasProps {
   /** Na ordem do seletor (os arquivados vão para o fim). */
   caixas: Caixa[]
-  usos: Map<string, { lancamentos: number; metas: number }>
+  usos: Map<string, UsoDoCaixa>
   onEditar: (caixa: Caixa) => void
   /** Sobe (-1) ou desce (+1) o caixa uma posição no seletor. */
   onMover: (caixa: Caixa, passo: -1 | 1) => void
@@ -31,13 +31,18 @@ function contar(n: number, singular: string, plural: string) {
   return `${n} ${n === 1 ? singular : plural}`
 }
 
-/** O que o caixa é, numa linha curta embaixo do nome: tipo, se soma no total, uso e se está arquivado. */
-function detalhe(caixa: Caixa, uso: { lancamentos: number; metas: number }): string {
+type UsoDoCaixa = ReturnType<typeof usosDoCaixa>
+const SEM_USO: UsoDoCaixa = { lancamentos: 0, metas: 0, cartoes: 0 }
+
+/** O que o caixa é, numa linha curta embaixo do nome: tipo, ciclo do cartão, se soma no total, uso e se está arquivado. */
+function detalhe(caixa: Caixa, uso: UsoDoCaixa): string {
   const partes = [ROTULO_TIPO_CAIXA[caixa.tipo]]
+  if (ehCartao(caixa)) partes.push(`fecha dia ${caixa.cartao.diaFechamento}, vence dia ${caixa.cartao.diaVencimento}`)
   // O benefício sempre fica fora do total; na conta, só a exceção é dita.
   if (!somaNoTotal(caixa)) partes.push('fora do total')
   partes.push(contar(uso.lancamentos, 'lançamento', 'lançamentos'))
   if (uso.metas > 0) partes.push(contar(uso.metas, 'meta', 'metas'))
+  if (uso.cartoes > 0) partes.push(`paga ${contar(uso.cartoes, 'cartão', 'cartões')}`)
   if (caixa.arquivado) partes.push('arquivado')
   return partes.join(' · ')
 }
@@ -88,9 +93,9 @@ export function CardCaixas({ caixas, usos, onEditar, onMover, onArquivar, onExcl
         </TableHeader>
         <TableBody>
           {ordenados.map((c) => {
-            const uso = usos.get(c.id) ?? { lancamentos: 0, metas: 0 }
+            const uso = usos.get(c.id) ?? SEM_USO
             const ultima = ehUltimaConta(c, caixas)
-            const emUso = uso.lancamentos > 0 || uso.metas > 0
+            const emUso = uso.lancamentos > 0 || uso.metas > 0 || uso.cartoes > 0
             const posicao = ativos.indexOf(c)
             return (
               <TableRow key={c.id} className={cn(TABELA.linha, c.arquivado && 'text-muted-foreground')}>

@@ -83,7 +83,9 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
             />
           ))}
           {dia.transferencias.map((m) =>
-            m.metaId ? (
+            m.fatura ? (
+              <ItemFatura key={m.lancamentoId} movimento={m} />
+            ) : m.metaId ? (
               <ItemMetaDeOutraConta key={`${m.metaId}-${m.sentido}`} movimento={m} />
             ) : (
               <ItemTransferencia
@@ -297,6 +299,35 @@ function ItemTransferencia({
         </span>
       </button>
       <AcoesItem descricao={m.descricao} tituloExcluir="Excluir transferência" onMudarDia={onMudarDia} onExcluir={onExcluir} />
+    </li>
+  )
+}
+
+/**
+ * Pagamento da fatura de um cartão, que o app cria sozinho no vencimento: sai da conta pagadora e entra no cartão.
+ * Não é um lançamento, então não se edita nem se exclui aqui (o valor vem das compras do cartão).
+ */
+function ItemFatura({ movimento: m }: { movimento: MovimentoTransferencia }) {
+  const { estado } = useFinancas()
+  const outro = estado.caixas.find((c) => c.id === m.outroCaixaId)?.nome ?? 'outra conta'
+  const entrada = m.sentido === 'entrada'
+  const fechou = m.fatura ? formatarData(m.fatura.fechamento) : ''
+
+  return (
+    <li className="flex items-start">
+      <span className="flex min-w-0 flex-1 items-start justify-between gap-3 py-1.5 pl-2">
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate font-semibold">{m.descricao}</span>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <ArrowLeftRight aria-hidden className="size-3 text-foreground" />
+            {entrada ? `Paga por ${outro}` : 'Fatura do cartão'} · fechou em {fechou}
+          </span>
+        </span>
+        <span className="shrink-0 tabular-nums">
+          {entrada ? '+' : '−'} {formatarBRL(m.valorCentavos)}
+        </span>
+      </span>
+      <span aria-hidden className="mx-0.5 size-7 shrink-0" />
     </li>
   )
 }

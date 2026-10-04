@@ -6,8 +6,22 @@ import type { DataISO } from '@/shared/lib/datas'
 /**
  * `conta`: conta bancária, com risco, metas, reserva e capacidade.
  * `beneficio`: vale-refeição, vale-alimentação… A recarga é uma entrada e os gastos são saídas; a projeção é a mesma.
+ * `cartao`: cartão de crédito. As compras são saídas dele (o saldo negativo é o que se deve) e a fatura sai sozinha
+ * da conta pagadora no vencimento, como transferência (ver `cartao.ts`).
  */
-export type TipoCaixa = 'conta' | 'beneficio'
+export type TipoCaixa = 'conta' | 'beneficio' | 'cartao'
+
+/** Ciclo do cartão de crédito (só no tipo `cartao`). */
+export interface CicloCartao {
+  /** Dia em que a fatura fecha (1–31; se o mês não tiver, o último dia). */
+  diaFechamento: number
+  /** Dia do vencimento (1–31; se não for depois do fechamento, é no mês seguinte). */
+  diaVencimento: number
+  /** Conta de onde a fatura é paga. */
+  contaPagadoraId: string
+  /** Limite do cartão, só para mostrar quanto ainda dá para gastar. */
+  limiteCentavos?: number
+}
 
 /**
  * Um fluxo de caixa com saldo inicial próprio. Cada lançamento e cada meta pertence a um caixa;
@@ -27,6 +41,8 @@ export interface Caixa extends Configuracao {
   ordem: number
   /** Caixa arquivado some do seletor e do formulário, mas mantém o histórico (e continua no Total). */
   arquivado?: boolean
+  /** Só (e sempre) no cartão de crédito. */
+  cartao?: CicloCartao
 }
 
 export const NOME_CONTA_PRINCIPAL = 'Conta principal'
@@ -42,6 +58,7 @@ export const NOME_TOTAL = 'Total'
 export const ROTULO_TIPO_CAIXA: Record<TipoCaixa, string> = {
   conta: 'Conta',
   beneficio: 'Benefício',
+  cartao: 'Cartão de crédito',
 }
 
 /** Saldo inicial padrão de um caixa novo: R$ 0 em 1º de janeiro do ano atual. */
@@ -74,9 +91,22 @@ export function caixasAtivos(caixas: Caixa[]): Caixa[] {
   return ordenarCaixas(caixas.filter((c) => !c.arquivado))
 }
 
-/** Benefício nunca soma no Total (o dinheiro dele só paga alguns gastos); a conta soma se `entraNoTotal`. */
+/**
+ * Benefício nunca soma no Total (o dinheiro dele só paga alguns gastos); a conta e o cartão somam se `entraNoTotal`.
+ * Com o cartão no Total, a compra baixa o Total no dia dela e o pagamento da fatura se anula (é entre caixas do Total).
+ */
 export function somaNoTotal(caixa: Caixa): boolean {
-  return caixa.tipo === 'conta' && caixa.entraNoTotal
+  return caixa.tipo !== 'beneficio' && caixa.entraNoTotal
+}
+
+/** Cartão de crédito com o ciclo preenchido. */
+export function ehCartao(caixa: Caixa): caixa is Caixa & { tipo: 'cartao'; cartao: CicloCartao } {
+  return caixa.tipo === 'cartao' && !!caixa.cartao
+}
+
+/** Cartões cuja fatura sai desta conta. */
+export function cartoesPagosPor(caixas: Caixa[], contaId: string): Caixa[] {
+  return caixas.filter((c) => ehCartao(c) && c.cartao.contaPagadoraId === contaId)
 }
 
 /** Os que entram nos números do Total, na ordem. Arquivados continuam, para o histórico não mudar. */
@@ -109,10 +139,11 @@ export function ehUltimaConta(caixa: Caixa, caixas: Caixa[]): boolean {
   return caixa.tipo === 'conta' && !caixa.arquivado && caixasAtivos(caixas).filter((c) => c.tipo === 'conta').length <= 1
 }
 
-/** Quantos lançamentos e metas usam o caixa; só dá para excluir sem nenhum (senão, arquivar). */
-export function usosDoCaixa(caixaId: string, lancamentos: Lancamento[], metas: MetaEconomia[]) {
+/** Quantos lançamentos, metas e cartões usam o caixa; só dá para excluir sem nenhum (senão, arquivar). */
+export function usosDoCaixa(caixaId: string, lancamentos: Lancamento[], metas: MetaEconomia[], caixas: Caixa[] = []) {
   return {
     lancamentos: lancamentosDoCaixa(lancamentos, caixaId).length,
     metas: metasDoCaixa(metas, caixaId).length,
+    cartoes: cartoesPagosPor(caixas, caixaId).length,
   }
 }

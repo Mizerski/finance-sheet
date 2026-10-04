@@ -23,7 +23,7 @@ export function SecaoCaixas() {
 
   const caixas = useMemo(() => ordenarCaixas(estado.caixas), [estado.caixas])
   const usos = useMemo(
-    () => new Map(caixas.map((c) => [c.id, usosDoCaixa(c.id, estado.lancamentos, estado.metas)])),
+    () => new Map(caixas.map((c) => [c.id, usosDoCaixa(c.id, estado.lancamentos, estado.metas, caixas)])),
     [caixas, estado.lancamentos, estado.metas],
   )
   const nova = () => setEdicao({ aberto: true })
@@ -44,7 +44,7 @@ export function SecaoCaixas() {
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoOrganizacao
-        descricao="Contas (dinheiro livre) e benefícios (vale-refeição, vale-alimentação), cada um com o próprio saldo"
+        descricao="Contas (dinheiro livre), benefícios (vale-refeição, vale-alimentação) e cartões de crédito, cada um com o próprio saldo"
         acao={
           <Button className={BOTAO} onClick={nova}>
             <Plus />

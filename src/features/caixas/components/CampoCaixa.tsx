@@ -64,7 +64,13 @@ export function CampoCaixa({
       ) : descricao ? (
         <FieldDescription>{descricao}</FieldDescription>
       ) : (
-        atual?.tipo === 'beneficio' && (
+        atual?.cartao ? (
+          <FieldDescription>
+            Cartão: entra na fatura que fecha no dia {atual.cartao.diaFechamento} e sai de{' '}
+            {estado.caixas.find((c) => c.id === atual.cartao!.contaPagadoraId)?.nome ?? 'a conta'} no dia{' '}
+            {atual.cartao.diaVencimento}.
+          </FieldDescription>
+        ) : atual?.tipo === 'beneficio' && (
           <FieldDescription>Benefício: o saldo dele fica à parte, fora do {NOME_TOTAL}.</FieldDescription>
         )
       )}

@@ -37,6 +37,8 @@ interface TabelaMesProps {
   onAdicionar: (data: DataISO) => void
   /** Mostra a coluna Economia (quando há metas de economia). */
   comEconomia: boolean
+  /** Cartão de crédito: saldo negativo é dívida, sem a cor de alerta. */
+  divida?: boolean
   /** Nível de risco do caixa no dia; null sem risco (benefício, sem projeção à frente). */
   nivelDoDia: ((dia: DiaProjetado) => NivelRisco | null) | null
 }
@@ -82,6 +84,7 @@ export function TabelaMes({
   onAdicionar,
   comEconomia,
   nivelDoDia,
+  divida,
 }: TabelaMesProps) {
   const saldoInicial = resumo.saldoInicialCentavos
   const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
@@ -169,6 +172,7 @@ export function TabelaMes({
               onAdicionar={onAdicionar}
               comEconomia={comEconomia}
               nivel={niveis[i]}
+              divida={divida}
             />
           ))}
           {Array.from({ length: LINHAS_POR_MES - dias.length }, (_, i) => (
@@ -189,6 +193,7 @@ export function TabelaMes({
               centavos={resumo.saldoFinalCentavos}
               compacta={comEconomia}
               nivel={niveis.at(-1) ?? null}
+              divida={divida}
             />
           </TableRow>
         </TableFooter>

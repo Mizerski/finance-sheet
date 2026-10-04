@@ -56,13 +56,14 @@ No cabeçalho também ficam: o saldo de hoje e o saldo projetado no fim do ano (
 - **Caixas**: veja abaixo.
 - Excluir uma tag ou pasta deixa os lançamentos sem ela.
 
-## Caixas (contas e benefícios)
-- Um **caixa** é uma conta (banco, carteira) ou um **benefício** (vale-refeição, vale-alimentação). Cada um tem saldo inicial e data próprios. Cadastro na aba Caixas de Organização.
+## Caixas (contas, benefícios e cartões)
+- Um **caixa** é uma conta (banco, carteira), um **benefício** (vale-refeição, vale-alimentação) ou um **cartão de crédito**. Cada um tem saldo inicial e data próprios. Cadastro na aba Caixas de Organização.
 - Com 2 ou mais caixas, aparece o **seletor de caixa** no cabeçalho, ao lado do saldo: escolha **Total** (soma das contas) ou um caixa. Atalhos **Alt+0** (Total) e **Alt+1…9**. O formulário de lançamento ganha o campo Caixa.
 - **Benefício**: o dinheiro só paga alguns gastos, por isso fica fora do Total e não tem risco nem metas. A recarga é uma entrada no caixa do benefício. O app mostra quanto sobra até a próxima recarga e quanto dá para gastar por dia, e avisa se o saldo acaba antes.
-- "Soma no total" (em Mais opções, só para conta): escolha Não para uma conta que fica de lado, como poupança ou investimento.
+- **Cartão de crédito**: informe o dia em que a fatura fecha, o dia do vencimento, a conta que paga e quanto você deve hoje (fatura fechada mais a aberta); o limite é opcional, em Mais opções. Cada compra é uma saída do caixa do cartão (parcelado: saída Mensal com "Quantas vezes"). No fechamento, tudo o que você deve vira a fatura, e o app tira o valor sozinho da conta pagadora no vencimento: não precisa lançar o pagamento. Na Planilha do cartão, o card **Fatura** mostra a fatura aberta (com as compras já lançadas até o fechamento), a fechada que vai vencer e o limite livre, e avisa se passou do limite. Na conta que paga, a fatura aparece no dia do vencimento como "Fatura <cartão>" e entra no risco dela. Cartão não tem risco nem metas.
+- "Soma no total" (em Mais opções, para conta e cartão): escolha Não para uma conta que fica de lado, como poupança ou investimento. Com o cartão no Total, o que você deve nele já desconta do Total no dia da compra.
 - Para mover dinheiro de uma conta para outra, use um lançamento do tipo **Transferência** (veja Lançamentos).
-- Só dá para excluir um caixa sem lançamentos nem metas; senão, arquive.
+- Só dá para excluir um caixa sem lançamentos nem metas (e uma conta que não paga nenhum cartão); senão, arquive.
 
 ## Economias
 - **Metas de economia**: botão "Nova meta". Campos: nome, **Quero juntar** (valor alvo, opcional), **Guardar por mês** (aporte), **Dia do aporte**, **A partir de** e **Até quando** (prazo, opcional, só com valor alvo). Cada meta é de uma conta.

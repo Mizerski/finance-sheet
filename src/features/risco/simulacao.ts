@@ -2,13 +2,14 @@ import type { Caixa } from '@/features/caixas/caixa'
 import { periodoDaCapacidade } from '@/features/economias/capacidade'
 import type { MetaEconomia } from '@/features/economias/meta'
 import type { Lancamento } from '@/features/lancamentos/lancamento'
-import { projetarAnos } from '@/features/projecao/projecao'
+import { projetarAnos, type CaixaDaProjecao } from '@/features/projecao/projecao'
 import { anoDe, type DataISO } from '@/shared/lib/datas'
 import { analisarRisco, type AnaliseRisco, type NivelRisco } from './risco'
 
 /** Uma conta (o risco é sempre de uma conta), com os lançamentos e as metas dela. */
 export interface ContextoRisco {
-  caixa: Caixa
+  /** Com as faturas de cartão que saem dela (`paraProjetar`). */
+  caixa: Caixa & CaixaDaProjecao
   lancamentos: Lancamento[]
   metas: MetaEconomia[]
   hoje: DataISO
