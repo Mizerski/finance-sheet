@@ -1,135 +1,163 @@
-<div align="center">
-
 # Projeção Financeira
 
-**Saiba hoje quanto vai ter na conta em qualquer dia do ano.**
+App para Windows que mostra quanto você vai ter na conta em cada dia do ano. Você cadastra o que entra e o que sai, e o app calcula o saldo dia a dia, como uma planilha com as colunas Dia, Entradas, Saídas, Diário, Economia e Saldo. O saldo de um ano continua no seguinte.
 
-Controle e projeção financeira dia a dia, com a simplicidade de uma planilha e a clareza de um dashboard.
+Os dados ficam num arquivo no seu computador. O app não pede conta nem precisa de internet.
 
-[![Última versão](https://img.shields.io/github/v/release/Mizerski/finance-sheet?label=vers%C3%A3o&color=1745c2)](https://github.com/Mizerski/finance-sheet/releases/latest)
-[![Windows](https://img.shields.io/badge/Windows-instalador-1a1a1a)](https://github.com/Mizerski/finance-sheet/releases/latest)
-[![Web](https://img.shields.io/badge/web-React%20%2B%20Supabase-d52f2e)](docs/como-rodar.md)
-[![Offline](https://img.shields.io/badge/desktop-100%25%20offline-f4c330)](#web-ou-desktop)
-
-**[⬇ Baixar para Windows](https://github.com/Mizerski/finance-sheet/releases/latest)** · [Ver as telas](#tudo-o-que-o-app-faz) · [Rodar o código](docs/como-rodar.md) · [Contribuir](docs/CONTRIBUTING.md)
+[Baixar a última versão](https://github.com/Mizerski/finance-sheet/releases/latest)
 
 ![Planilha com o saldo projetado dia a dia](docs/screenshots/planilha.png)
 
-</div>
+> Todas as imagens usam dados de exemplo.
 
-## Por que usar
+## Instalação
 
-Extrato de banco mostra o passado. A Projeção Financeira mostra o **futuro**: você cadastra o que entra e o que sai (salário, aluguel, a feira de sábado, o café dos dias úteis) e o app calcula o saldo de **cada dia**, até o fim do ano e além.
+1. Abra a [página da última versão](https://github.com/Mizerski/finance-sheet/releases/latest) e, em *Assets*, baixe o arquivo terminado em `_x64-setup.exe` (ou o `.msi`).
+2. Execute o instalador. Se o Windows mostrar o aviso do SmartScreen, clique em **Mais informações** e depois em **Executar assim mesmo**. O aviso aparece porque o instalador não tem assinatura digital.
+3. Abra o app, informe o saldo inicial da conta na Planilha e comece a cadastrar os lançamentos.
 
-- **Descubra o aperto antes dele chegar.** O menor saldo do ano, o mês em que a conta fica no vermelho e quanto sobra no fim aparecem na hora.
-- **Tão direto quanto uma planilha.** Dia, entradas, saídas, economia e saldo, lado a lado. Sem fórmula para quebrar.
-- **Seus dados são seus.** No desktop, tudo fica num arquivo no seu computador e o app funciona sem internet. Na web, cada conta é isolada no banco.
-- **Feito para o dia a dia.** Atalhos de teclado, busca, filtros que ficam onde você deixou e uma interface que funciona no celular.
+Quando sai uma versão nova, o app avisa ao abrir. A atualização é instalada com um clique e não apaga os dados.
 
-## Tudo o que o app faz
+## Telas
 
-> As imagens usam dados fictícios.
+### Planilha
 
-### Planilha: o saldo de cada dia
+Os meses aparecem lado a lado. Cada linha é um dia, com o que entra, o que sai e o saldo no fim do dia. O dia de hoje fica marcado.
 
-Os meses lado a lado com as colunas **Entradas | Saídas fixas | Diário | Economia | Saldo**. O saldo é acumulado dia a dia e continua de um ano para o outro. Hoje fica destacado, e o botão **Conferir saldo** compara a projeção com o saldo real do banco e cria o ajuste para você.
+- **Risco do caixa:** acima da planilha, o app mostra o dia mais apertado dos próximos 12 meses e quanto sobra nele. O nível vai de Tranquilo a Risco muito alto, comparando o saldo com quanto você gasta num mês. A cor da célula de saldo segue o nível do dia.
+- **Conferir saldo:** compare a projeção com o saldo que o banco mostra. Se houver diferença, o app cria um ajuste.
+- Clique num dia para ver os lançamentos dele, adicionar outro ou excluir.
 
-Clique em qualquer dia para ver o que entra e sai nele, e adicionar um lançamento ali mesmo:
+![Lançamentos de um dia na planilha](docs/screenshots/planilha-dia.png)
 
-![Detalhe de um dia na planilha](docs/screenshots/planilha-dia.png)
+### Lançamentos
 
-### Lançamentos: cadastre uma vez, projete o ano todo
+Cada lançamento é uma entrada, uma saída ou uma transferência entre contas. Pode ser único, semanal, mensal ou diário (com a opção de só dias úteis), com data de início e de fim. Para mudar um valor a partir de certa data sem alterar o passado, edite "daqui para frente".
 
-Entradas e saídas **únicas, semanais, mensais ou diárias** (só em dias úteis, se quiser), com início e fim opcionais. Mudou o valor do aluguel? Edite "daqui para frente" sem reescrever o passado. Busca pela descrição, filtros por tipo, natureza, categoria e tag, e pastas que agrupam a lista com o total projetado no ano.
+- Busca pela descrição e filtros por data, tipo, natureza (fixa ou variável), categoria e tag.
+- Ordenação clicando no nome da coluna.
+- Com pastas cadastradas, a lista fica agrupada por pasta, com o total projetado de cada uma.
+- Seleção de vários lançamentos (Shift + clique marca um intervalo) para mudar categoria, tag, pasta ou caixa de uma vez, ou excluir. Toda alteração em lote pode ser desfeita.
 
 ![Lista de lançamentos agrupada por pasta](docs/screenshots/lancamentos.png)
 
-![Formulário de novo lançamento com recorrência semanal](docs/screenshots/novo-lancamento.png)
+Antes de salvar, o formulário mostra o efeito do lançamento no risco do caixa.
 
-### Dashboard: o ano inteiro num relance
+![Formulário de novo lançamento](docs/screenshots/novo-lancamento.png)
 
-Entradas, saídas, saldo final projetado, menor saldo do ano e **gastos evitáveis**. Gráficos de saldo no fim de cada mês, entradas vs saídas, sobras, gastos por categoria, por tag, por pasta (quanto custam todas as Assinaturas juntas, e cada uma) e pelos próximos anos. Cada gráfico também vira tabela, e o relatório vale para um dia, uma semana, um mês, o ano ou qualquer intervalo que você escolher.
+### Caixas: contas e benefícios
 
-![Dashboard com indicadores e gráficos](docs/screenshots/dashboard.png)
+Você pode ter mais de um caixa, cada um com saldo inicial próprio:
 
-### Economias: metas que andam sozinhas
+- **Conta:** conta corrente, poupança, dinheiro. As contas somam no **Total**.
+- **Benefício:** vale-refeição, vale-alimentação. Fica fora do Total, porque o dinheiro só serve para alguns gastos. Para cada benefício, o app mostra quanto sobra até a próxima recarga e quanto dá para gastar por dia.
 
-Defina o valor alvo e quanto guardar por mês. O app desconta os aportes do saldo (a coluna Economia da planilha), mostra o progresso, quanto falta e **em que mês a meta se completa** no seu ritmo. Guardou mais ou menos num mês? Registre o valor real e a previsão se ajusta. Logo abaixo, a sobra de cada mês: entradas menos saídas e economia.
+O seletor ao lado do saldo troca o caixa exibido em todas as telas (atalhos Alt+0 para o Total e Alt+1 a Alt+9 para cada caixa). Com um caixa só, o seletor não aparece.
 
-![Metas de economia e sobras do ano](docs/screenshots/economias.png)
+![Seletor de caixa aberto](docs/screenshots/seletor-caixa.png)
 
-### Organização: categorias, tags e pastas
+Os caixas são cadastrados em Organização, na aba Caixas.
 
-- **Categorias** agrupam entradas e saídas na planilha e nos gráficos, com o total de cada uma no ano.
-- **Tags** dizem se um gasto era necessário ou evitável, e alimentam o indicador de gastos evitáveis.
-- **Pastas** organizam a lista de lançamentos do jeito que fizer sentido para você, e o dashboard mostra quanto cada pasta custa.
+![Lista de caixas](docs/screenshots/caixas.png)
 
-Faltou uma categoria no meio de um lançamento? Crie ali mesmo, pelo seletor de categoria.
+### Economias
+
+- **Metas:** defina quanto juntar, quanto guardar por mês e, se quiser, um prazo. O app desconta os aportes do saldo (coluna Economia da planilha), mostra quanto falta e em que mês a meta fica completa. Se o mês fugiu do plano, registre o valor real. Sem valor alvo, a meta funciona como um cofrinho que guarda todo mês. O dinheiro pode ficar separado na própria conta ou ir para outra (por exemplo, a poupança). "Usar dinheiro" registra uma retirada da meta.
+- **Quanto dá para guardar:** o valor a mais por mês que dá para guardar sem piorar o risco do caixa.
+- **Sugestões:** resumo do mês que fechou e sugestões de guardar parte de um aumento de salário ou de uma entrada extra.
+- **Reserva de emergência:** quanto guardar para 3, 6 ou 12 meses de gastos essenciais.
+- **Gastos grandes à frente:** contas únicas dos próximos 12 meses e o saldo no dia de cada uma.
+- **Simulador:** "Posso assumir uma conta nova?" mostra o maior valor mensal que cabe sem piorar o risco.
+- **Sobras:** entradas menos saídas e economia, mês a mês.
+
+![Tela de economias](docs/screenshots/economias.png)
+
+### Dashboard
+
+Entradas, saídas, saldo final, menor saldo e gastos evitáveis do período. Gráficos de saldo no fim de cada mês, entradas e saídas, sobras, gastos por categoria, por tag, por pasta e nos próximos anos. Cada gráfico pode ser visto como tabela. O período pode ser um dia, uma semana, um mês, o ano ou um intervalo qualquer. A meta mais perto de terminar aparece no topo, com o progresso em marcos de 25%.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Organização
+
+- **Categorias** agrupam entradas e saídas.
+- **Tags** dizem se uma saída era necessária ou evitável. As evitáveis somam no indicador de gastos evitáveis.
+- **Pastas** organizam a lista de lançamentos (Casa, Carro, Trabalho...). Não mudam a projeção.
+
+Categorias, tags e pastas também podem ser criadas direto no formulário de lançamento.
 
 ![Categorias de entradas e saídas](docs/screenshots/organizacao.png)
 
-![Tags de gastos necessários e evitáveis](docs/screenshots/tags.png)
+### Assistente
 
-### No celular e no teclado
+Um chat para tirar dúvidas sobre o app e perguntar sobre as suas finanças: como está o mês, quanto você gastou com algo num período, qual o saldo num dia, se uma compra cabe no orçamento. Abre pelo botão do cabeçalho ou pela tecla **A**.
 
-A interface se adapta até 375px de largura, sem rolagem lateral. No computador, atalhos levam a qualquer tela (`1`–`5`), criam um lançamento (`N`), buscam (`/`) e navegam pelos meses (`←` `→`). Aperte `?` para ver todos.
+O modelo de IA roda no seu computador. Nenhum dado sai da máquina. Na primeira vez, o app pede para baixar um modelo (cerca de 3 GB) e sugere qual combina com o seu computador. O download pode ser pausado e continua de onde parou.
+
+Quando o assistente consulta os seus lançamentos, a resposta mostra o que foi consultado. É um modelo pequeno e pode errar: confira os números nas telas antes de decidir algo importante.
 
 <table>
   <tr>
-    <td width="25%"><img src="docs/screenshots/celular-planilha.png" alt="Planilha no celular"></td>
-    <td width="25%"><img src="docs/screenshots/celular-dashboard.png" alt="Dashboard no celular"></td>
+    <td width="50%"><img src="docs/screenshots/assistente.png" alt="Assistente com perguntas prontas"></td>
+    <td width="50%"><img src="docs/screenshots/assistente-simulacao.png" alt="Assistente simulando uma compra"></td>
+  </tr>
+</table>
+
+## Outros recursos
+
+- **Lembrete diário:** uma notificação por dia, no horário escolhido, se você ainda não registrou nenhum lançamento.
+- **Bandeja do sistema:** fechar a janela pode deixar o app na bandeja, e ele pode iniciar junto com o Windows.
+- **Backup:** exporte e importe um arquivo `.json` pelo botão do cabeçalho.
+- **Ocultar saldos:** o botão do olho borra os valores até você passar o mouse em cima.
+- **Tema escuro:** segue o sistema ou a escolha feita no botão do cabeçalho.
+- **Atalhos de teclado:** `1` a `5` trocam de tela, `N` cria um lançamento, `/` busca, `←` e `→` mudam o mês, `T` volta para hoje e `?` mostra a lista completa.
+
+![Lembrete diário](docs/screenshots/lembrete.png)
+
+![Planilha no tema escuro](docs/screenshots/tema-escuro.png)
+
+A interface também funciona em janelas estreitas:
+
+<table>
+  <tr>
+    <td width="25%"><img src="docs/screenshots/celular-planilha.png" alt="Planilha em janela estreita"></td>
+    <td width="25%"><img src="docs/screenshots/celular-dashboard.png" alt="Dashboard em janela estreita"></td>
     <td width="50%"><img src="docs/screenshots/atalhos.png" alt="Lista de atalhos de teclado"></td>
   </tr>
 </table>
 
-## Web ou desktop
+## Onde ficam os dados
 
-A mesma interface, em duas versões:
+Em `%APPDATA%\io.github.mizerski.projecaofinanceira\financas.json`. Os modelos do assistente ficam na pasta `modelos` do mesmo diretório e não entram no backup.
 
-| | Desktop (Windows) | Web |
-|---|---|---|
-| **Onde ficam os dados** | Num arquivo no seu computador | No Supabase (Postgres), por conta |
-| **Login** | Não precisa | E-mail e senha |
-| **Internet** | Não precisa | Precisa |
-| **Backup** | Exportar e importar um `.json` pelo cabeçalho | No banco |
-| **Como usar** | [Baixe o instalador](#baixar) | [Rode com o seu projeto Supabase](docs/como-rodar.md#versão-web) |
+## Desenvolvimento
 
-![Tela de entrar da versão web](docs/screenshots/entrar.png)
-
-## Baixar
-
-**[⬇ Baixar a última versão para Windows](https://github.com/Mizerski/finance-sheet/releases/latest)**. Em *Assets*, baixe o arquivo terminado em `_x64-setup.exe` (ou o `.msi`). Não precisa compilar nada.
-
-1. Abra o app e informe o **saldo inicial** na Planilha.
-2. Crie suas **categorias** em Organização.
-3. Cadastre os **lançamentos**. A projeção aparece na hora.
-
-Use o botão de **backup** no cabeçalho para exportar uma cópia dos dados de vez em quando.
-
-Depois de instalado, o app avisa quando sai uma versão nova e se atualiza com um clique, sem perder os dados.
-
-> O instalador não é assinado digitalmente. Se aparecer o aviso do SmartScreen, clique em **Mais informações** → **Executar assim mesmo**.
-
-## Para desenvolvedores
-
-O projeto é aberto a contribuições. Tudo o que você precisa está em [`docs/`](docs/README.md):
-
-| Documento | O que tem |
-|---|---|
-| [Como rodar](docs/como-rodar.md) | Pré-requisitos, Supabase, app desktop, comandos e problemas comuns |
-| [Tecnologias e arquitetura](docs/tecnologias.md) | A stack, como web e desktop dividem o mesmo front e como a projeção é calculada |
-| [Convenções](docs/convencoes.md) | Organização por feature, rotas, estado, dinheiro, datas e nomes |
-| [Design system](docs/design-system.md) | A linguagem visual Bauhaus: cores, formas, tipografia e componentes |
-| [Como contribuir](docs/CONTRIBUTING.md) | Branches, commits, checklist do pull request e como publicar uma versão |
-
-Em resumo:
+Requer Node.js, Rust e as Microsoft C++ Build Tools. Os detalhes estão em [Como rodar](docs/como-rodar.md).
 
 ```bash
 git clone https://github.com/Mizerski/finance-sheet.git
 cd finance-sheet
 npm install
-npm run desktop   # app desktop, sem precisar de Supabase (requer Rust)
-npm run dev       # versão web (requer um projeto Supabase no .env.local)
+npm run desktop
 ```
 
-Feito com React 19, TypeScript, Vite, Tailwind CSS 4, shadcn/ui, Recharts, TanStack Router, Supabase e Tauri 2.
+| Comando | O que faz |
+|---|---|
+| `npm run desktop` | App em modo de desenvolvimento |
+| `npm run desktop:build` | Gera os instaladores em `src-tauri/target/release/bundle/` |
+| `npm run build` | Checagem de tipos e build do front |
+| `npm run lint` | Lint com oxlint |
+
+Documentação:
+
+| Documento | Conteúdo |
+|---|---|
+| [Como rodar](docs/como-rodar.md) | Pré-requisitos, comandos e problemas comuns |
+| [Tecnologias e arquitetura](docs/tecnologias.md) | Stack, estrutura de pastas e cálculo da projeção |
+| [Convenções](docs/convencoes.md) | Organização do código, estado, dinheiro, datas e nomes |
+| [Design system](docs/design-system.md) | Cores, formas, tipografia e componentes |
+| [Como contribuir](docs/CONTRIBUTING.md) | Branches, commits, pull requests e publicação de versões |
+
+Os prints deste README são gerados com dados de exemplo: `npx vite --config scripts/demo/vite.config.ts` abre o app no navegador com o Tauri simulado.
+
+Feito com Tauri 2, React 19, TypeScript, Vite, Tailwind CSS 4, shadcn/ui, Recharts, TanStack Router e llama.cpp.
