@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from '@/shared/ui/icones'
 import { formatarData, paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
@@ -47,7 +47,7 @@ export function SaldoProjetado() {
         aria-pressed={ocultos}
         onClick={() => dispatch({ tipo: 'saldos/alternarVisibilidade' })}
       >
-        {ocultos ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        {ocultos ? <EyeOff className="size-6" /> : <Eye className="size-6" />}
       </Button>
     </div>
   )

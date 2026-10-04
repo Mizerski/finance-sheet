@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Pencil, PiggyBank, Plus, Trash2 } from 'lucide-react'
+import { Pencil, PiggyBank, Plus, Trash2 } from '@/shared/ui/icones'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import type { Aporte } from '@/features/economias/aportes'
 import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
@@ -92,7 +92,7 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, 
 
       {dia.noCalculo && (
         <Button variant="outline" className={cn(BOTAO, 'mt-1 w-full shrink-0')} onClick={onAdicionar}>
-          <Plus aria-hidden className="size-4" />
+          <Plus aria-hidden className="size-6" />
           Adicionar lançamento
         </Button>
       )}
@@ -111,14 +111,14 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
         <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate font-semibold">{aporte.nome}</span>
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <PiggyBank aria-hidden className="size-3.5 text-economia" />
+            <PiggyBank aria-hidden className="size-3 text-economia" />
             Meta de economia{aporte.ajustado && ' · valor ajustado'}
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
           <Pencil
             aria-hidden
-            className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
+            className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
           />
           <span className="text-economia tabular-nums">− {formatarBRL(aporte.valorCentavos)}</span>
         </span>
@@ -169,7 +169,7 @@ function ItemOcorrencia({
           {/* Lápis só no hover/foco: indica que o item abre a edição. */}
           <Pencil
             aria-hidden
-            className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
+            className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
           />
           <span className={cn('tabular-nums', entrada ? 'text-entrada' : 'text-saida')}>
             {entrada ? '+' : '−'} {formatarBRL(ocorrencia.valorCentavos)}
@@ -184,7 +184,7 @@ function ItemOcorrencia({
         aria-label={`Excluir ${ocorrencia.descricao}`}
         title="Excluir lançamento"
       >
-        <Trash2 className="size-3.5" />
+        <Trash2 className="size-3" />
       </Button>
     </li>
   )

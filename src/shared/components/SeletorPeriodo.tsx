@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { ptBR } from 'react-day-picker/locale'
-import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, X } from '@/shared/ui/icones'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
 import { deDataISO, formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { BOTAO_GRUPO, BOTAO, CAMADA, GRUPO } from '@/shared/lib/estilos'

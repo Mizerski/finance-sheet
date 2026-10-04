@@ -1,5 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react'
-import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil, Trash2 } from '@/shared/ui/icones'
 import type { Caixa } from '@/features/caixas/caixa'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import { CabecalhoGrupo } from '@/features/pastas/components/CabecalhoGrupo'

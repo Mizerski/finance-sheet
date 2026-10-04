@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { X } from '@/shared/ui/icones'
 import { Button } from '@/shared/ui/button'
 
 interface AvisoErroProps {
@@ -25,7 +25,7 @@ export function AvisoErro({ titulo, mensagem, onFechar }: AvisoErroProps) {
         aria-label="Fechar aviso"
         onClick={onFechar}
       >
-        <X className="size-4" />
+        <X className="size-6" />
       </Button>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Calculator, X } from 'lucide-react'
+import { Calculator, X } from '@/shared/ui/icones'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'

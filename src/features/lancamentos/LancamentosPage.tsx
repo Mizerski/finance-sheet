@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import { Plus } from '@/shared/ui/icones'
 import { caixasAtivos } from '@/features/caixas/caixa'
 import { agruparPorPasta } from '@/features/pastas/grupos'
 import { ocorrenciasPorLancamento, totalPorLancamento } from '@/features/projecao/projecao'

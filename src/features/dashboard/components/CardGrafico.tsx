@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ChartColumn, Table2 } from 'lucide-react'
+import { ChartColumn, Table2 } from '@/shared/ui/icones'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { CARD } from '@/shared/lib/estilos'
@@ -29,7 +29,7 @@ const OPCOES_VISAO = [
     valor: 'grafico' as const,
     rotulo: (
       <>
-        <ChartColumn className="size-3.5" />
+        <ChartColumn className="size-3" />
         <span className="sr-only">Gráfico</span>
       </>
     ),
@@ -38,7 +38,7 @@ const OPCOES_VISAO = [
     valor: 'tabela' as const,
     rotulo: (
       <>
-        <Table2 className="size-3.5" />
+        <Table2 className="size-3" />
         <span className="sr-only">Tabela</span>
       </>
     ),

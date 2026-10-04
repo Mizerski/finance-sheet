@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, Check } from 'lucide-react'
+import { ArrowRight, Check } from '@/shared/ui/icones'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL, formatarBRLSemSimbolo } from '@/shared/lib/dinheiro'

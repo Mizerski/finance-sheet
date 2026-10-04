@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarDays, X } from 'lucide-react'
+import { CalendarDays, X } from '@/shared/ui/icones'
 import { ptBR } from 'react-day-picker/locale'
 import { deDataISO, formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { CAMADA, CAMPO } from '@/shared/lib/estilos'

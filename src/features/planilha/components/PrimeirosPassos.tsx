@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Check } from 'lucide-react'
+import { Check } from '@/shared/ui/icones'
 import { CARD, CABECALHO_CARD, TITULO_CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
@@ -60,7 +60,7 @@ function Passo({ numero, feito, cor, children }: { numero: number; feito: boolea
           !feito && cor === 'bg-amarelo' ? 'text-tinta' : !feito && 'text-sobre-bloco',
         )}
       >
-        {feito ? <Check className="size-5" strokeWidth={3} aria-label="Feito" /> : numero}
+        {feito ? <Check className="size-6" strokeWidth={3} aria-label="Feito" /> : numero}
       </span>
       <span className={cn('p-3', feito && 'text-muted-foreground line-through decoration-foreground/40')}>{children}</span>
     </li>

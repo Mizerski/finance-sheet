@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CalendarCheck, Pencil, Trash2 } from 'lucide-react'
+import { CalendarCheck, Pencil, Trash2 } from '@/shared/ui/icones'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'

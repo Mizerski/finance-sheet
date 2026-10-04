@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { Search, SlidersHorizontal, X } from '@/shared/ui/icones'
 import type { Categoria } from '@/features/categorias/categoria'
 import { useAno } from '@/features/projecao/useAno'
 import { SEM_TAG, type Tag } from '@/features/tags/tag'
@@ -98,7 +98,7 @@ function CampoBusca({ valor, onChange }: { valor: string; onChange: (q: string) 
 
   return (
     <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
-      <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-6 -translate-y-1/2 text-muted-foreground" />
       <Input
         id={ID_BUSCA}
         type="search"

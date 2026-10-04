@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '@/shared/ui/icones'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { lancamentosDoCaixa, metasDoCaixa, NOME_TOTAL } from '@/features/caixas/caixa'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'

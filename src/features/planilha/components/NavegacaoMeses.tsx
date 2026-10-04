@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from '@/shared/ui/icones'
 import { nomeDoMes } from '@/shared/lib/datas'
 import { BOTAO_GRUPO, GRUPO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'

@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from '@/shared/ui/icones'
 import type { TipoMovimento } from '@/features/lancamentos/lancamento'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'

@@ -278,8 +278,9 @@ Cada card responde uma pergunta de relance (regra `progressive-disclosure` da ui
 
 ## Ícones
 
-- `lucide-react`, com traço padrão (traço 2,5–3 em ✓ e chevrons de destaque).
-- Tamanho `size-4` em botões. No menu, a forma da tela substitui o ícone.
+- **Pixel art:** Pixelarticons (MIT), numa grade de 24×24, importados só de `@/shared/ui/icones`. Os nomes seguem o lucide (`Trash2`, `Pencil`, `X`…) e cada um aponta para um desenho da coleção, de preferência a variante `Sharp` (cantos retos). Ícone novo: acrescente o par em `icones.tsx`. Componente do shadcn copiado com `lucide-react`: troque o import por `@/shared/ui/icones`.
+- **Tamanho só em múltiplos da grade:** `size-6` (24px, padrão dos botões) ou `size-3` (12px, ao lado de texto pequeno, em selects e no checkbox). Em 16px ou 14px os pixels borram.
+- O traço não muda (`strokeWidth` é ignorado); a ênfase vem do tamanho e da cor. No menu, a forma da tela substitui o ícone.
 - Todo botão só com ícone precisa de `aria-label`.
 
 ## Componentes

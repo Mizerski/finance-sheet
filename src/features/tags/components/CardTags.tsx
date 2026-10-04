@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Sparkles, Trash2 } from '@/shared/ui/icones'
 import { FILTRO_SEM_TAG } from '@/features/lancamentos/filtros'
 import type { GastoTag } from '@/features/projecao/projecao'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
