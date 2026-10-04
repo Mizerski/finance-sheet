@@ -1,7 +1,11 @@
 import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
-import type { Lancamento, Natureza, TipoMovimento } from './lancamento'
+import type { Lancamento, Natureza, TipoLancamento } from './lancamento'
 
-export const ROTULO_TIPO: Record<TipoMovimento, string> = { entrada: 'Entrada', saida: 'Saída' }
+export const ROTULO_TIPO: Record<TipoLancamento, string> = {
+  entrada: 'Entrada',
+  saida: 'Saída',
+  transferencia: 'Transferência',
+}
 export const ROTULO_NATUREZA: Record<Natureza, string> = { fixa: 'Fixa', variavel: 'Variável' }
 
 /** Nomes para "toda terça", "todo sábado" (sábado e domingo pedem "todo"). */

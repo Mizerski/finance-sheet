@@ -99,8 +99,9 @@ export function lancamentosDoCaixa(lancamentos: Lancamento[], caixaId: string): 
   return lancamentos.filter((l) => l.caixaId === caixaId || l.caixaDestinoId === caixaId)
 }
 
+/** Metas que mexem no caixa: as que guardam dele e as que mandam o dinheiro para ele (destino). */
 export function metasDoCaixa(metas: MetaEconomia[], caixaId: string): MetaEconomia[] {
-  return metas.filter((m) => m.caixaId === caixaId)
+  return metas.filter((m) => m.caixaId === caixaId || m.destinoId === caixaId)
 }
 
 /** Ela é a última conta ativa: arquivar ou excluir deixaria o app sem conta. */

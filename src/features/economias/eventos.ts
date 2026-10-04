@@ -109,7 +109,7 @@ function planejadoNoMes(meta: MetaEconomia, mes: string): number {
 export function aplicarAumento(meta: MetaEconomia, mes: string, extraCentavos: number): MetaEconomia | null {
   const antes = aportesDaMeta(meta, somarDias(`${mes}-01`, -1))
   const guardado = antes.reduce((t, a) => t + a.valorCentavos, 0)
-  if (guardado >= meta.valorAlvoCentavos) return null
+  if (guardado >= (meta.valorAlvoCentavos ?? Infinity)) return null
 
   const ajustes = { ...meta.ajustes }
   for (const a of antes) if (!(a.mes in ajustes)) ajustes[a.mes] = meta.aporteMensalCentavos
@@ -134,7 +134,7 @@ export function aplicarExtra(meta: MetaEconomia, data: DataISO, extraCentavos: n
   const aporte = aporteDepoisDe(meta, data)
   if (!aporte) return null
   const antes = aportesDaMeta(meta, somarDias(aporte.data, -1)).reduce((t, a) => t + a.valorCentavos, 0)
-  const valor = Math.min(planejadoNoMes(meta, aporte.mes) + extraCentavos, meta.valorAlvoCentavos - antes)
+  const valor = Math.min(planejadoNoMes(meta, aporte.mes) + extraCentavos, (meta.valorAlvoCentavos ?? Infinity) - antes)
   return { ...meta, ajustes: { ...meta.ajustes, [aporte.mes]: valor } }
 }
 

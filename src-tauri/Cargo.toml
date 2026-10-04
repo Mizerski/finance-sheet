@@ -1,6 +1,6 @@
 [package]
 name = "projecao-financeira"
-version = "0.5.1"
+version = "0.5.12"
 description = "Controle e projeção financeira dia a dia"
 authors = ["Mizerski"]
 license = ""

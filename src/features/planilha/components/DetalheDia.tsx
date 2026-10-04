@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router'
-import { Pencil, PiggyBank, Plus, Trash2 } from '@/shared/ui/icones'
+import { ArrowLeftRight, Pencil, PiggyBank, Plus, Trash2 } from '@/shared/ui/icones'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import type { Aporte } from '@/features/economias/aportes'
-import type { DiaProjetado, Ocorrencia } from '@/features/projecao/projecao'
+import type { DiaProjetado, MovimentoTransferencia, Ocorrencia } from '@/features/projecao/projecao'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
 import { NIVEL, type NivelRisco } from '@/features/risco/risco'
 import { PontoCor } from '@/shared/components/PontoCor'
@@ -13,6 +13,7 @@ import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { PopoverDescription, PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
+import { useFinancas } from '@/store/financas-context'
 
 interface DetalheDiaProps {
   dia: DiaProjetado
@@ -29,7 +30,7 @@ interface DetalheDiaProps {
 
 /** Conteúdo do popover: lançamentos de um dia da planilha. */
 export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, nivel = null }: DetalheDiaProps) {
-  const quantidade = dia.ocorrencias.length + dia.aportes.length
+  const quantidade = dia.ocorrencias.length + dia.transferencias.length + dia.aportes.length
 
   return (
     <>
@@ -45,7 +46,7 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, 
 
       {!dia.noCalculo ? (
         <p className="text-muted-foreground">Antes da data do saldo inicial, fora do cálculo.</p>
-      ) : dia.ocorrencias.length === 0 && dia.aportes.length === 0 ? (
+      ) : quantidade === 0 ? (
         <p className="text-muted-foreground">Nenhum lançamento neste dia.</p>
       ) : (
         // A lista é a única parte que encolhe e rola; título, saldo e o botão de adicionar continuam à vista.
@@ -64,8 +65,20 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, 
               onExcluir={() => onExcluir(o.lancamentoId)}
             />
           ))}
+          {dia.transferencias.map((m) =>
+            m.metaId ? (
+              <ItemMetaDeOutraConta key={`${m.metaId}-${m.sentido}`} movimento={m} />
+            ) : (
+              <ItemTransferencia
+                key={m.lancamentoId}
+                movimento={m}
+                onEditar={() => onEditar(m.lancamentoId)}
+                onExcluir={() => onExcluir(m.lancamentoId)}
+              />
+            ),
+          )}
           {dia.aportes.map((a) => (
-            <ItemAporte key={a.metaId} aporte={a} />
+            <ItemAporte key={a.resgateId ?? a.metaId} aporte={a} />
           ))}
         </ul>
       )}
@@ -100,8 +113,9 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, 
   )
 }
 
-/** Aporte de uma meta: leva à tela Economias, onde a meta é editada. */
+/** Aporte (ou dinheiro usado) de uma meta: leva à tela Economias, onde a meta é editada. */
 function ItemAporte({ aporte }: { aporte: Aporte }) {
+  const usado = !!aporte.resgateId
   return (
     <li className="group/item flex items-start transition-colors hover:bg-selecao-forte">
       <Link
@@ -112,7 +126,7 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
           <span className="truncate font-semibold">{aporte.nome}</span>
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <PiggyBank aria-hidden className="size-3 text-economia" />
-            Meta de economia{aporte.ajustado && ' · valor ajustado'}
+            {usado ? 'Dinheiro usado da meta' : `Meta de economia${aporte.ajustado ? ' · valor ajustado' : ''}`}
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
@@ -120,10 +134,101 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
             aria-hidden
             className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
           />
-          <span className="text-economia tabular-nums">− {formatarBRL(aporte.valorCentavos)}</span>
+          <span className="text-economia tabular-nums">
+            {usado ? '+' : '−'} {formatarBRL(Math.abs(aporte.valorCentavos))}
+          </span>
         </span>
       </Link>
       {/* Aporte não se exclui aqui (é da meta); o espaço mantém os valores alinhados com os lançamentos. */}
+      <span aria-hidden className="mx-0.5 size-7 shrink-0" />
+    </li>
+  )
+}
+
+/** Transferência entre contas: entra ou sai da conta, mas não é entrada nem gasto (valor em preto). */
+function ItemTransferencia({
+  movimento: m,
+  onEditar,
+  onExcluir,
+}: {
+  movimento: MovimentoTransferencia
+  onEditar: () => void
+  onExcluir: () => void
+}) {
+  const { estado } = useFinancas()
+  const outro = estado.caixas.find((c) => c.id === m.outroCaixaId)?.nome ?? 'outra conta'
+  const entrada = m.sentido === 'entrada'
+
+  return (
+    <li className="group/item flex items-start transition-colors hover:bg-selecao-forte">
+      <button
+        type="button"
+        onClick={onEditar}
+        className="flex min-w-0 flex-1 items-start justify-between gap-3 py-1.5 pl-2 text-left outline-none focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate font-semibold">
+            <span className="sr-only">Editar </span>
+            {m.descricao}
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <ArrowLeftRight aria-hidden className="size-3 text-foreground" />
+            {entrada ? `Transferência de ${outro}` : `Transferência para ${outro}`}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          <Pencil
+            aria-hidden
+            className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
+          />
+          <span className="tabular-nums">
+            {entrada ? '+' : '−'} {formatarBRL(m.valorCentavos)}
+          </span>
+        </span>
+      </button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="mx-0.5 mt-0.5 shrink-0 rounded-full text-muted-foreground hover:text-destructive"
+        onClick={onExcluir}
+        aria-label={`Excluir ${m.descricao}`}
+        title="Excluir transferência"
+      >
+        <Trash2 className="size-3" />
+      </Button>
+    </li>
+  )
+}
+
+/** Meta de outra conta que manda o dinheiro para esta: o aporte chega e o dinheiro usado sai. Edita em Economias. */
+function ItemMetaDeOutraConta({ movimento: m }: { movimento: MovimentoTransferencia }) {
+  const { estado } = useFinancas()
+  const outra = estado.caixas.find((c) => c.id === m.outroCaixaId)?.nome ?? 'outra conta'
+  const entrada = m.sentido === 'entrada'
+
+  return (
+    <li className="group/item flex items-start transition-colors hover:bg-selecao-forte">
+      <Link
+        to="/economias"
+        className="flex min-w-0 flex-1 items-start justify-between gap-3 py-1.5 pl-2 text-left outline-none focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate font-semibold">{m.descricao}</span>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <PiggyBank aria-hidden className="size-3 text-economia" />
+            {entrada ? `Meta de economia, de ${outra}` : `Dinheiro usado, volta para ${outra}`}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          <Pencil
+            aria-hidden
+            className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
+          />
+          <span className="tabular-nums">
+            {entrada ? '+' : '−'} {formatarBRL(m.valorCentavos)}
+          </span>
+        </span>
+      </Link>
       <span aria-hidden className="mx-0.5 size-7 shrink-0" />
     </li>
   )

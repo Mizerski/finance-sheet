@@ -12,8 +12,11 @@ import type { Tag } from '@/features/tags/tag'
  * só impede que um app antigo, que não conhece a recorrência semanal, importe um backup novo.
  * Versão 5: prazo opcional nas metas de economia. Também sem conversão (meta sem prazo continua válida).
  * Versão 6: caixas. O saldo inicial (`config`) vira a "Conta principal" e todo lançamento e meta ganha `caixaId`.
+ * Versão 7: transferência entre contas (`tipo: 'transferencia'` com `caixaDestinoId`) e meta sem valor alvo
+ * (cofrinho). Sem conversão; o número novo só impede que um app antigo, que trataria a transferência como gasto
+ * e exige o alvo, importe um backup novo.
  */
-export const VERSAO_DADOS = 6
+export const VERSAO_DADOS = 7
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {
@@ -60,7 +63,9 @@ export function atualizarDados(dados: DadosFinancasSalvos, novoId: () => string 
 
   if ('caixas' in dados && Array.isArray(dados.caixas)) {
     const caixas = dados.caixas.length ? dados.caixas : [contaPrincipal(novoId())]
-    return { ...dados, caixas, tags, pastas }
+    // Antes da versão 7, o destino não tinha interface: só a transferência pode ter um.
+    const lancamentos = dados.lancamentos.map((l) => (l.caixaDestinoId && l.tipo !== 'transferencia' ? semDestino(l) : l))
+    return { ...dados, caixas, lancamentos, tags, pastas }
   }
 
   const v5 = dados as DadosFinancasV5 | DadosFinancasV2 | DadosFinancasV1
@@ -74,6 +79,12 @@ export function atualizarDados(dados: DadosFinancasSalvos, novoId: () => string 
     tags,
     pastas,
   }
+}
+
+function semDestino(l: Lancamento): Lancamento {
+  const copia = { ...l }
+  delete copia.caixaDestinoId
+  return copia
 }
 
 export interface EstadoFinancas extends DadosFinancas {

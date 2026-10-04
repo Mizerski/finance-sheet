@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
 import { useVisao } from '@/features/caixas/useVisao'
+import { guardadoSeparado } from '@/features/economias/aportes'
 import { lancamentoDeAjuste } from '@/features/lancamentos/ajuste'
 import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
@@ -46,13 +47,20 @@ export function DialogConferirSaldo({ aberto, onOpenChange }: DialogConferirSald
   )
 }
 
+/** O banco pode mostrar o saldo com o dinheiro separado nas metas ou só o disponível (como as caixinhas dos bancos). */
+type Comparar = 'com' | 'sem'
+const OPCOES_COMPARAR = [
+  { valor: 'com' as const, rotulo: 'Com o separado' },
+  { valor: 'sem' as const, rotulo: 'Só o disponível' },
+]
+
 const OPCOES_SINAL = [
   { valor: 'positivo' as const, rotulo: 'Positivo' },
   { valor: 'negativo' as const, rotulo: 'Negativo' },
 ]
 
 function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
-  const { dispatch } = useFinancas()
+  const { estado, dispatch } = useFinancas()
   const { caixaPadrao } = useVisao()
   const { porCaixa } = useProjecoesDosCaixas()
   // O caixa da tela (no Total, a primeira conta); o ajuste é sempre de um caixa, nunca da soma.
@@ -62,8 +70,13 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   const [centavos, setCentavos] = useState(0)
   const [sinal, setSinal] = useState<'positivo' | 'negativo'>('positivo')
   const [informado, setInformado] = useState(false)
+  const [comparar, setComparar] = useState<Comparar>('com')
 
-  const projetado = projecoes.flatMap((p) => p.dias).find((d) => d.data === data)?.saldoCentavos ?? null
+  // O saldo da planilha é o disponível; o separado nas metas da conta também está nela.
+  const separado = guardadoSeparado(estado.metas.filter((m) => m.caixaId === caixaId), data)
+  const somaSeparado = separado > 0 && comparar === 'com'
+  const disponivel = projecoes.flatMap((p) => p.dias).find((d) => d.data === data)?.saldoCentavos ?? null
+  const projetado = disponivel === null ? null : disponivel + (somaSeparado ? separado : 0)
   const real = sinal === 'negativo' ? -centavos : centavos
   const diferenca = projetado === null ? 0 : real - projetado
   const pronto = informado && projetado !== null && diferenca !== 0
@@ -71,6 +84,7 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   function salvar(e: FormEvent) {
     e.preventDefault()
     if (!pronto || projetado === null) return
+    // O ajuste corrige o disponível pela diferença (o separado nas metas não muda).
     const ajuste = lancamentoDeAjuste(real, projetado, data, crypto.randomUUID(), caixaId)
     if (ajuste) dispatch({ tipo: 'lancamento/salvar', lancamento: ajuste })
     onConcluir()
@@ -113,7 +127,30 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
         </FieldDescription>
       </Field>
 
-      <Comparacao projetado={projetado} real={informado ? real : null} diferenca={diferenca} data={data} />
+      {separado > 0 && (
+        <Field>
+          <FieldLabel htmlFor="conferir-comparar">O banco mostra</FieldLabel>
+          <ControleSegmentado
+            id="conferir-comparar"
+            rotulo="O banco mostra"
+            valor={comparar}
+            opcoes={OPCOES_COMPARAR}
+            onChange={setComparar}
+          />
+          <FieldDescription>
+            {formatarBRL(separado)} estão separados nas metas desta conta. Escolha "Só o disponível" se o banco guarda
+            esse dinheiro à parte, como numa caixinha.
+          </FieldDescription>
+        </Field>
+      )}
+
+      <Comparacao
+        projetado={projetado}
+        separado={somaSeparado ? separado : 0}
+        real={informado ? real : null}
+        diferenca={diferenca}
+        data={data}
+      />
 
       <DialogFooter className={RODAPE_DIALOG}>
         <DialogClose asChild>
@@ -130,21 +167,30 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
 }
 
 interface ComparacaoProps {
+  /** O que a planilha diz que o banco mostra (o disponível, mais o separado se o banco o inclui). */
   projetado: number | null
+  /** Separado nas metas incluído em `projetado`; 0 quando não entra. */
+  separado: number
   /** null enquanto o saldo do banco não foi digitado. */
   real: number | null
   diferenca: number
   data: DataISO
 }
 
-function Comparacao({ projetado, real, diferenca, data }: ComparacaoProps) {
+function Comparacao({ projetado, separado, real, diferenca, data }: ComparacaoProps) {
   if (projetado === null) {
     return <p className="text-sm text-muted-foreground">Esse dia está fora do cálculo da planilha. Escolha outra data.</p>
   }
 
   return (
     <div className="flex flex-col gap-2 border-2 border-contorno p-4 text-sm">
-      <Linha rotulo="Na planilha" valor={projetado} />
+      {separado > 0 && (
+        <>
+          <Linha rotulo="Disponível" valor={projetado - separado} />
+          <Linha rotulo="Separado nas metas" valor={separado} />
+        </>
+      )}
+      <Linha rotulo={separado > 0 ? 'Total na conta' : 'Na planilha'} valor={projetado} />
       {real !== null && (
         <>
           <Linha rotulo="No banco" valor={real} />

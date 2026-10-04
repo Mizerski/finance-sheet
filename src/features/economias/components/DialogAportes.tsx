@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { useFinancas } from '@/store/financas-context'
-import { aportesDaMeta } from '../aportes'
+import { aportesDaMeta, guardadoNaMeta } from '../aportes'
 import type { MetaEconomia } from '../meta'
 
 interface DialogAportesProps {
@@ -55,7 +55,8 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
   // Meses recalculados com os valores em edição: guardar menos pode trazer mais um mês para a lista.
   const rascunho = { ...meta, ajustes }
   const aportes = aportesDaMeta(rascunho, hoje)
-  const guardado = aportes.reduce((t, a) => t + a.valorCentavos, 0)
+  // O que está na meta: os aportes menos o dinheiro já usado.
+  const guardado = guardadoNaMeta(rascunho, hoje)
 
   function alterar(mes: string, centavos: number) {
     setAjustes((atual) => {
@@ -101,7 +102,10 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
       <div className="flex justify-between border-t-2 border-contorno pt-3 text-sm">
         <span className="text-muted-foreground">Guardado até hoje</span>
         <span className="font-semibold tabular-nums">
-          {formatarBRL(guardado)} <span className="font-normal text-muted-foreground">de {formatarBRL(meta.valorAlvoCentavos)}</span>
+          {formatarBRL(guardado)}
+          {meta.valorAlvoCentavos !== undefined && (
+            <span className="font-normal text-muted-foreground"> de {formatarBRL(meta.valorAlvoCentavos)}</span>
+          )}
         </span>
       </div>
 

@@ -31,11 +31,12 @@ import { CardGastosGrandes } from './components/CardGastosGrandes'
 import { CardMeta } from './components/CardMeta'
 import { CardSobras } from './components/CardSobras'
 import { DialogAportes } from './components/DialogAportes'
+import { DialogResgate } from './components/DialogResgate'
 import { CardReserva } from './components/CardReserva'
 import { CardSugestoes } from './components/CardSugestoes'
 import { DialogMeta } from './components/DialogMeta'
 import type { SugestaoMeta } from './components/FormularioMeta'
-import type { MetaEconomia } from './meta'
+import { temAlvo, type MetaEconomia } from './meta'
 
 /** A meta continua guardada ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Selecao {
@@ -82,6 +83,7 @@ function ConteudoEconomias() {
   const [hoje] = useState(() => paraDataISO(new Date()))
   const [edicao, setEdicao] = useState<Selecao>(FECHADO)
   const [ajuste, setAjuste] = useState<Selecao>(FECHADO)
+  const [uso, setUso] = useState<Selecao>(FECHADO)
   const [exclusao, setExclusao] = useState<Selecao>(FECHADO)
 
   const resumos = useMemo(
@@ -121,7 +123,8 @@ function ConteudoEconomias() {
     [estado.caixas, lancamentos, metas, projecoes, referencias, resumos, hoje],
   )
   const guardado = [...resumos.values()].reduce((t, r) => t + r.guardadoCentavos, 0)
-  const alvo = metas.reduce((t, m) => t + m.valorAlvoCentavos, 0)
+  // Cofrinhos (sem valor alvo) guardam sem fim: o "de R$ …" só aparece quando toda meta tem alvo.
+  const alvo = metas.every(temAlvo) ? metas.reduce((t, m) => t + (m.valorAlvoCentavos ?? 0), 0) : null
   const quantidade = metas.length
   const nova = () => setEdicao({ aberto: true })
 
@@ -134,8 +137,8 @@ function ConteudoEconomias() {
           quantidade > 0 ? (
             <>
               {quantidade} {quantidade === 1 ? 'meta' : 'metas'} ·{' '}
-              <span className="font-semibold text-foreground tabular-nums">{formatarBRL(guardado)}</span> guardados de{' '}
-              {formatarBRL(alvo)}
+              <span className="font-semibold text-foreground tabular-nums">{formatarBRL(guardado)}</span> guardados
+              {alvo !== null && <> de {formatarBRL(alvo)}</>}
             </>
           ) : (
             'Separe dinheiro todo mês para um objetivo e acompanhe quanto já guardou'
@@ -180,8 +183,14 @@ function ConteudoEconomias() {
               principal={meta.id === principal?.id && metas.length > 1}
               resumo={resumos.get(meta.id)!}
               hoje={hoje}
+              destino={estado.caixas.find((c) => c.id === meta.destinoId)?.nome}
               onEditar={() => setEdicao({ aberto: true, meta })}
               onAjustar={() => setAjuste({ aberto: true, meta })}
+              onUsar={() => setUso({ aberto: true, meta })}
+              onRetomar={() => {
+                const { encerradaEm: _fim, ...emAndamento } = meta
+                dispatch({ tipo: 'meta/salvar', meta: emAndamento })
+              }}
               onExcluir={() => setExclusao({ aberto: true, meta })}
             />
           ))}
@@ -246,6 +255,12 @@ function ConteudoEconomias() {
         meta={ajuste.meta}
         hoje={hoje}
         onOpenChange={(aberto) => setAjuste((e) => ({ ...e, aberto }))}
+      />
+      <DialogResgate
+        aberto={uso.aberto}
+        metaId={uso.meta?.id}
+        hoje={hoje}
+        onOpenChange={(aberto) => setUso((e) => ({ ...e, aberto }))}
       />
       <ConfirmarExclusao
         aberto={exclusao.aberto}

@@ -1,6 +1,5 @@
 import type { Lancamento } from '@/features/lancamentos/lancamento'
-import type { Configuracao } from '@/features/projecao/configuracao'
-import { projetarAnos } from '@/features/projecao/projecao'
+import { projetarAnos, type CaixaDaProjecao } from '@/features/projecao/projecao'
 import { nivelDoSaldo, pisoDoNivel, referenciaDoRisco, type NivelRisco } from '@/features/risco/risco'
 import { anoDe, type DataISO } from '@/shared/lib/datas'
 import { ARREDONDAMENTO_CENTAVOS, arredondar, capacidadeDePoupanca, periodoDaCapacidade } from './capacidade'
@@ -8,7 +7,7 @@ import type { MetaEconomia } from './meta'
 
 /** O resto dos dados, sem a meta avaliada. */
 export interface ContextoMeta {
-  config: Configuracao
+  config: CaixaDaProjecao
   lancamentos: Lancamento[]
   /** As outras metas (sem a que está sendo avaliada). */
   outrasMetas: MetaEconomia[]
@@ -107,7 +106,7 @@ export function limitesDaMeta(ctx: ContextoMeta, meta: MetaEconomia): LimitesMet
   if (negativoSemMeta) return { ...base, negativoSemMeta, maximoCentavos: 0, semPiorarCentavos: 0 }
 
   // Acima do alvo o aporte não muda nada; acima da sobra média já não cabe.
-  const maximo = maiorAporte(ctx, meta, arredondar(Math.min(sobraMediaCentavos, meta.valorAlvoCentavos)), 0)
+  const maximo = maiorAporte(ctx, meta, arredondar(Math.min(sobraMediaCentavos, meta.valorAlvoCentavos ?? Infinity)), 0)
   const semPiorar =
     nivelSemMeta === 5 ? maximo : maiorAporte(ctx, meta, maximo, pisoDoNivel(nivelSemMeta, referenciaCentavos))
   return { ...base, negativoSemMeta: null, maximoCentavos: maximo, semPiorarCentavos: semPiorar }

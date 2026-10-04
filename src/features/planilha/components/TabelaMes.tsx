@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/ui/table'
+import { somarColunas } from '../colunas'
 import { CELULA, CELULA_DIA, COR_COLUNA } from '../cores'
 import { CelulaSaldo, CelulaValor } from './CelulaValor'
 import { LinhaDia } from './LinhaDia'
@@ -81,6 +82,7 @@ export function TabelaMes({
 }: TabelaMesProps) {
   const saldoInicial = resumo.saldoInicialCentavos
   const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
+  const totais = somarColunas(dias)
   // Risco do mês: o nível do dia mais apertado.
   const niveis = dias.map((d) => nivelDoDia?.(d) ?? null)
   const doMes = niveis.filter((n): n is NivelRisco => n !== null)
@@ -175,9 +177,9 @@ export function TabelaMes({
             <TableCell className={cn(CELULA_DIA, ROTULO, 'font-semibold')}>
               Total
             </TableCell>
-            <CelulaValor centavos={resumo.entradasCentavos} className={COR_COLUNA.entrada} compacta={comEconomia} />
-            <CelulaValor centavos={resumo.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
-            <CelulaValor centavos={resumo.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+            <CelulaValor centavos={totais.entradasCentavos} className={COR_COLUNA.entrada} compacta={comEconomia} />
+            <CelulaValor centavos={totais.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+            <CelulaValor centavos={totais.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
             {comEconomia && <CelulaValor centavos={resumo.economiaCentavos} className={COR_COLUNA.economia} compacta />}
             <CelulaSaldo
               centavos={resumo.saldoFinalCentavos}

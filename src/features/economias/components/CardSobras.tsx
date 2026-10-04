@@ -45,6 +45,7 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
         ajuda={
           <Ajuda titulo="Sobras">
             <p>O que fica na conta a cada mês: o que entra, menos o que sai, menos o que vai para as metas.</p>
+            <p>Transferências entre contas também mudam a sobra de cada conta; no Total, as entre contas do total se anulam.</p>
           </Ajuda>
         }
         acoes={<SeletorAno />}

@@ -6,6 +6,7 @@ import { formatarData, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/data
 import { cn } from '@/shared/lib/utils'
 import { Popover, PopoverAnchor, PopoverContent } from '@/shared/ui/popover'
 import { TableCell, TableRow } from '@/shared/ui/table'
+import { colunasDoDia } from '../colunas'
 import { CELULA_DIA, COR_COLUNA } from '../cores'
 import { CelulaSaldo, CelulaValor } from './CelulaValor'
 import { DetalheDia } from './DetalheDia'
@@ -40,6 +41,7 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onExcluir, onAdici
   const [lado, setLado] = useState<'top' | 'bottom'>('bottom')
   const linhaRef = useRef<HTMLTableRowElement>(null)
   const fimDeSemana = dia.diaDaSemana === 0 || dia.diaDaSemana === 6
+  const colunas = colunasDoDia(dia)
 
   const alternar = () => {
     const linha = linhaRef.current?.getBoundingClientRect()
@@ -92,9 +94,9 @@ export function LinhaDia({ dia, ehHoje, categorias, onEditar, onExcluir, onAdici
               </span>
             </button>
           </TableCell>
-          <CelulaValor centavos={dia.entradasCentavos} className={COR_COLUNA.entrada} compacta={comEconomia} />
-          <CelulaValor centavos={dia.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
-          <CelulaValor centavos={dia.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+          <CelulaValor centavos={colunas.entradasCentavos} className={COR_COLUNA.entrada} compacta={comEconomia} />
+          <CelulaValor centavos={colunas.saidasFixasCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
+          <CelulaValor centavos={colunas.saidasVariaveisCentavos} className={COR_COLUNA.saida} compacta={comEconomia} />
           {comEconomia && <CelulaValor centavos={dia.economiaCentavos} className={COR_COLUNA.economia} compacta />}
           <CelulaSaldo centavos={dia.saldoCentavos} compacta={comEconomia} nivel={nivel} />
         </TableRow>

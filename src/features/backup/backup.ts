@@ -36,6 +36,8 @@ const ehTexto = (v: unknown): v is string => typeof v === 'string'
 const ehData = (v: unknown): v is DataISO => ehTexto(v) && /^\d{4}-\d{2}-\d{2}$/.test(v)
 const ehCentavos = (v: unknown): v is number => Number.isSafeInteger(v)
 const ehTipo = (v: unknown) => v === 'entrada' || v === 'saida'
+/** A partir da versão 7, o lançamento também pode ser uma transferência. */
+const ehTipoLancamento = (v: unknown) => ehTipo(v) || v === 'transferencia'
 const ehCor = (v: unknown) => ehTexto(v) && /^#[0-9a-f]{6}$/i.test(v)
 
 function ehRecorrencia(r: unknown): boolean {
@@ -92,7 +94,8 @@ function ehDoCaixa(item: Objeto, versao: number, caixas: Set<string>): boolean {
   return (
     ehTexto(item.caixaId) &&
     caixas.has(item.caixaId) &&
-    (item.caixaDestinoId === undefined || (ehTexto(item.caixaDestinoId) && caixas.has(item.caixaDestinoId)))
+    (item.caixaDestinoId === undefined || (ehTexto(item.caixaDestinoId) && caixas.has(item.caixaDestinoId))) &&
+    (item.destinoId === undefined || (ehTexto(item.destinoId) && caixas.has(item.destinoId)))
   )
 }
 
@@ -101,7 +104,9 @@ function ehLancamento(l: unknown): l is Omit<Lancamento, 'caixaId'> {
     ehObjeto(l) &&
     ehTexto(l.id) &&
     ehTexto(l.descricao) &&
-    ehTipo(l.tipo) &&
+    ehTipoLancamento(l.tipo) &&
+    // Transferência sempre tem destino, diferente da origem (que o backup confere em `ehDoCaixa`).
+    (l.tipo !== 'transferencia' || (ehTexto(l.caixaDestinoId) && l.caixaDestinoId !== l.caixaId)) &&
     ehCentavos(l.valorCentavos) &&
     l.valorCentavos >= 0 &&
     ehTexto(l.categoriaId) &&
@@ -119,8 +124,8 @@ function ehMeta(m: unknown): m is Omit<MetaEconomia, 'caixaId'> {
     ehObjeto(m) &&
     ehTexto(m.id) &&
     ehTexto(m.nome) &&
-    ehCentavos(m.valorAlvoCentavos) &&
-    m.valorAlvoCentavos > 0 &&
+    // A partir da versão 7, a meta pode não ter valor alvo (cofrinho).
+    (m.valorAlvoCentavos === undefined || (ehCentavos(m.valorAlvoCentavos) && m.valorAlvoCentavos > 0)) &&
     ehCentavos(m.aporteMensalCentavos) &&
     m.aporteMensalCentavos >= 0 &&
     Number.isInteger(m.diaDoMes) &&
@@ -129,8 +134,15 @@ function ehMeta(m: unknown): m is Omit<MetaEconomia, 'caixaId'> {
     ehData(m.inicio) &&
     (m.prazo === undefined || ehData(m.prazo)) &&
     ehObjeto(m.ajustes) &&
-    Object.entries(m.ajustes).every(([mes, v]) => /^\d{4}-\d{2}$/.test(mes) && ehCentavos(v) && v >= 0)
+    Object.entries(m.ajustes).every(([mes, v]) => /^\d{4}-\d{2}$/.test(mes) && ehCentavos(v) && v >= 0) &&
+    // A partir da versão 7: dinheiro usado e meta encerrada.
+    (m.resgates === undefined || (Array.isArray(m.resgates) && m.resgates.every(ehResgate))) &&
+    (m.encerradaEm === undefined || ehData(m.encerradaEm))
   )
+}
+
+function ehResgate(r: unknown): boolean {
+  return ehObjeto(r) && ehTexto(r.id) && ehData(r.data) && ehCentavos(r.valorCentavos) && r.valorCentavos > 0
 }
 
 /** Dados da versão 1 (sem metas), da 2 (sem tags e pastas), de 3 a 5 (sem caixas) ou da atual. */
@@ -204,17 +216,22 @@ export function lerBackup(texto: string): Backup {
       ),
       categorias: atual.categorias.map(({ id, nome, cor, tipo }) => ({ id, nome, cor, tipo })),
       lancamentos: atual.lancamentos,
-      metas: atual.metas.map(({ id, caixaId, nome, valorAlvoCentavos, aporteMensalCentavos, diaDoMes, inicio, prazo, ajustes }) => ({
-        id,
-        caixaId,
-        nome,
-        valorAlvoCentavos,
-        aporteMensalCentavos,
-        diaDoMes,
-        inicio,
-        ...(prazo && { prazo }),
-        ajustes: { ...ajustes },
-      })),
+      metas: atual.metas.map(
+        ({ id, caixaId, destinoId, nome, valorAlvoCentavos, aporteMensalCentavos, diaDoMes, inicio, prazo, ajustes, resgates, encerradaEm }) => ({
+          id,
+          caixaId,
+          ...(destinoId && { destinoId }),
+          nome,
+          ...(valorAlvoCentavos !== undefined && { valorAlvoCentavos }),
+          aporteMensalCentavos,
+          diaDoMes,
+          inicio,
+          ...(prazo && { prazo }),
+          ajustes: { ...ajustes },
+          ...(resgates?.length && { resgates: resgates.map(({ id, data, valorCentavos }) => ({ id, data, valorCentavos })) }),
+          ...(encerradaEm && { encerradaEm }),
+        }),
+      ),
       tags: atual.tags.map(({ id, nome, cor, evitavel }) => ({ id, nome, cor, evitavel })),
       pastas: atual.pastas.map(({ id, nome, cor }) => ({ id, nome, cor })),
     },

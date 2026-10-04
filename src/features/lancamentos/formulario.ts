@@ -1,14 +1,17 @@
 import { deDataISO, type DataISO } from '@/shared/lib/datas'
-import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from './lancamento'
+import type { Lancamento, Natureza, Recorrencia, TipoLancamento } from './lancamento'
 
 /**
  * Estado do formulário. Guarda os campos de todos os tipos de recorrência,
  * para nada se perder ao alternar entre única, semanal, mensal e diária.
  */
 export interface RascunhoLancamento {
+  /** Na transferência, a conta de onde o dinheiro sai. */
   caixaId: string
+  /** Só vale na transferência: a conta que recebe ('' = ainda não escolhida). */
+  caixaDestinoId: string
   descricao: string
-  tipo: TipoMovimento
+  tipo: TipoLancamento
   valorCentavos: number
   categoriaId: string
   /** '' = sem tag. Só vale para saídas. */
@@ -32,6 +35,7 @@ export type ErrosLancamento = Partial<Record<keyof RascunhoLancamento, string>>
 export function rascunhoVazio(data: DataISO, caixaId: string): RascunhoLancamento {
   return {
     caixaId,
+    caixaDestinoId: '',
     descricao: '',
     tipo: 'saida',
     valorCentavos: 0,
@@ -53,6 +57,7 @@ export function rascunhoDe(l: Lancamento, hoje: DataISO): RascunhoLancamento {
   const r = l.recorrencia
   return {
     ...rascunhoVazio(hoje, l.caixaId),
+    caixaDestinoId: l.caixaDestinoId ?? '',
     descricao: l.descricao,
     tipo: l.tipo,
     valorCentavos: l.valorCentavos,
@@ -79,7 +84,11 @@ export function validarLancamento(r: RascunhoLancamento, categoriasValidas: Set<
   const erros: ErrosLancamento = {}
   if (!r.descricao.trim()) erros.descricao = 'Informe uma descrição.'
   if (r.valorCentavos <= 0) erros.valorCentavos = 'Informe um valor maior que zero.'
-  if (!categoriasValidas.has(r.categoriaId)) erros.categoriaId = 'Escolha uma categoria.'
+  if (r.tipo !== 'transferencia' && !categoriasValidas.has(r.categoriaId)) erros.categoriaId = 'Escolha uma categoria.'
+  if (r.tipo === 'transferencia' && !r.caixaDestinoId) erros.caixaDestinoId = 'Escolha a conta que recebe.'
+  if (r.tipo === 'transferencia' && r.caixaDestinoId && r.caixaDestinoId === r.caixaId) {
+    erros.caixaDestinoId = 'Escolha uma conta diferente da de origem.'
+  }
   if (r.recorrencia === 'unica' && !r.data) erros.data = 'Escolha a data.'
   if (r.recorrencia === 'semanal' && r.diasDaSemana.length === 0) {
     erros.diasDaSemana = 'Escolha pelo menos um dia da semana.'
@@ -94,7 +103,7 @@ export function validarLancamento(r: RascunhoLancamento, categoriasValidas: Set<
 }
 
 /** Converte um rascunho já validado em lançamento. */
-export function paraLancamento(r: RascunhoLancamento, id: string, original?: Lancamento): Lancamento {
+export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
   const recorrencia: Recorrencia =
     r.recorrencia === 'unica'
       ? { tipo: 'unica', data: r.data! }
@@ -105,20 +114,27 @@ export function paraLancamento(r: RascunhoLancamento, id: string, original?: Lan
           : { tipo: 'diaria', apenasDiasUteis: r.apenasDiasUteis }
 
   const limites = r.recorrencia === 'unica' ? {} : { inicio: r.inicio, fim: r.fim }
+  const transferencia = r.tipo === 'transferencia'
 
   return {
     id,
     caixaId: r.caixaId,
-    // A transferência ainda não tem interface: ao editar, o destino continua o mesmo.
-    ...(original?.caixaDestinoId && { caixaDestinoId: original.caixaDestinoId }),
+    ...(transferencia && { caixaDestinoId: r.caixaDestinoId }),
     descricao: r.descricao.trim(),
     tipo: r.tipo,
     valorCentavos: r.valorCentavos,
-    categoriaId: r.categoriaId,
+    // Transferência não tem categoria nem tag.
+    categoriaId: transferencia ? '' : r.categoriaId,
     ...(r.tipo === 'saida' && r.tagId && { tagId: r.tagId }),
     ...(r.pastaId && { pastaId: r.pastaId }),
-    natureza: r.natureza,
+    // Na transferência, a natureza só escolhe a coluna de saída da planilha da origem: recorrente é fixa.
+    natureza: transferencia ? naturezaDaTransferencia(r.recorrencia) : r.natureza,
     recorrencia,
     ...limites,
   }
+}
+
+/** A transferência que se repete é um compromisso (fixa); a única, variável. */
+export function naturezaDaTransferencia(recorrencia: Recorrencia['tipo']): Natureza {
+  return recorrencia === 'unica' ? 'variavel' : 'fixa'
 }

@@ -21,6 +21,7 @@ No cabeçalho também ficam: o saldo de hoje e o saldo projetado no fim do ano (
 ## Lançamentos
 - **Novo lançamento**: botão "Novo lançamento" (em Lançamentos), tecla **N** em qualquer tela, ou clicar num dia da Planilha e em "Adicionar lançamento".
 - Campos: **Tipo** (Entrada ou Saída), **Caixa** (só com 2 ou mais caixas), **Descrição**, **Valor**, **Categoria**, **Natureza** (Fixa ou Variável), **Tag** (só em saídas, opcional), **Pasta** (opcional) e **Recorrência**.
+- **Transferência** (terceiro tipo, só com 2 ou mais contas): dinheiro que muda de conta, como guardar na poupança. Campos **Sai de** e **Entra em** (só contas, não benefícios), sem categoria nem tag. Na Planilha da conta de origem ela aparece como saída (em Fixas se repete, em Diário se é única) e na de destino como entrada. Não conta como gasto nem como entrada nos relatórios, e no Total as transferências entre contas do total se anulam.
 - **Natureza**: Fixa é conta que se repete com valor certo (aluguel, internet); Variável é gasto do dia a dia (mercado, lanche). Na Planilha, as saídas fixas e as variáveis ficam em colunas separadas.
 - **Recorrência**:
   - **Única**: acontece uma vez, numa data.
@@ -31,7 +32,7 @@ No cabeçalho também ficam: o saldo de hoje e o saldo projetado no fim do ano (
 - Ao mudar um lançamento que já aconteceu, o app pergunta se a mudança vale **"Daqui para frente"** (o passado fica como estava) ou **"Desde o início"**.
 - Categoria, tag e pasta podem ser criadas no próprio formulário: opção "Nova categoria", "Nova tag" ou "Nova pasta" no fim da lista.
 - Para editar ou excluir: na lista de Lançamentos, botões da linha; ou clicando no dia da Planilha (clicar no lançamento edita, a lixeira ao lado exclui). Excluir não tem volta; num lançamento que se repete e já aconteceu, "Encerrar" para a partir de hoje e mantém o passado.
-- **Busca e filtros** (Lançamentos): busca pela descrição (tecla **/**), filtro por tipo, natureza, categoria, tag e data. Com filtro de data, a lista mostra só o que acontece no período e quantas vezes cada lançamento se repete.
+- **Busca e filtros** (Lançamentos): busca pela descrição (tecla **/**), filtro por tipo (inclusive Transferências, quando há alguma), natureza, categoria, tag e data. Com filtro de data, a lista mostra só o que acontece no período e quantas vezes cada lançamento se repete.
 - **Ordenar a lista**: clique no nome de uma coluna (Descrição, Categoria, Tag, Natureza, Recorrência, Valor). Clicar de novo inverte; na terceira vez, volta à ordem normal (entradas primeiro). Com pastas, a ordem vale dentro de cada pasta.
 - **Vários de uma vez** (tela larga): marque os quadradinhos (Shift+clique marca um intervalo) e use a barra de baixo para trocar categoria, tag, pasta ou caixa, ou excluir. Dá para desfazer logo depois. Esc desmarca.
 
@@ -58,10 +59,16 @@ No cabeçalho também ficam: o saldo de hoje e o saldo projetado no fim do ano (
 - Com 2 ou mais caixas, aparece o **seletor de caixa** no cabeçalho, ao lado do saldo: escolha **Total** (soma das contas) ou um caixa. Atalhos **Alt+0** (Total) e **Alt+1…9**. O formulário de lançamento ganha o campo Caixa.
 - **Benefício**: o dinheiro só paga alguns gastos, por isso fica fora do Total e não tem risco nem metas. A recarga é uma entrada no caixa do benefício. O app mostra quanto sobra até a próxima recarga e quanto dá para gastar por dia, e avisa se o saldo acaba antes.
 - "Soma no total" (em Mais opções, só para conta): escolha Não para uma conta que fica de lado, como poupança ou investimento.
+- Para mover dinheiro de uma conta para outra, use um lançamento do tipo **Transferência** (veja Lançamentos).
 - Só dá para excluir um caixa sem lançamentos nem metas; senão, arquive.
 
 ## Economias
-- **Metas de economia**: botão "Nova meta". Campos: nome, **Quero juntar** (valor alvo), **Guardar por mês** (aporte), **Dia do aporte**, **A partir de** e **Até quando** (prazo, opcional). Cada meta é de uma conta.
+- **Metas de economia**: botão "Nova meta". Campos: nome, **Quero juntar** (valor alvo, opcional), **Guardar por mês** (aporte), **Dia do aporte**, **A partir de** e **Até quando** (prazo, opcional, só com valor alvo). Cada meta é de uma conta.
+- Sem valor alvo, a meta é um **cofrinho**: guarda todo mês, sem fim, e o card mostra quanto já foi guardado e quanto terá em 12 meses.
+- **Onde fica o dinheiro** (com 2 ou mais contas): **Separado na conta** (padrão; sai do disponível, mas continua na conta, como as caixinhas dos bancos) ou **Em outra conta** (cada aporte vira uma transferência para a conta escolhida, como uma poupança).
+- O saldo da Planilha é o **disponível**. O dinheiro separado nas metas aparece ao lado do saldo inicial ("R$ … separados nas metas") e na dica do saldo de hoje no cabeçalho. Em "Conferir saldo", escolha se o banco mostra o saldo **com o separado** ou **só o disponível**.
+- **Usar dinheiro** (botão no card da meta): tira dinheiro da meta, que volta para o disponível da conta no dia escolhido (pode ser no futuro, como o dia da viagem). Com valor alvo, a meta volta a guardar até completar de novo, a não ser que você escolha **Parar esta meta** (fica encerrada; "Voltar a guardar" reabre). Para um gasto grande, dá para juntar numa meta e usar o dinheiro dela no dia do pagamento.
+- Deixando **Guardar por mês** em branco, o app **sugere** um valor: o maior que não piora o risco do caixa (botão "Usar"). Com prazo, também diz quanto guardar para chegar a tempo.
 - No dia do aporte, o dinheiro guardado sai do saldo e aparece em amarelo na coluna Economia da planilha. Os aportes param quando a meta é atingida.
 - Com prazo, o app calcula quanto guardar por mês para chegar a tempo e diz se esse valor **cabe no seu bolso** (se o saldo continua positivo nos próximos 12 meses).
 - Se um mês fugiu do plano, dá para registrar o valor real guardado naquele mês.

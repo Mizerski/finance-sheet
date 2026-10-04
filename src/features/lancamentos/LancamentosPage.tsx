@@ -26,7 +26,7 @@ import { ExcluirLancamento } from './components/ExcluirLancamento'
 import { FiltrosLancamentos } from './components/FiltrosLancamentos'
 import { TabelaLancamentos, type SelecaoTabela } from './components/TabelaLancamentos'
 import { filtrarLancamentos, periodoDoFiltro, temFiltro, type FiltrosLancamento } from './filtros'
-import type { Lancamento } from './lancamento'
+import { ehTransferencia, type Lancamento } from './lancamento'
 import { aplicarEmLote, type AlteracaoLote } from './lote'
 import { lerOrdem, ordenarLancamentos, proximaOrdem, type CampoOrdem } from './ordenacao'
 
@@ -272,6 +272,7 @@ export function LancamentosPage() {
         filtros={filtros}
         categorias={estado.categorias}
         tags={estado.tags}
+        comTransferencia={lancamentosDaLista.some(ehTransferencia)}
         onChange={alterarFiltros}
       />
 

@@ -1,6 +1,6 @@
 import type { DataISO } from '@/shared/lib/datas'
 import { aportesDaMeta, type ResumoMeta } from './aportes'
-import type { MetaEconomia } from './meta'
+import { temAlvo, type MetaComAlvo, type MetaEconomia } from './meta'
 
 /** Frações do alvo que viram marcos: dividir a meta em etapas faz o fim parecer mais perto. */
 export const FRACOES_DOS_MARCOS = [0.25, 0.5, 0.75, 1] as const
@@ -22,7 +22,7 @@ export interface ProgressoMeta {
 }
 
 /** Marcos de 25, 50, 75 e 100% da meta, pelo plano (aporte mensal + ajustes). */
-export function progressoDaMeta(meta: MetaEconomia, hoje: DataISO): ProgressoMeta {
+export function progressoDaMeta(meta: MetaComAlvo, hoje: DataISO): ProgressoMeta {
   const plano = aportesDaMeta(meta, '9999-12-31')
   const total = plano.reduce((t, a) => t + a.valorCentavos, 0)
 
@@ -44,10 +44,12 @@ export function progressoDaMeta(meta: MetaEconomia, hoje: DataISO): ProgressoMet
 /**
  * A meta em destaque: a próxima a terminar entre as que estão em andamento.
  * Vale o prazo, se houver, ou a data em que o plano completa; metas sem nenhum dos dois ficam por último.
+ * Cofrinho (sem valor alvo) nunca termina, então nunca é a principal.
  */
-export function metaPrincipal(metas: MetaEconomia[], resumos: Map<string, ResumoMeta>): MetaEconomia | undefined {
+export function metaPrincipal(metas: MetaEconomia[], resumos: Map<string, ResumoMeta>): MetaComAlvo | undefined {
   const quando = (m: MetaEconomia) => m.prazo ?? resumos.get(m.id)?.conclusaoNoPlano ?? '9999-12-31'
   return metas
-    .filter((m) => !resumos.get(m.id)?.concluida)
-    .reduce<MetaEconomia | undefined>((melhor, m) => (!melhor || quando(m) < quando(melhor) ? m : melhor), undefined)
+    .filter(temAlvo)
+    .filter((m) => !resumos.get(m.id)?.concluida && !resumos.get(m.id)?.encerrada)
+    .reduce<MetaComAlvo | undefined>((melhor, m) => (!melhor || quando(m) < quando(melhor) ? m : melhor), undefined)
 }

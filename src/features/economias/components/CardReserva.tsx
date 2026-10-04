@@ -115,6 +115,7 @@ function Existente({
   meses: MesesDeReserva
   onAtualizarAlvo: CardReservaProps['onAtualizarAlvo']
 }) {
+  // Uma reserva sem valor alvo (cofrinho) também pede o valor sugerido.
   const diferente = meta.valorAlvoCentavos !== alvo
 
   return (
@@ -122,16 +123,33 @@ function Existente({
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className={cn(ROTULO, 'truncate')}>{meta.nome}</span>
         <span className="text-sm text-muted-foreground tabular-nums">
-          <span className="font-semibold text-foreground">{formatarBRL(resumo.guardadoCentavos)}</span> de{' '}
-          {formatarBRL(meta.valorAlvoCentavos)} · faltam{' '}
-          <span className="font-semibold text-foreground">{formatarBRL(resumo.faltaCentavos)}</span>
+          <span className="font-semibold text-foreground">{formatarBRL(resumo.guardadoCentavos)}</span>
+          {meta.valorAlvoCentavos === undefined ? (
+            ' guardados'
+          ) : (
+            <>
+              {' '}
+              de {formatarBRL(meta.valorAlvoCentavos)} · faltam{' '}
+              <span className="font-semibold text-foreground">{formatarBRL(resumo.faltaCentavos)}</span>
+            </>
+          )}
         </span>
       </div>
-      <BarraProgresso percentual={resumo.percentual} rotulo={`Progresso de ${meta.nome}`} />
+      {meta.valorAlvoCentavos !== undefined && (
+        <BarraProgresso percentual={resumo.percentual} rotulo={`Progresso de ${meta.nome}`} />
+      )}
       {diferente && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <p className="min-w-0 flex-1 basis-60 text-sm">
-            <Forte>O alvo ficou desatualizado.</Forte> A meta pede {formatarBRL(meta.valorAlvoCentavos)}; para{' '}
+            {meta.valorAlvoCentavos === undefined ? (
+              <>
+                <Forte>A reserva não tem um valor para juntar.</Forte> Para{' '}
+              </>
+            ) : (
+              <>
+                <Forte>O alvo ficou desatualizado.</Forte> A meta pede {formatarBRL(meta.valorAlvoCentavos)}; para{' '}
+              </>
+            )}
             {meses} meses de gasto essencial, hoje seriam <Forte className="tabular-nums">{formatarBRL(alvo)}</Forte>.
           </p>
           <Button variant="outline" className={cn(BOTAO, 'h-8 px-3')} onClick={() => onAtualizarAlvo(meta, alvo)}>

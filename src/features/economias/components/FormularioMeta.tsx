@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react'
+import { caixasAtivos, type Caixa } from '@/features/caixas/caixa'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
 import { useVisao } from '@/features/caixas/useVisao'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
+import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
 import { formatarMesAno, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { BOTAO, CAMPO, RODAPE_DIALOG } from '@/shared/lib/estilos'
@@ -27,13 +29,25 @@ interface FormularioMetaProps {
   onConcluir: () => void
 }
 
-type Erros = Partial<Record<'nome' | 'alvo' | 'aporte' | 'dia' | 'inicio' | 'prazo', string>>
+type Erros = Partial<Record<'nome' | 'destino' | 'aporte' | 'dia' | 'inicio' | 'prazo', string>>
+
+type Onde = 'conta' | 'outra'
+const OPCOES_ONDE = [
+  { valor: 'conta' as const, rotulo: 'Separado na conta' },
+  { valor: 'outra' as const, rotulo: 'Em outra conta' },
+]
+const ehConta = (c: Caixa) => c.tipo === 'conta'
 
 export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaProps) {
-  const { dispatch } = useFinancas()
+  const { estado, dispatch } = useFinancas()
   const { contaPadrao } = useVisao()
   const [hoje] = useState(() => paraDataISO(new Date()))
   const [caixaId, setCaixaId] = useState(meta?.caixaId ?? contaPadrao?.id ?? '')
+  const [onde, setOnde] = useState<Onde>(meta?.destinoId ? 'outra' : 'conta')
+  const [destinoId, setDestinoId] = useState(meta?.destinoId ?? '')
+  // Com uma conta só, o dinheiro fica separado nela (não há para onde mandar).
+  const variasContas = caixasAtivos(estado.caixas).filter(ehConta).length >= 2 || !!meta?.destinoId
+  const comDestino = onde === 'outra' && !!destinoId && destinoId !== caixaId
   const [nome, setNome] = useState(sugestao?.nome ?? meta?.nome ?? '')
   const [alvo, setAlvo] = useState(sugestao?.valorAlvoCentavos ?? meta?.valorAlvoCentavos ?? 0)
   const [aporte, setAporte] = useState(sugestao?.aporteMensalCentavos ?? meta?.aporteMensalCentavos ?? 0)
@@ -46,19 +60,23 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
   const diaValido = Number.isInteger(diaDoMes) && diaDoMes >= 1 && diaDoMes <= 31
 
   // A meta como está no formulário, para a prévia do término e o diagnóstico (o nome não muda a conta).
+  // Sem valor alvo, é um cofrinho: guarda todo mês, sem fim.
   const rascunho: MetaEconomia | null =
-    alvo > 0 && diaValido && inicio
+    diaValido && inicio
       ? {
           id: meta?.id ?? '',
           caixaId,
+          ...(comDestino && { destinoId }),
           nome: '',
-          valorAlvoCentavos: alvo,
+          ...(alvo > 0 && { valorAlvoCentavos: alvo }),
           aporteMensalCentavos: aporte,
           diaDoMes,
           inicio,
           ...(prazo && { prazo }),
-          // Os valores reais já informados continuam valendo.
+          // Os valores reais já informados, o dinheiro já usado e o encerramento continuam valendo.
           ajustes: meta?.ajustes ?? {},
+          ...(meta?.resgates && { resgates: meta.resgates }),
+          ...(meta?.encerradaEm && { encerradaEm: meta.encerradaEm }),
         }
       : null
 
@@ -68,11 +86,12 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
   function validar(): Erros {
     const erros: Erros = {}
     if (!nome.trim()) erros.nome = 'Informe um nome.'
-    if (alvo <= 0) erros.alvo = 'Informe quanto quer juntar.'
+    if (onde === 'outra' && !comDestino) erros.destino = 'Escolha a conta que recebe o dinheiro.'
     if (aporte <= 0) erros.aporte = 'Informe quanto guardar por mês.'
     if (!diaValido) erros.dia = 'Use um dia de 1 a 31.'
     if (!inicio) erros.inicio = 'Escolha a data do primeiro aporte.'
-    if (prazo && inicio && prazo < inicio) erros.prazo = 'O prazo precisa ser depois do início.'
+    if (prazo && alvo <= 0) erros.prazo = 'Para ter prazo, diga quanto quer juntar.'
+    else if (prazo && inicio && prazo < inicio) erros.prazo = 'O prazo precisa ser depois do início.'
     else if (rascunho?.prazo && aporteParaOPrazo(rascunho) === null) erros.prazo = 'Não há dia de aporte até essa data.'
     return erros
   }
@@ -116,16 +135,48 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
       <CampoCaixa
         id="meta-caixa"
         valor={caixaId}
-        onChange={setCaixaId}
-        filtro={(c) => c.tipo === 'conta'}
+        onChange={(id) => {
+          setCaixaId(id)
+          if (id === destinoId) setDestinoId('')
+        }}
+        filtro={ehConta}
         descricao="Conta de onde sai o dinheiro guardado."
       />
 
+      {variasContas && (
+        <Field data-invalid={!!erros.destino || undefined}>
+          <FieldLabel htmlFor="meta-onde">Onde fica o dinheiro</FieldLabel>
+          <ControleSegmentado
+            id="meta-onde"
+            rotulo="Onde fica o dinheiro"
+            valor={onde}
+            opcoes={OPCOES_ONDE}
+            onChange={setOnde}
+          />
+          {onde === 'conta' && <FieldDescription>Sai do disponível, mas continua na conta, separado.</FieldDescription>}
+        </Field>
+      )}
+      {variasContas && onde === 'outra' && (
+        <CampoCaixa
+          id="meta-destino"
+          rotulo="Vai para"
+          valor={destinoId}
+          onChange={setDestinoId}
+          filtro={(c) => ehConta(c) && c.id !== caixaId}
+          placeholder="Escolher"
+          descricao="Cada aporte vira uma transferência para essa conta."
+          erro={erros.destino}
+          sempre
+        />
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field data-invalid={!!erros.alvo || undefined}>
-          <FieldLabel htmlFor="meta-alvo">Quero juntar</FieldLabel>
-          <CampoDinheiro id="meta-alvo" centavos={alvo} onChange={setAlvo} aria-invalid={!!erros.alvo || undefined} />
-          <FieldError>{erros.alvo}</FieldError>
+        <Field>
+          <FieldLabel htmlFor="meta-alvo">
+            Quero juntar <span className="font-normal text-muted-foreground">(opcional)</span>
+          </FieldLabel>
+          <CampoDinheiro id="meta-alvo" centavos={alvo} onChange={setAlvo} />
+          {alvo === 0 && <FieldDescription>Sem valor, guarda todo mês, sem fim.</FieldDescription>}
         </Field>
         <Field data-invalid={!!erros.prazo || undefined}>
           <FieldLabel htmlFor="meta-prazo">
@@ -153,7 +204,11 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
             onChange={setAporte}
             aria-invalid={!!erros.aporte || undefined}
           />
-          <FieldError>{erros.aporte}</FieldError>
+          {erros.aporte ? (
+            <FieldError>{erros.aporte}</FieldError>
+          ) : (
+            aporte === 0 && <FieldDescription>Em branco, o app sugere um valor.</FieldDescription>
+          )}
         </Field>
         <Field data-invalid={!!erros.dia || undefined}>
           <FieldLabel htmlFor="meta-dia">Dia do aporte</FieldLabel>
@@ -182,8 +237,9 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
       )}
 
       <FieldDescription>
-        O aporte sai do saldo todo mês, na coluna Economia da planilha, e para quando a meta é atingida. Se o mês não
-        tiver o dia escolhido, vale o último dia.
+        O aporte sai do {comDestino ? 'saldo' : 'disponível'} todo mês, na coluna Economia da planilha,{' '}
+        {alvo > 0 ? 'e para quando a meta é atingida' : 'sem data para acabar'}. Se o mês não tiver o dia escolhido, vale
+        o último dia.
         {conclusao && (
           <>
             {' '}
