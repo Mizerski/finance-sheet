@@ -3,6 +3,7 @@ import { Link, useNavigate, useRouterState, useSearch } from '@tanstack/react-ro
 import { Landmark } from '@/shared/ui/icones'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
 import { CardCartao } from '@/features/caixas/components/CardCartao'
+import { DialogConferirFatura } from '@/features/caixas/components/DialogConferirFatura'
 import { useVisao } from '@/features/caixas/useVisao'
 import { useGuardadoSeparado } from '@/features/economias/useGuardado'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
@@ -190,7 +191,8 @@ export function PlanilhaPage() {
             <Button variant="outline" className={BOTAO} onClick={() => setConferindo(true)}>
               <Landmark aria-hidden />
               <span className="sm:hidden">Conferir</span>
-              <span className="hidden sm:inline">Conferir saldo</span>
+              {/* No cartão, o que se confere com o banco é a fatura que fechou. */}
+              <span className="hidden sm:inline">{visao.ehCartao ? 'Conferir fatura' : 'Conferir saldo'}</span>
             </Button>
           </div>
         }
@@ -256,7 +258,11 @@ export function PlanilhaPage() {
 
       <DialogSaldoInicial aberto={editandoSaldo} onOpenChange={setEditandoSaldo} />
 
-      <DialogConferirSaldo aberto={conferindo} onOpenChange={setConferindo} />
+      {visao.ehCartao && visao.caixa ? (
+        <DialogConferirFatura aberto={conferindo} onOpenChange={setConferindo} cartao={visao.caixa} />
+      ) : (
+        <DialogConferirSaldo aberto={conferindo} onOpenChange={setConferindo} />
+      )}
     </div>
   )
 }
