@@ -56,13 +56,17 @@ export function diasDoAno(ano: number): DiaCalendario[] {
   return eachDayOfInterval({
     start: new Date(ano, 0, 1),
     end: new Date(ano, 11, 31),
-  }).map((d) => ({
+  }).map(diaDoCalendario)
+}
+
+export function diaDoCalendario(d: Date): DiaCalendario {
+  return {
     data: paraDataISO(d),
     mes: d.getMonth(),
     dia: d.getDate(),
     diaDaSemana: d.getDay(),
     diasNoMes: getDaysInMonth(d),
-  }))
+  }
 }
 
 /** Segunda a sexta. Feriados não são considerados. */

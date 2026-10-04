@@ -31,6 +31,8 @@ import {
 import { COR_ATIVA_TIPO } from '../cores'
 import type { Lancamento, TipoLancamento } from '../lancamento'
 import { ROTULO_NATUREZA, ROTULO_TIPO } from '../textos'
+import { CampoVezes } from './CampoVezes'
+import { ListaExcecoes } from './ListaExcecoes'
 import { SeletorDiasSemana } from './SeletorDiasSemana'
 import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../vigencia'
 
@@ -109,9 +111,13 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   const erroVigencia = tentouSalvar && dividirDe ? validarVigencia(dividirDe, aPartirDe) : undefined
 
   // O que seria salvo, para mostrar o efeito no caixa antes de salvar. Descrição e categoria não mudam a conta.
-  const faltaNaConta = Object.keys(validarLancamento(rascunho, idsValidos)).some(
-    (campo) => campo !== 'descricao' && campo !== 'categoriaId',
-  )
+  const errosAgora = validarLancamento(rascunho, idsValidos)
+  const faltaNaConta = Object.keys(errosAgora).some((campo) => campo !== 'descricao' && campo !== 'categoriaId')
+  // O recorrente como ficaria, para contar as vezes (só a recorrência precisa estar certa).
+  const recorrente =
+    rascunho.recorrencia !== 'unica' && !errosAgora.diasDaSemana && !errosAgora.diaDoMes
+      ? paraLancamento(rascunho, lancamento?.id ?? 'simulado')
+      : null
   const simulados = faltaNaConta
     ? null
     : dividirDe && editado
@@ -501,6 +507,23 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
             <FieldError>{erros.fim}</FieldError>
           </Field>
         </div>
+      )}
+
+      {rascunho.recorrencia !== 'unica' && (
+        <CampoVezes
+          lancamento={recorrente}
+          hoje={hoje}
+          onAlterar={(fim) => alterar('fim', fim)}
+        />
+      )}
+
+      {rascunho.recorrencia !== 'unica' && (
+        <ListaExcecoes
+          excecoes={rascunho.excecoes}
+          onRemover={(data) =>
+            setRascunho((r) => ({ ...r, excecoes: Object.fromEntries(Object.entries(r.excecoes).filter(([d]) => d !== data)) }))
+          }
+        />
       )}
 
       {perguntarVigencia && (

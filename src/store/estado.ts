@@ -17,8 +17,10 @@ import type { Tag } from '@/features/tags/tag'
  * e exige o alvo, importe um backup novo.
  * Versão 8: o que já estava guardado fora do app ao criar a meta (`jaGuardadoCentavos`). Sem conversão; o número
  * novo impede que um app antigo importe o backup e perca esse valor.
+ * Versão 9: valor de um dia só num recorrente (`excecoes`: valor real ou 0 = pulado). Sem conversão; o número novo
+ * impede que um app antigo importe o backup e volte esses dias ao valor normal.
  */
-export const VERSAO_DADOS = 8
+export const VERSAO_DADOS = 9
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {

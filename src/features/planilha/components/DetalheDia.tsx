@@ -1,12 +1,15 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowLeftRight, Pencil, PiggyBank, Plus, Trash2 } from '@/shared/ui/icones'
+import { ArrowLeftRight, CalendarDays, Pencil, PiggyBank, Plus, Trash2, Undo2 } from '@/shared/ui/icones'
+import { useVisao } from '@/features/caixas/useVisao'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
 import type { Aporte } from '@/features/economias/aportes'
-import type { DiaProjetado, MovimentoTransferencia, Ocorrencia } from '@/features/projecao/projecao'
+import { semExcecaoNoDia } from '@/features/lancamentos/excecoes'
+import type { Lancamento } from '@/features/lancamentos/lancamento'
+import { ocorreEm, type DiaProjetado, type MovimentoTransferencia, type Ocorrencia } from '@/features/projecao/projecao'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
 import { NIVEL, type NivelRisco } from '@/features/risco/risco'
 import { PontoCor } from '@/shared/components/PontoCor'
-import { formatarData, nomeDoDiaDaSemana } from '@/shared/lib/datas'
+import { deDataISO, diaDoCalendario, formatarData, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -22,6 +25,8 @@ interface DetalheDiaProps {
   onEditar: (lancamentoId: string) => void
   /** Pede a confirmação para excluir o lançamento que gerou a ocorrência. */
   onExcluir: (lancamentoId: string) => void
+  /** Recorrente: muda o valor só neste dia (ou pula o dia). */
+  onMudarDia: (lancamentoId: string) => void
   /** Abre um lançamento novo já com a data deste dia. */
   onAdicionar: () => void
   /** Risco do caixa no dia; null sem risco (benefício, dia fora do cálculo). */
@@ -29,8 +34,18 @@ interface DetalheDiaProps {
 }
 
 /** Conteúdo do popover: lançamentos de um dia da planilha. */
-export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, nivel = null }: DetalheDiaProps) {
-  const quantidade = dia.ocorrencias.length + dia.transferencias.length + dia.aportes.length
+export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, onAdicionar, nivel = null }: DetalheDiaProps) {
+  const { lancamentos } = useVisao()
+  const porId = new Map(lancamentos.map((l) => [l.id, l]))
+  // Recorrentes pulados neste dia: não entram na projeção, mas aparecem aqui para poder voltar.
+  const calendario = diaDoCalendario(deDataISO(dia.data))
+  const pulados = lancamentos.filter((l) => l.excecoes?.[dia.data] === 0 && ocorreEm(l, calendario))
+  const quantidade = dia.ocorrencias.length + dia.transferencias.length + dia.aportes.length + pulados.length
+  /** Só o recorrente muda num dia; o único se edita inteiro. */
+  const mudarDia = (id: string) => {
+    const l = porId.get(id)
+    return l && l.recorrencia.tipo !== 'unica' ? () => onMudarDia(id) : undefined
+  }
 
   return (
     <>
@@ -61,8 +76,10 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, 
               key={o.lancamentoId}
               ocorrencia={o}
               categoria={categorias.get(o.categoriaId) ?? CATEGORIA_DESCONHECIDA}
+              normal={normalDoDia(porId.get(o.lancamentoId), dia.data)}
               onEditar={() => onEditar(o.lancamentoId)}
               onExcluir={() => onExcluir(o.lancamentoId)}
+              onMudarDia={mudarDia(o.lancamentoId)}
             />
           ))}
           {dia.transferencias.map((m) =>
@@ -72,13 +89,18 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, 
               <ItemTransferencia
                 key={m.lancamentoId}
                 movimento={m}
+                normal={normalDoDia(porId.get(m.lancamentoId), dia.data)}
                 onEditar={() => onEditar(m.lancamentoId)}
                 onExcluir={() => onExcluir(m.lancamentoId)}
+                onMudarDia={mudarDia(m.lancamentoId)}
               />
             ),
           )}
           {dia.aportes.map((a) => (
             <ItemAporte key={a.resgateId ?? a.metaId} aporte={a} />
+          ))}
+          {pulados.map((l) => (
+            <ItemPulado key={l.id} lancamento={l} data={dia.data} />
           ))}
         </ul>
       )}
@@ -110,6 +132,92 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onAdicionar, 
         </Button>
       )}
     </>
+  )
+}
+
+/** Valor normal de um recorrente quando neste dia ele tem outro; undefined se o dia está no valor normal. */
+function normalDoDia(l: Lancamento | undefined, data: DataISO): number | undefined {
+  return l?.excecoes?.[data] !== undefined ? l.valorCentavos : undefined
+}
+
+/** Valor do item; quando foi mudado só neste dia, com o normal embaixo, em letra pequena. */
+function ValorDoItem({ texto, normal, className }: { texto: string; normal?: number; className?: string }) {
+  return (
+    <span className="flex flex-col items-end">
+      <span className={cn('tabular-nums', className)}>{texto}</span>
+      {normal !== undefined && (
+        <span className="flex flex-col items-end text-[0.65rem] whitespace-nowrap text-muted-foreground tabular-nums">
+          <span>só neste dia</span>
+          <span>normal {formatarBRL(normal)}</span>
+        </span>
+      )}
+    </span>
+  )
+}
+
+/** Botões da direita do item: mudar só neste dia (recorrente) e excluir. */
+function AcoesItem({
+  descricao,
+  tituloExcluir,
+  onMudarDia,
+  onExcluir,
+}: {
+  descricao: string
+  tituloExcluir: string
+  onMudarDia?: () => void
+  onExcluir: () => void
+}) {
+  return (
+    <span className="mx-0.5 mt-0.5 flex shrink-0">
+      {onMudarDia && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="rounded-full text-muted-foreground"
+          onClick={onMudarDia}
+          aria-label={`Mudar só neste dia: ${descricao}`}
+          title="Mudar só neste dia"
+        >
+          <CalendarDays className="size-3" />
+        </Button>
+      )}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="rounded-full text-muted-foreground hover:text-destructive"
+        onClick={onExcluir}
+        aria-label={`Excluir ${descricao}`}
+        title={tituloExcluir}
+      >
+        <Trash2 className="size-3" />
+      </Button>
+    </span>
+  )
+}
+
+/** Recorrente pulado neste dia: valor riscado e o botão de voltar ao normal. */
+function ItemPulado({ lancamento: l, data }: { lancamento: Lancamento; data: DataISO }) {
+  const { dispatch } = useFinancas()
+  return (
+    <li className="flex items-start text-muted-foreground">
+      <span className="flex min-w-0 flex-1 items-start justify-between gap-3 py-1.5 pl-2">
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate font-semibold">{l.descricao}</span>
+          <span className="text-xs">Pulado neste dia</span>
+        </span>
+        <span className="shrink-0 tabular-nums line-through">{formatarBRL(l.valorCentavos)}</span>
+      </span>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="mx-0.5 mt-0.5 shrink-0 rounded-full text-muted-foreground"
+        onClick={() => dispatch({ tipo: 'lancamento/salvar', lancamento: semExcecaoNoDia(l, data) })}
+        aria-label={`Voltar ${l.descricao} neste dia`}
+        title="Voltar neste dia"
+      >
+        <Undo2 className="size-3" />
+      </Button>
+    </li>
   )
 }
 
@@ -148,12 +256,16 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
 /** Transferência entre contas: entra ou sai da conta, mas não é entrada nem gasto (valor em preto). */
 function ItemTransferencia({
   movimento: m,
+  normal,
   onEditar,
   onExcluir,
+  onMudarDia,
 }: {
   movimento: MovimentoTransferencia
+  normal?: number
   onEditar: () => void
   onExcluir: () => void
+  onMudarDia?: () => void
 }) {
   const { estado } = useFinancas()
   const outro = estado.caixas.find((c) => c.id === m.outroCaixaId)?.nome ?? 'outra conta'
@@ -171,7 +283,7 @@ function ItemTransferencia({
             <span className="sr-only">Editar </span>
             {m.descricao}
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
             <ArrowLeftRight aria-hidden className="size-3 text-foreground" />
             {entrada ? `Transferência de ${outro}` : `Transferência para ${outro}`}
           </span>
@@ -181,21 +293,10 @@ function ItemTransferencia({
             aria-hidden
             className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
           />
-          <span className="tabular-nums">
-            {entrada ? '+' : '−'} {formatarBRL(m.valorCentavos)}
-          </span>
+          <ValorDoItem texto={`${entrada ? '+' : '−'} ${formatarBRL(m.valorCentavos)}`} normal={normal} />
         </span>
       </button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="mx-0.5 mt-0.5 shrink-0 rounded-full text-muted-foreground hover:text-destructive"
-        onClick={onExcluir}
-        aria-label={`Excluir ${m.descricao}`}
-        title="Excluir transferência"
-      >
-        <Trash2 className="size-3" />
-      </Button>
+      <AcoesItem descricao={m.descricao} tituloExcluir="Excluir transferência" onMudarDia={onMudarDia} onExcluir={onExcluir} />
     </li>
   )
 }
@@ -237,13 +338,17 @@ function ItemMetaDeOutraConta({ movimento: m }: { movimento: MovimentoTransferen
 function ItemOcorrencia({
   ocorrencia,
   categoria,
+  normal,
   onEditar,
   onExcluir,
+  onMudarDia,
 }: {
   ocorrencia: Ocorrencia
   categoria: Pick<Categoria, 'nome' | 'cor'>
+  normal?: number
   onEditar: () => void
   onExcluir: () => void
+  onMudarDia?: () => void
 }) {
   const entrada = ocorrencia.tipo === 'entrada'
 
@@ -276,21 +381,19 @@ function ItemOcorrencia({
             aria-hidden
             className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"
           />
-          <span className={cn('tabular-nums', entrada ? 'text-entrada' : 'text-saida')}>
-            {entrada ? '+' : '−'} {formatarBRL(ocorrencia.valorCentavos)}
-          </span>
+          <ValorDoItem
+            texto={`${entrada ? '+' : '−'} ${formatarBRL(ocorrencia.valorCentavos)}`}
+            normal={normal}
+            className={entrada ? 'text-entrada' : 'text-saida'}
+          />
         </span>
       </button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="mx-0.5 mt-0.5 shrink-0 rounded-full text-muted-foreground hover:text-destructive"
-        onClick={onExcluir}
-        aria-label={`Excluir ${ocorrencia.descricao}`}
-        title="Excluir lançamento"
-      >
-        <Trash2 className="size-3" />
-      </Button>
+      <AcoesItem
+        descricao={ocorrencia.descricao}
+        tituloExcluir="Excluir lançamento"
+        onMudarDia={onMudarDia}
+        onExcluir={onExcluir}
+      />
     </li>
   )
 }

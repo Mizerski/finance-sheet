@@ -8,6 +8,7 @@ import {
   type Natureza,
   type TipoMovimento,
   type Transferencia,
+  valorNoDia,
 } from '@/features/lancamentos/lancamento'
 import { SEM_PASTA, type Pasta } from '@/features/pastas/pasta'
 import { SEM_TAG, type Tag } from '@/features/tags/tag'
@@ -217,11 +218,14 @@ function indexar(lancamentos: Lancamento[]): IndiceLancamentos {
   return { unicas, recorrentes, posicao: new Map(lancamentos.map((l, i) => [l.id, i])) }
 }
 
+/** O que acontece no dia, já com o valor do dia (exceções); os pulados nesse dia ficam de fora. */
 function lancamentosDoDia(indice: IndiceLancamentos, dia: DiaCalendario): Lancamento[] {
   const candidatos = [...(indice.unicas.get(dia.data) ?? []), ...indice.recorrentes]
   return candidatos
     .filter((l) => ocorreEm(l, dia))
     .sort((a, b) => indice.posicao.get(a.id)! - indice.posicao.get(b.id)!)
+    .map((l) => (l.excecoes?.[dia.data] === undefined ? l : { ...l, valorCentavos: valorNoDia(l, dia.data) }))
+    .filter((l) => l.valorCentavos > 0)
 }
 
 /**
