@@ -29,7 +29,7 @@ interface FormularioMetaProps {
   onConcluir: () => void
 }
 
-type Erros = Partial<Record<'nome' | 'destino' | 'aporte' | 'dia' | 'inicio' | 'prazo', string>>
+type Erros = Partial<Record<'nome' | 'destino' | 'jaGuardado' | 'aporte' | 'dia' | 'inicio' | 'prazo', string>>
 
 type Onde = 'conta' | 'outra'
 const OPCOES_ONDE = [
@@ -51,6 +51,7 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
   const [nome, setNome] = useState(sugestao?.nome ?? meta?.nome ?? '')
   const [alvo, setAlvo] = useState(sugestao?.valorAlvoCentavos ?? meta?.valorAlvoCentavos ?? 0)
   const [aporte, setAporte] = useState(sugestao?.aporteMensalCentavos ?? meta?.aporteMensalCentavos ?? 0)
+  const [jaGuardado, setJaGuardado] = useState(meta?.jaGuardadoCentavos ?? 0)
   const [dia, setDia] = useState(String(meta?.diaDoMes ?? Number(hoje.slice(8, 10))))
   const [inicio, setInicio] = useState<DataISO | undefined>(meta?.inicio ?? hoje)
   const [prazo, setPrazo] = useState<DataISO | undefined>(meta?.prazo)
@@ -70,6 +71,7 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
           nome: '',
           ...(alvo > 0 && { valorAlvoCentavos: alvo }),
           aporteMensalCentavos: aporte,
+          ...(jaGuardado > 0 && { jaGuardadoCentavos: jaGuardado }),
           diaDoMes,
           inicio,
           ...(prazo && { prazo }),
@@ -87,6 +89,7 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
     const erros: Erros = {}
     if (!nome.trim()) erros.nome = 'Informe um nome.'
     if (onde === 'outra' && !comDestino) erros.destino = 'Escolha a conta que recebe o dinheiro.'
+    if (alvo > 0 && jaGuardado >= alvo) erros.jaGuardado = 'Já passa do valor que quer juntar.'
     if (aporte <= 0) erros.aporte = 'Informe quanto guardar por mês.'
     if (!diaValido) erros.dia = 'Use um dia de 1 a 31.'
     if (!inicio) erros.inicio = 'Escolha a data do primeiro aporte.'
@@ -170,13 +173,29 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
         />
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Field>
           <FieldLabel htmlFor="meta-alvo">
             Quero juntar <span className="font-normal text-muted-foreground">(opcional)</span>
           </FieldLabel>
           <CampoDinheiro id="meta-alvo" centavos={alvo} onChange={setAlvo} />
           {alvo === 0 && <FieldDescription>Sem valor, guarda todo mês, sem fim.</FieldDescription>}
+        </Field>
+        <Field data-invalid={!!erros.jaGuardado || undefined}>
+          <FieldLabel htmlFor="meta-ja-guardado">
+            Já tenho guardado <span className="font-normal text-muted-foreground">(opcional)</span>
+          </FieldLabel>
+          <CampoDinheiro
+            id="meta-ja-guardado"
+            centavos={jaGuardado}
+            onChange={setJaGuardado}
+            aria-invalid={!!erros.jaGuardado || undefined}
+          />
+          {erros.jaGuardado ? (
+            <FieldError>{erros.jaGuardado}</FieldError>
+          ) : (
+            <FieldDescription>Juntado antes, fora do app. Conta para a meta e não mexe no saldo.</FieldDescription>
+          )}
         </Field>
         <Field data-invalid={!!erros.prazo || undefined}>
           <FieldLabel htmlFor="meta-prazo">

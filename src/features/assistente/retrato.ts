@@ -272,6 +272,7 @@ export function montarRetrato(e: EntradaRetrato): string {
           ? `prazo ${data(m.prazo)}: ${r.noPrazo ? 'no prazo' : `atrasada; precisaria de ${brl(r.aporteParaOPrazoCentavos ?? 0)} por mês`}`
           : '',
         variosCaixas ? `conta ${nomeDaConta(m.caixaId)}` : '',
+        m.jaGuardadoCentavos ? `começou com ${brl(m.jaGuardadoCentavos)} já guardados fora do app` : '',
         m.destinoId ? `o dinheiro vai para a conta ${nomeDaConta(m.destinoId)}` : 'o dinheiro fica separado na conta (fora do saldo disponível)',
         usado(m) ? `já usou ${brl(usado(m))}` : '',
         r.encerrada ? 'encerrada (não guarda mais)' : '',

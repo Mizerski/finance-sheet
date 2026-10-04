@@ -1,5 +1,5 @@
 import type { DataISO } from '@/shared/lib/datas'
-import { aportesDaMeta, type ResumoMeta } from './aportes'
+import { aportesDaMeta, jaGuardado, type ResumoMeta } from './aportes'
 import { temAlvo, type MetaComAlvo, type MetaEconomia } from './meta'
 
 /** Frações do alvo que viram marcos: dividir a meta em etapas faz o fim parecer mais perto. */
@@ -24,13 +24,15 @@ export interface ProgressoMeta {
 /** Marcos de 25, 50, 75 e 100% da meta, pelo plano (aporte mensal + ajustes). */
 export function progressoDaMeta(meta: MetaComAlvo, hoje: DataISO): ProgressoMeta {
   const plano = aportesDaMeta(meta, '9999-12-31')
-  const total = plano.reduce((t, a) => t + a.valorCentavos, 0)
+  const inicial = jaGuardado(meta)
+  const total = inicial + plano.reduce((t, a) => t + a.valorCentavos, 0)
 
   const marcos = FRACOES_DOS_MARCOS.map((fracao) => {
     const valor = Math.round(meta.valorAlvoCentavos * fracao)
-    let acumulado = 0
-    const aporte = plano.find((a) => (acumulado += a.valorCentavos) >= valor)
-    const data = aporte?.data ?? null
+    // O que já estava guardado pode alcançar o marco antes do primeiro aporte.
+    let acumulado = inicial
+    const aporte = inicial >= valor ? null : plano.find((a) => (acumulado += a.valorCentavos) >= valor)
+    const data = inicial >= valor ? meta.inicio : (aporte?.data ?? null)
     return { fracao, valorCentavos: valor, data, atingido: data !== null && data <= hoje }
   })
 

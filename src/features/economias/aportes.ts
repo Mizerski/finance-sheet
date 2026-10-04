@@ -74,10 +74,15 @@ export function resgatesDaMeta(meta: MetaEconomia, ate: DataISO = '9999-12-31'):
   return (meta.resgates ?? []).filter((r) => r.data <= ate).sort((a, b) => a.data.localeCompare(b.data))
 }
 
-/** O que está na meta no fim de `data`: os aportes menos o que foi usado. */
+/** O que já estava guardado fora do app ao criar a meta. */
+export function jaGuardado(meta: MetaEconomia): number {
+  return meta.jaGuardadoCentavos ?? 0
+}
+
+/** O que está na meta no fim de `data`: o que já estava guardado, mais os aportes, menos o que foi usado. */
 export function guardadoNaMeta(meta: MetaEconomia, data: DataISO): number {
   const aportes = aportesDaMeta(meta, data).reduce((t, a) => t + a.valorCentavos, 0)
-  return aportes - resgatesDaMeta(meta, data).reduce((t, r) => t + r.valorCentavos, 0)
+  return jaGuardado(meta) + aportes - resgatesDaMeta(meta, data).reduce((t, r) => t + r.valorCentavos, 0)
 }
 
 /**
@@ -98,7 +103,8 @@ export function aportesDaMeta(meta: MetaEconomia, ate: DataISO): Aporte[] {
   const alvo = temAlvo(meta) ? meta.valorAlvoCentavos : Infinity
   const resgates = resgatesDaMeta(meta)
   let usados = 0
-  let guardado = 0
+  // O que já estava guardado conta para o alvo: a meta termina mais cedo.
+  let guardado = jaGuardado(meta)
 
   for (const data of datasDeAporte(meta)) {
     if (data > ate || (meta.encerradaEm && data > meta.encerradaEm)) break
@@ -154,7 +160,7 @@ export function aporteParaOPrazo(meta: MetaEconomia): number | null {
     if (mes in meta.ajustes) fixo += meta.ajustes[mes]
     else livres++
   }
-  const falta = meta.valorAlvoCentavos - fixo
+  const falta = meta.valorAlvoCentavos - jaGuardado(meta) - fixo
   if (falta <= 0) return 0
   return livres ? Math.ceil(falta / livres / 100) * 100 : null
 }

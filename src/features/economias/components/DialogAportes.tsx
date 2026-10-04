@@ -99,6 +99,13 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
         </ul>
       )}
 
+      {!!meta.jaGuardadoCentavos && (
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Já guardado antes do app</span>
+          <span className="tabular-nums">{formatarBRL(meta.jaGuardadoCentavos)}</span>
+        </div>
+      )}
+
       <div className="flex justify-between border-t-2 border-contorno pt-3 text-sm">
         <span className="text-muted-foreground">Guardado até hoje</span>
         <span className="font-semibold tabular-nums">

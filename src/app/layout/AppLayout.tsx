@@ -39,12 +39,32 @@ const LINHA_UNICA = {
   },
 }
 
+/**
+ * No desktop, o cabeçalho ainda tem o botão Assistente, o lembrete e o backup: a linha única começa mais tarde
+ * (84rem sem o seletor de caixa, 98rem com ele), para a página nunca rolar na horizontal.
+ */
+const LINHA_UNICA_DESKTOP = {
+  normal: {
+    cabecalho: 'min-[84rem]:flex-row min-[84rem]:items-center min-[84rem]:justify-between',
+    marca: 'min-[84rem]:justify-start',
+    menu: 'min-[84rem]:flex-initial',
+    aba: 'min-[84rem]:grow-0',
+  },
+  comCaixas: {
+    cabecalho: 'min-[98rem]:flex-row min-[98rem]:items-center min-[98rem]:justify-between',
+    marca: 'min-[98rem]:justify-start',
+    menu: 'min-[98rem]:flex-initial min-[98rem]:shrink-0',
+    aba: 'min-[98rem]:grow-0',
+  },
+}
+
 type LinhaUnica = (typeof LINHA_UNICA)['normal']
 
 export function AppLayout() {
   useAtalhosDeCaixa()
   const { caixas } = useVisao()
-  const linha = caixas.length >= 2 ? LINHA_UNICA.comCaixas : LINHA_UNICA.normal
+  const larguras = EH_DESKTOP ? LINHA_UNICA_DESKTOP : LINHA_UNICA
+  const linha = caixas.length >= 2 ? larguras.comCaixas : larguras.normal
   // O caixa fica ao lado do saldo que ele explica; no celular, onde a primeira linha não tem espaço, abre a linha do menu.
   const telaLarga = useMediaQuery('(min-width: 40rem)')
 

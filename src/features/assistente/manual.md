@@ -64,6 +64,7 @@ No cabeçalho também ficam: o saldo de hoje e o saldo projetado no fim do ano (
 
 ## Economias
 - **Metas de economia**: botão "Nova meta". Campos: nome, **Quero juntar** (valor alvo, opcional), **Guardar por mês** (aporte), **Dia do aporte**, **A partir de** e **Até quando** (prazo, opcional, só com valor alvo). Cada meta é de uma conta.
+- **Já tenho guardado** (opcional): o dinheiro que você já juntou fora do app antes de criar a meta. Conta para o progresso e para o que dá para usar, e a meta termina mais cedo, mas não mexe no saldo.
 - Sem valor alvo, a meta é um **cofrinho**: guarda todo mês, sem fim, e o card mostra quanto já foi guardado e quanto terá em 12 meses.
 - **Onde fica o dinheiro** (com 2 ou mais contas): **Separado na conta** (padrão; sai do disponível, mas continua na conta, como as caixinhas dos bancos) ou **Em outra conta** (cada aporte vira uma transferência para a conta escolhida, como uma poupança).
 - O saldo da Planilha é o **disponível**. O dinheiro separado nas metas aparece ao lado do saldo inicial ("R$ … separados nas metas") e na dica do saldo de hoje no cabeçalho. Em "Conferir saldo", escolha se o banco mostra o saldo **com o separado** ou **só o disponível**.

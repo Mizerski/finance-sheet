@@ -15,8 +15,10 @@ import type { Tag } from '@/features/tags/tag'
  * Versão 7: transferência entre contas (`tipo: 'transferencia'` com `caixaDestinoId`) e meta sem valor alvo
  * (cofrinho). Sem conversão; o número novo só impede que um app antigo, que trataria a transferência como gasto
  * e exige o alvo, importe um backup novo.
+ * Versão 8: o que já estava guardado fora do app ao criar a meta (`jaGuardadoCentavos`). Sem conversão; o número
+ * novo impede que um app antigo importe o backup e perca esse valor.
  */
-export const VERSAO_DADOS = 7
+export const VERSAO_DADOS = 8
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {
