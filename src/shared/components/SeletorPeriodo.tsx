@@ -52,8 +52,8 @@ function contarDias(n: number) {
 }
 
 /**
- * Grupo "‹ março de 2026 ›": as setas andam um período, o centro abre o calendário com os atalhos Dia, Semana, Mês e Ano.
- * Com `onLimpar`, o período é opcional (filtro de data): sem período, é só um botão "Qualquer data".
+ * Grupo "‹ março de 2026 ›" com calendário e atalhos Dia, Semana, Mês e Ano.
+ * Com `onLimpar`, o período é opcional ("Qualquer data").
  */
 export function SeletorPeriodo({
   periodo,
@@ -77,10 +77,8 @@ export function SeletorPeriodo({
     setAberto(false)
   }
 
-  // Atalhos partem de hoje quando ele está no período aberto (ou sem período), senão do início do período.
   const referencia = !periodo || (hoje >= periodo.de && hoje <= periodo.ate) ? hoje : periodo.de
 
-  // 1º clique marca o início e o 2º o fim (o padrão do DayPicker estenderia o intervalo anterior).
   const escolherDia = (dia: Date) =>
     setRascunho((r) => (!r?.from || r.to ? { from: dia, to: undefined } : dia < r.from ? { from: dia, to: r.from } : { from: r.from, to: dia }))
 

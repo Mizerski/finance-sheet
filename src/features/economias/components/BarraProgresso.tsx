@@ -17,7 +17,6 @@ export function BarraProgresso({ percentual, rotulo }: { percentual: number; rot
       {percentual > 0 && (
         <div className="h-full border-r-2 border-contorno bg-amarelo" style={{ width: `${percentual * 100}%` }} />
       )}
-      {/* Marcas de 10 em 10%, como uma régua. */}
       {MARCAS.map((m) => (
         <span key={m} aria-hidden className="absolute inset-y-0 w-px bg-contorno/35" style={{ left: `${m}%` }} />
       ))}

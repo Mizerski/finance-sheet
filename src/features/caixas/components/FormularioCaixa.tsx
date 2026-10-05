@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
-import { ehTransferencia } from '@/features/lancamentos/lancamento'
-import { proximaCorLivre } from '@/features/categorias/cores'
+import { ehTransferencia } from '@/features/lancamentos/model/lancamento'
+import { proximaCorLivre } from '@/features/categorias/constants/cores'
 import { SeletorCor } from '@/features/categorias/components/SeletorCor'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
@@ -15,7 +15,7 @@ import { Button } from '@/shared/ui/button'
 import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 import {
   caixasAtivos,
   cartoesPagosPor,
@@ -25,9 +25,9 @@ import {
   ROTULO_TIPO_CAIXA,
   type Caixa,
   type TipoCaixa,
-} from '../caixa'
+} from '../model/caixa'
 import { CampoCaixa } from './CampoCaixa'
-import { EXPLICACAO_TIPO } from '../textos'
+import { EXPLICACAO_TIPO } from '../constants/textos'
 
 interface FormularioCaixaProps {
   /** Ausente = novo caixa. */
@@ -65,6 +65,10 @@ function lerDia(texto: string): number | null {
   return texto.trim() && Number.isInteger(dia) && dia >= 1 && dia <= 31 ? dia : null
 }
 
+/**
+ * Caixa novo começa hoje e entra no fim do seletor. Benefício fica sempre fora do total e nunca começa negativo;
+ * investimento novo começa fora do total.
+ */
 export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
   const { estado, dispatch } = useFinancas()
   const [nome, setNome] = useState(caixa?.nome ?? '')
@@ -76,11 +80,8 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
   const [sinal, setSinal] = useState<'positivo' | 'negativo'>(
     (caixa?.saldoInicialCentavos ?? 0) < 0 ? 'negativo' : 'positivo',
   )
-  // Caixa novo começa hoje: os dias anteriores ficam fora do cálculo dele.
   const [data, setData] = useState<DataISO>(() => caixa?.dataSaldoInicial ?? paraDataISO(new Date()))
-  // Só a conta escolhe: benefício fica sempre fora do total (o dinheiro dele não paga qualquer conta).
   const [contaNoTotal, setContaNoTotal] = useState(caixa && caixa.tipo !== 'beneficio' ? caixa.entraNoTotal : true)
-  // Cartão: ciclo da fatura, conta que paga e limite (opcional).
   const contas = caixasAtivos(estado.caixas).filter((c) => ehContaCorrente(c) && c.id !== caixa?.id)
   const [fechamento, setFechamento] = useState(caixa?.cartao ? String(caixa.cartao.diaFechamento) : '')
   const [vencimento, setVencimento] = useState(caixa?.cartao ? String(caixa.cartao.diaVencimento) : '')
@@ -108,7 +109,6 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         erros.tipo = 'Este caixa tem transferências, e transferência é só entre contas.'
       }
     }
-    // Virar investimento: a conta sai do risco e deixa de pagar cartão e de ser origem de meta.
     if (caixa && investimento && ehContaCorrente(caixa)) {
       const outrasDoDiaADia = caixasAtivos(estado.caixas).filter((c) => ehContaCorrente(c) && c.id !== caixa.id)
       if (outrasDoDiaADia.length === 0) erros.tipo = 'É a única conta do dia a dia: o app precisa de pelo menos uma.'
@@ -141,7 +141,6 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         nome: nome.trim(),
         cor,
         tipo,
-        // Benefício não fica negativo no começo: o sinal só vale para conta. No cartão, o valor é o que se deve.
         saldoInicialCentavos: cartao ? -centavos : escolha === 'conta' && sinal === 'negativo' ? -centavos : centavos,
         dataSaldoInicial: data,
         saldoDefinido: true,
@@ -155,7 +154,6 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
             ...(limite > 0 && { limiteCentavos: limite }),
           },
         }),
-        // Caixa novo entra no fim do seletor; a posição muda com as setas da lista.
         ordem: caixa?.ordem ?? Math.max(-1, ...estado.caixas.map((c) => c.ordem)) + 1,
         ...(caixa?.arquivado && { arquivado: true }),
       },
@@ -193,7 +191,6 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
           valor={escolha}
           onChange={(e) => {
             setEscolha(e)
-            // Investimento novo começa fora do total (não é dinheiro para o dia a dia); dá para mudar em Mais opções.
             if (!caixa) setContaNoTotal(e !== 'investimento')
           }}
         />
@@ -232,7 +229,6 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         </Field>
       </div>
 
-      {/* Só a conta do dia a dia fica negativa (cheque especial). */}
       {escolha === 'conta' && (
         <Field>
           <FieldLabel htmlFor="caixa-sinal">Situação da conta</FieldLabel>
@@ -305,7 +301,6 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
 function EscolhaTipo({ valor, onChange }: { valor: Escolha; onChange: (escolha: Escolha) => void }) {
   const tipos = ESCOLHAS
 
-  // Setas trocam a escolha, como num grupo de rádio.
   function aoTeclar(e: KeyboardEvent<HTMLDivElement>) {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
     e.preventDefault()

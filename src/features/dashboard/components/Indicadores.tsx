@@ -1,4 +1,4 @@
-import type { ResumoAno } from '@/features/projecao/projecao'
+import type { ResumoAno } from '@/features/projecao/utils/projecao'
 import { formatarData, nomeDoDiaDaSemana, deDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { NO_PERIODO, tipoDoPeriodo, type Periodo } from '@/shared/lib/periodo'
@@ -60,7 +60,6 @@ export function Indicadores({ resumo, evitaveis, periodo }: IndicadoresProps) {
             : 'Sem dias no cálculo'
         }
       />
-      {/* Quinto cartão: ocupa a linha inteira enquanto a grade tem duas colunas. */}
       <CartaoEvitaveis resumo={evitaveis} periodo={periodo} className="sm:col-span-2 xl:col-span-1" />
     </div>
   )

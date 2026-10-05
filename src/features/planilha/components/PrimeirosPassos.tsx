@@ -52,7 +52,6 @@ export function PrimeirosPassos({ saldoDefinido, temCategorias, temLancamentos, 
 function Passo({ numero, feito, cor, children }: { numero: number; feito: boolean; cor: string; children: ReactNode }) {
   return (
     <li className="flex items-stretch border-contorno not-last:border-b-2 sm:not-last:border-r-2 sm:not-last:border-b-0">
-      {/* Faixa de cor com o número; feito, a faixa fica preta com o ✓. */}
       <span
         className={cn(
           'flex w-12 shrink-0 items-center justify-center border-r-2 border-contorno font-heading text-2xl font-bold tabular-nums',

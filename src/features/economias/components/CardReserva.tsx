@@ -8,9 +8,9 @@ import { BOTAO, CARD, ROTULO, VALOR_DESTAQUE } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
-import type { ResumoMeta } from '../aportes'
-import type { MetaEconomia } from '../meta'
-import { alvoDaReserva, MESES_DE_RESERVA, type GastoEssencial, type MesesDeReserva } from '../reserva'
+import type { ResumoMeta } from '../utils/aportes'
+import type { MetaEconomia } from '../model/meta'
+import { alvoDaReserva, MESES_DE_RESERVA, type GastoEssencial, type MesesDeReserva } from '../utils/reserva'
 import { BarraProgresso } from './BarraProgresso'
 
 interface CardReservaProps {
@@ -115,7 +115,6 @@ function Existente({
   meses: MesesDeReserva
   onAtualizarAlvo: CardReservaProps['onAtualizarAlvo']
 }) {
-  // Uma reserva sem valor alvo (cofrinho) também pede o valor sugerido.
   const diferente = meta.valorAlvoCentavos !== alvo
 
   return (

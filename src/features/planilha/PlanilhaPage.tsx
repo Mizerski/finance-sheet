@@ -4,17 +4,17 @@ import { Landmark } from '@/shared/ui/icones'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
 import { CardCartao } from '@/features/caixas/components/CardCartao'
 import { DialogConferirFatura } from '@/features/caixas/components/DialogConferirFatura'
-import { useVisao } from '@/features/caixas/useVisao'
-import { useGuardadoSeparado } from '@/features/economias/useGuardado'
+import { useVisao } from '@/features/caixas/hooks/useVisao'
+import { useGuardadoSeparado } from '@/features/economias/hooks/useGuardado'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
-import { useAno } from '@/features/projecao/useAno'
+import { useAno } from '@/features/projecao/hooks/useAno'
 import { DialogLancamento } from '@/features/lancamentos/components/DialogLancamento'
 import { DialogValorDoDia } from '@/features/lancamentos/components/DialogValorDoDia'
 import { ExcluirLancamento } from '@/features/lancamentos/components/ExcluirLancamento'
-import type { Lancamento } from '@/features/lancamentos/lancamento'
+import type { Lancamento } from '@/features/lancamentos/model/lancamento'
 import { ResumoRiscoPlanilha } from '@/features/risco/components/ResumoRiscoPlanilha'
-import { useRisco } from '@/features/risco/useRisco'
+import { useRisco } from '@/features/risco/hooks/useRisco'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
@@ -25,7 +25,7 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 import { DialogConferirSaldo } from './components/DialogConferirSaldo'
 import { NavegacaoMeses } from './components/NavegacaoMeses'
 import { PrimeirosPassos } from './components/PrimeirosPassos'
@@ -53,8 +53,11 @@ interface Edicao {
   data?: DataISO
 }
 
+/**
+ * Os meses são contados desde o ano zero, para a janela atravessar a virada do ano; na URL, `mes` é o primeiro mês
+ * visível e `ano`, o ano dele. As setas só valem com a planilha na tela.
+ */
 export function PlanilhaPage() {
-  // Categorias e a busca do lançamento a editar valem para todos os caixas; o resto é do que a tela mostra.
   const { estado } = useFinancas()
   const visao = useVisao()
   const { projecoes } = visao
@@ -68,7 +71,6 @@ export function PlanilhaPage() {
   const [editandoSaldo, setEditandoSaldo] = useState(false)
   const [conferindo, setConferindo] = useState(false)
 
-  // Cada mês precisa de ~430px para os valores caberem com folga (~540px com a coluna Economia).
   const comEconomia = visao.metas.length > 0
   const layout = comEconomia ? LAYOUT_COM_ECONOMIA : LAYOUT
   const telaGrande = useMediaQuery(layout.tresMeses)
@@ -78,8 +80,6 @@ export function PlanilhaPage() {
   const separado = useGuardadoSeparado(hoje)
   const mesDeHoje = hoje.startsWith(String(ano)) ? Number(hoje.slice(5, 7)) - 1 : 0
 
-  // Meses contados desde o ano zero, para a janela atravessar a virada do ano (dez → jan).
-  // `mes` na URL é 1–12 (primeiro mês visível); sem ele, começa no mês atual.
   const primeiro = intervalo.min * 12
   const ultimo = intervalo.max * 12 + 11 - (quantidade - 1)
   const inicio = Math.min(Math.max(ano * 12 + (search.mes ?? mesDeHoje + 1) - 1, primeiro), ultimo)
@@ -111,7 +111,6 @@ export function PlanilhaPage() {
 
   const adicionar = (data: DataISO) => setEdicao({ aberto: true, data })
 
-  // O ano na URL é o do primeiro mês visível; o ano atual fica fora da URL.
   const irPara = (absoluto: number) => {
     const novoAno = Math.floor(absoluto / 12)
     navigate({
@@ -122,7 +121,6 @@ export function PlanilhaPage() {
 
   const irParaHoje = () => navigate({ search: { ano: undefined }, replace: true })
 
-  // A planilha continua na tela enquanto outra página carrega; aí as setas já não são dela.
   const naPlanilha = useRouterState({ select: (s) => s.location.pathname === '/' })
   useAtalhos(
     {
@@ -169,7 +167,6 @@ export function PlanilhaPage() {
           </Ajuda>
         }
         acoes={
-          // No celular: ano e "Hoje" numa linha, meses na linha de baixo com a largura toda.
           <div className="flex flex-wrap items-center gap-2 md:shrink-0 md:flex-nowrap">
             <SeletorAno />
             <NavegacaoMeses
@@ -191,7 +188,6 @@ export function PlanilhaPage() {
             <Button variant="outline" className={BOTAO} onClick={() => setConferindo(true)}>
               <Landmark aria-hidden />
               <span className="sm:hidden">Conferir</span>
-              {/* No cartão, o que se confere com o banco é a fatura que fechou. */}
               <span className="hidden sm:inline">{visao.ehCartao ? 'Conferir fatura' : 'Conferir saldo'}</span>
             </Button>
           </div>
@@ -211,9 +207,7 @@ export function PlanilhaPage() {
           onMes={(mes) => irPara(Number(mes.slice(0, 4)) * 12 + Number(mes.slice(5, 7)) - 1)}
         />
       )}
-      {/* Benefício não tem risco: a pergunta dele é quanto sobra até a recarga. */}
       {visao.ehBeneficio && visao.caixa && <CardBeneficio caixa={visao.caixa} />}
-      {/* Cartão também não tem risco: a pergunta dele é quanto vem na fatura e de que conta sai. */}
       {visao.ehCartao && visao.caixa && <CardCartao caixa={visao.caixa} />}
 
       <div className={cn('grid items-start gap-4', layout.grade)}>

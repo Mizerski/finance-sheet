@@ -1,9 +1,9 @@
 import { useMemo, type ReactNode } from 'react'
 import { RouterProvider } from '@tanstack/react-router'
 import { PortaoAutenticacao } from '@/features/autenticacao/PortaoAutenticacao'
-import { useSessao } from '@/features/autenticacao/sessao-context'
-import { criarArmazenamentoSupabase } from '@/store/armazenamento-supabase'
-import { FinancasProvider } from '@/store/FinancasProvider'
+import { useSessao } from '@/features/autenticacao/context/sessao-context'
+import { criarArmazenamentoSupabase } from '@/store/repositorio/armazenamento-supabase'
+import { FinancasProvider } from '@/store/context/FinancasProvider'
 import { router } from '../router'
 
 /** Web: login por e-mail e dados no Supabase. */

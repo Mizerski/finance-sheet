@@ -1,7 +1,7 @@
 import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import type { Pasta } from '../pasta'
+import type { Pasta } from '../model/pasta'
 import { FormularioPasta } from './FormularioPasta'
 
 interface DialogPastaProps {

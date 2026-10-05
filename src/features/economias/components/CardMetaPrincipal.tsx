@@ -7,9 +7,9 @@ import { BOTAO, CARD, ROTULO, VALOR_DESTAQUE } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
-import type { ResumoMeta } from '../aportes'
-import type { Marco, ProgressoMeta } from '../marcos'
-import type { MetaComAlvo } from '../meta'
+import type { ResumoMeta } from '../utils/aportes'
+import type { Marco, ProgressoMeta } from '../utils/marcos'
+import type { MetaComAlvo } from '../model/meta'
 import { BarraProgresso } from './BarraProgresso'
 import { Previsao, SituacaoPrazo } from './CardMeta'
 
@@ -81,7 +81,6 @@ export function CardMetaPrincipal({ principal, totalDeMetas, hoje }: CardMetaPri
         <BarraProgresso percentual={resumo.percentual} rotulo={`Progresso de ${meta.nome}`} />
       </div>
 
-      {/* Os quatro marcos lado a lado, como uma régua de cartaz. */}
       <ol className="grid grid-cols-4 border-y-2 border-contorno">
         {progresso.marcos.map((m) => (
           <ItemMarco key={m.fracao} marco={m} proximo={m === progresso.proximo} />
@@ -114,7 +113,6 @@ function ItemMarco({ marco, proximo }: { marco: Marco; proximo: boolean }) {
       <span className={cn(ROTULO, 'flex items-center gap-1', marco.atingido && 'text-economia')}>
         {marco.fracao * 100}%{marco.atingido && <Check className="size-3 stroke-3" aria-label="atingido" />}
       </span>
-      {/* No celular, sem o "R$" para os quatro valores caberem lado a lado. */}
       <span className="truncate text-xs font-semibold tabular-nums sm:text-sm">
         <span className="sm:hidden">{formatarBRLSemSimbolo(marco.valorCentavos)}</span>
         <span className="hidden sm:inline">{formatarBRL(marco.valorCentavos)}</span>

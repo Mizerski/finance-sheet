@@ -6,9 +6,9 @@ import { BOTAO, CAMADA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/shared/ui/popover'
-import { useFinancas } from '@/store/financas-context'
-import { abrirBackup, caminhoDosDados, salvarBackup } from '../arquivos'
-import { gerarBackup, lerBackup, nomeDoBackup, type Backup } from '../backup'
+import { useFinancas } from '@/store/context/financas-context'
+import { abrirBackup, caminhoDosDados, salvarBackup } from '../api/arquivos'
+import { gerarBackup, lerBackup, nomeDoBackup, type Backup } from '../utils/backup'
 import { ConfirmarImportacao } from './ConfirmarImportacao'
 
 type Aviso = { tipo: 'sucesso' | 'erro'; texto: string }

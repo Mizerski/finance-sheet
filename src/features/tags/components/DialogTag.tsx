@@ -1,7 +1,7 @@
 import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import type { Tag } from '../tag'
+import type { Tag } from '../model/tag'
 import { FormularioTag } from './FormularioTag'
 
 interface DialogTagProps {

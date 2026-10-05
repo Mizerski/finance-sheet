@@ -1,16 +1,17 @@
 import { useMemo, useState } from 'react'
 import { Plus } from '@/shared/ui/icones'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { lancamentosDoCaixa, metasDoCaixa, NOME_TOTAL } from '@/features/caixas/caixa'
+import { lancamentosDoCaixa, metasDoCaixa, NOME_TOTAL } from '@/features/caixas/model/caixa'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
 import { CardCartao } from '@/features/caixas/components/CardCartao'
-import { useEscolherCaixa, useVisao } from '@/features/caixas/useVisao'
-import { paraProjetar, useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
-import { useProjecao } from '@/features/projecao/useProjecao'
+import { useEscolherCaixa, useVisao } from '@/features/caixas/hooks/useVisao'
+import { useProjecoesDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
+import { paraProjetar } from '@/features/projecao/utils/projecao'
+import { useProjecao } from '@/features/projecao/hooks/useProjecao'
 import { CardRisco } from '@/features/risco/components/CardRisco'
-import { capacidadePorNivelDaVisao } from '@/features/risco/risco-por-conta'
-import type { ContextoRisco } from '@/features/risco/simulacao'
-import { useRisco } from '@/features/risco/useRisco'
+import { capacidadePorNivelDaVisao } from '@/features/risco/utils/risco-por-conta'
+import type { ContextoRisco } from '@/features/risco/utils/simulacao'
+import { useRisco } from '@/features/risco/hooks/useRisco'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
@@ -21,13 +22,13 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, CARD } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
-import { useFinancas } from '@/store/financas-context'
-import { resumirMeta } from './aportes'
-import { capacidadeDePoupanca, periodoDaCapacidade } from './capacidade'
-import { gastosGrandes } from './gastos-grandes'
-import { metaPrincipal } from './marcos'
-import { montarSugestoes } from './sugestoes'
-import { gastoEssencial, MESES_DE_RESERVA_PADRAO, metaDeReserva, NOME_RESERVA } from './reserva'
+import { useFinancas } from '@/store/context/financas-context'
+import { resumirMeta } from './utils/aportes'
+import { capacidadeDePoupanca, periodoDaCapacidade } from './utils/capacidade'
+import { gastosGrandes } from './utils/gastos-grandes'
+import { metaPrincipal } from './utils/marcos'
+import { montarSugestoes } from './utils/sugestoes'
+import { gastoEssencial, MESES_DE_RESERVA_PADRAO, metaDeReserva, NOME_RESERVA } from './utils/reserva'
 import { CardCapacidade } from './components/CardCapacidade'
 import { CardGastosGrandes } from './components/CardGastosGrandes'
 import { CardMeta } from './components/CardMeta'
@@ -38,7 +39,7 @@ import { CardReserva } from './components/CardReserva'
 import { CardSugestoes } from './components/CardSugestoes'
 import { DialogMeta } from './components/DialogMeta'
 import type { SugestaoMeta } from './components/FormularioMeta'
-import { temAlvo, type MetaEconomia } from './meta'
+import { temAlvo, type MetaEconomia } from './model/meta'
 
 /** A meta continua guardada ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Selecao {
@@ -51,8 +52,8 @@ interface Selecao {
 const FECHADO: Selecao = { aberto: false }
 
 /**
- * Metas, reserva e capacidade são de contas: num benefício ou num cartão, a tela só explica isso e oferece voltar
- * para as contas.
+ * Metas, reserva e capacidade são de contas: num benefício ou cartão, a tela só explica isso.
+ * Olha os próximos meses a partir de hoje, sem depender do ano exibido.
  */
 export function EconomiasPage() {
   const { caixa, ehBeneficio, ehCartao } = useVisao()
@@ -84,7 +85,6 @@ export function EconomiasPage() {
 
 function ConteudoEconomias() {
   const { estado, dispatch } = useFinancas()
-  // Metas, capacidade, reserva e sugestões são do que a tela mostra (no Total, a soma das contas no total).
   const { metas, lancamentos, projecoes } = useVisao()
   const { ano, meses } = useProjecao()
   const { reserva: mesesDeReserva = MESES_DE_RESERVA_PADRAO } = useSearch({ from: '/economias' })
@@ -99,17 +99,12 @@ function ConteudoEconomias() {
     () => new Map(metas.map((m) => [m.id, resumirMeta(m, hoje)])),
     [metas, hoje],
   )
-  // Independe do ano exibido: capacidade, reserva e gastos grandes olham os próximos meses a partir de hoje.
   const dias = useMemo(() => projecoes.flatMap((p) => p.dias), [projecoes])
   const capacidade = useMemo(() => capacidadeDePoupanca(dias, hoje), [dias, hoje])
-  // Risco por conta: no Total com várias contas, vale a mais apertada, e guardar sem piorar soma o que cada uma aguenta.
   const risco = useRisco()
   const porNivel = useMemo(() => risco && capacidadePorNivelDaVisao(risco, hoje), [risco, hoje])
-  // O que dá para guardar a mais sem piorar o risco do caixa: é o valor que o app recomenda.
   const guardarSemPiorar = risco && porNivel ? porNivel[risco.nivel] : null
-  // O simulador de conta nova roda na conta em destaque (a única, ou a mais apertada).
   const contaDoRisco = risco && (risco.caixa ?? risco.contas[0].caixa)
-  // As simulações descontam as faturas de cartão que saem de cada conta.
   const { faturas } = useProjecoesDosCaixas()
   const contextoRisco: ContextoRisco | null = useMemo(
     () =>
@@ -143,7 +138,6 @@ function ConteudoEconomias() {
     [estado.caixas, faturas, lancamentos, metas, projecoes, referencias, resumos, hoje],
   )
   const guardado = [...resumos.values()].reduce((t, r) => t + r.guardadoCentavos, 0)
-  // Cofrinhos (sem valor alvo) guardam sem fim: o "de R$ …" só aparece quando toda meta tem alvo.
   const alvo = metas.every(temAlvo) ? metas.reduce((t, m) => t + (m.valorAlvoCentavos ?? 0), 0) : null
   const quantidade = metas.length
   const nova = () => setEdicao({ aberto: true })
@@ -217,7 +211,6 @@ function ConteudoEconomias() {
         </div>
       )}
 
-      {/* O risco vem antes das sugestões: nenhuma recomendação de guardar mais sem mostrar o aperto do caixa. */}
       {risco && contextoRisco && <CardRisco risco={risco} contexto={contextoRisco} />}
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -246,7 +239,6 @@ function ConteudoEconomias() {
               sugestao: {
                 nome: NOME_RESERVA,
                 valorAlvoCentavos: alvoReserva,
-                // Começa pelo que cabe sem piorar o risco; o diagnóstico do formulário confere no dia do aporte.
                 aporteMensalCentavos: Math.min(guardarSemPiorar ?? 0, alvoReserva),
               },
             })

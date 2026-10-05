@@ -4,15 +4,17 @@ import { Forma } from '@/shared/components/Forma'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
-import { useAssistente, type MensagemChat } from '../assistente-context'
-import { PERGUNTAS_PRONTAS } from '../perguntas'
+import { useAssistente, type MensagemChat } from '../context/assistente-context'
+import { PERGUNTAS_PRONTAS } from '../constants/perguntas'
 import { TextoFormatado } from './TextoFormatado'
 
-/** Mensagens da conversa; vazia, mostra perguntas prontas. Acompanha a resposta enquanto ela é escrita. */
+/**
+ * Mensagens da conversa; vazia, mostra perguntas prontas. Acompanha a resposta enquanto ela é escrita.
+ * Só acompanha o fim da conversa se a pessoa não rolou para cima para reler.
+ */
 export function Conversa() {
   const { mensagens, enviar, respondendo } = useAssistente()
   const lista = useRef<HTMLDivElement>(null)
-  // Só segue o fim se a pessoa não rolou para cima para reler.
   const noFim = useRef(true)
 
   useEffect(() => {

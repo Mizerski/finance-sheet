@@ -8,10 +8,10 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
-import { useFinancas } from '@/store/financas-context'
-import { ehCartao, NOME_TOTAL, type Caixa } from '../caixa'
-import type { ResumoCartao } from '../cartao'
-import { useResumoCartao } from '../useCartao'
+import { useFinancas } from '@/store/context/financas-context'
+import { ehCartao, NOME_TOTAL, type Caixa } from '../model/caixa'
+import type { ResumoCartao } from '../utils/cartao'
+import { useResumoCartao } from '../hooks/useCartao'
 
 /**
  * Faixa de um cartão de crédito (no lugar do risco do caixa, que é só das contas): a fatura que vem, de que conta

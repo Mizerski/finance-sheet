@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Plus } from '@/shared/ui/icones'
-import { caixasAtivos } from '@/features/caixas/caixa'
-import { agruparPorPasta } from '@/features/pastas/grupos'
-import { ocorrenciasPorLancamento, totalPorLancamento } from '@/features/projecao/projecao'
-import { useVisao } from '@/features/caixas/useVisao'
-import { useDiasDosCaixas, useDiasDosCaixasNoPeriodo } from '@/features/projecao/projecoes-por-caixa'
-import { useAno } from '@/features/projecao/useAno'
+import { caixasAtivos } from '@/features/caixas/model/caixa'
+import { agruparPorPasta } from '@/features/pastas/utils/grupos'
+import { ocorrenciasPorLancamento, totalPorLancamento } from '@/features/projecao/utils/projecao'
+import { useVisao } from '@/features/caixas/hooks/useVisao'
+import { useDiasDosCaixas, useDiasDosCaixasNoPeriodo } from '@/features/projecao/hooks/useProjecoesDosCaixas'
+import { useAno } from '@/features/projecao/hooks/useAno'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
@@ -19,16 +19,16 @@ import { rotuloDoPeriodo, tipoDoPeriodo, type Periodo } from '@/shared/lib/perio
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 import { BarraSelecao, type AvisoLote } from './components/BarraSelecao'
 import { DialogLancamento } from './components/DialogLancamento'
 import { ExcluirLancamento } from './components/ExcluirLancamento'
 import { FiltrosLancamentos } from './components/FiltrosLancamentos'
 import { TabelaLancamentos, type SelecaoTabela } from './components/TabelaLancamentos'
-import { filtrarLancamentos, periodoDoFiltro, temFiltro, type FiltrosLancamento } from './filtros'
-import { ehTransferencia, type Lancamento } from './lancamento'
-import { aplicarEmLote, type AlteracaoLote } from './lote'
-import { lerOrdem, ordenarLancamentos, proximaOrdem, type CampoOrdem } from './ordenacao'
+import { filtrarLancamentos, periodoDoFiltro, temFiltro, type FiltrosLancamento } from './utils/filtros'
+import { ehTransferencia, type Lancamento } from './model/lancamento'
+import { aplicarEmLote, type AlteracaoLote } from './utils/lote'
+import { lerOrdem, ordenarLancamentos, proximaOrdem, type CampoOrdem } from './utils/ordenacao'
 
 /** O item continua guardado ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Selecao {
@@ -49,11 +49,14 @@ function quandoDoPeriodo(periodo: Periodo): string {
   return `em ${tipoDoPeriodo(periodo) === 'mes' ? rotulo.toLowerCase() : rotulo}`
 }
 
+/**
+ * A lista é do caixa escolhido ou, no Total, de todos. Seleção em lote só a partir de 64rem; trocar filtro ou caixa e
+ * o Esc desmarcam tudo.
+ */
 export function LancamentosPage() {
   const { estado, dispatch } = useFinancas()
   const { fechadas, ordem: textoOrdem, ...filtros } = useSearch({ from: '/lancamentos' })
   const navigate = useNavigate({ from: '/lancamentos' })
-  // A lista é do caixa escolhido ou, no Total, de todos os caixas (inclusive os que não entram no total).
   const { caixa, lancamentosDaLista } = useVisao()
   const { ano, anoAtual } = useAno()
   const periodo = periodoDoFiltro(filtros)
@@ -61,17 +64,14 @@ export function LancamentosPage() {
   const diasNoPeriodo = useDiasDosCaixasNoPeriodo(periodo, caixa?.id)
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
-  // Quantos vão ser excluídos fica guardado, para o título não mudar durante a animação de saída.
   const [exclusaoLote, setExclusaoLote] = useState({ aberto: false, quantos: 0 })
 
   const categorias = useMemo(() => new Map(estado.categorias.map((c) => [c.id, c])), [estado.categorias])
   const tags = useMemo(() => new Map(estado.tags.map((t) => [t.id, t])), [estado.tags])
-  // Com mais de um caixa (inclusive arquivados, que têm histórico), cada lançamento mostra a cor do seu.
   const caixas = useMemo(
     () => (estado.caixas.length > 1 ? new Map(estado.caixas.map((c) => [c.id, c])) : undefined),
     [estado.caixas],
   )
-  // Com filtro de data, os totais (e a própria lista) são do período; sem ele, do ano exibido.
   const noPeriodo = useMemo(() => diasNoPeriodo && ocorrenciasPorLancamento(diasNoPeriodo), [diasNoPeriodo])
   const totais = useMemo(
     () =>
@@ -90,14 +90,12 @@ export function LancamentosPage() {
   const filtrando = temFiltro(filtros)
   const quando = periodo ? quandoDoPeriodo(periodo) : `em ${ano}`
 
-  // Seleção em lote: só em telas largas, onde a tabela mostra categoria, tag e pasta.
   const selecionavel = useMediaQuery('(min-width: 64rem)')
   const [marcados, setMarcados] = useState<Set<string>>(() => new Set())
   const [aviso, setAviso] = useState<AvisoLote | null>(null)
   const [avisoPausado, setAvisoPausado] = useState(false)
   const ultimoClicado = useRef<string | null>(null)
   const selecionados = selecionavel ? visiveis.filter((l) => marcados.has(l.id)) : []
-  // Trocar filtro ou caixa desmarca tudo, para nenhuma ação valer para o que saiu da tela.
   const chaveDaLista = JSON.stringify([filtros, caixa?.id])
   const [chaveAnterior, setChaveAnterior] = useState(chaveDaLista)
   if (chaveDaLista !== chaveAnterior) {
@@ -105,14 +103,12 @@ export function LancamentosPage() {
     setMarcados(new Set())
   }
 
-  // O aviso com "Desfazer" some sozinho depois de alguns segundos.
   useEffect(() => {
     if (!aviso || avisoPausado) return
     const id = window.setTimeout(() => setAviso(null), DURACAO_AVISO)
     return () => window.clearTimeout(id)
   }, [aviso, avisoPausado])
 
-  // Esc desmarca tudo (fora de campos e com nenhuma janela aberta).
   const temMarcados = selecionados.length > 0
   useEffect(() => {
     if (!temMarcados) return
@@ -127,7 +123,6 @@ export function LancamentosPage() {
     return () => window.removeEventListener('keydown', aoTeclar)
   }, [temMarcados])
 
-  // Ordem das linhas na tela (grupos fechados ficam de fora), para o Shift+clique marcar o intervalo.
   const ordemNaTela = (estado.pastas.length > 0 ? grupos.filter((g) => !fechadas?.includes(g.chave)) : grupos).flatMap((g) =>
     g.lancamentos.map((l) => l.id),
   )
@@ -193,8 +188,6 @@ export function LancamentosPage() {
     })
   }
 
-  // Os grupos fechados e a ordem das colunas continuam ao trocar ou limpar os filtros.
-  // O ano das outras telas acompanha o início do período, como no Dashboard.
   const alterarFiltros = (novos: FiltrosLancamento) =>
     navigate({
       search: (s) => {

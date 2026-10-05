@@ -1,6 +1,6 @@
 import { formatarBRL } from '@/shared/lib/dinheiro'
-import { percentualDoMes, type AnaliseRisco } from '../risco'
-import { CONSELHO, CONSELHO_NEGATIVO } from '../textos'
+import { percentualDoMes, type AnaliseRisco } from '../utils/risco'
+import { CONSELHO, CONSELHO_NEGATIVO } from '../constants/textos'
 import { DataForte, Forte, SaldoForte } from './Destaques'
 
 /**
@@ -10,7 +10,6 @@ import { DataForte, Forte, SaldoForte } from './Destaques'
 export function FraseDiaApertado({ risco, curta }: { risco: AnaliseRisco; curta?: boolean }) {
   const { menorSaldo, referenciaCentavos, nivel, primeiroDiaNoNivel } = risco
   const percentual = percentualDoMes(menorSaldo.valorCentavos, referenciaCentavos)
-  // Com o pior nível chegando antes do dia mais apertado, avisa desde quando.
   const antes = nivel >= 3 && primeiroDiaNoNivel < menorSaldo.data && (
     <>
       {' '}

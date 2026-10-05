@@ -2,7 +2,7 @@ import { Forma } from '@/shared/components/Forma'
 import { BOTAO, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { useAtualizacao, type EstadoAtualizacao } from '../useAtualizacao'
+import { useAtualizacao, type EstadoAtualizacao } from '../hooks/useAtualizacao'
 
 /** Desktop: avisa no canto da tela quando há versão nova e instala com um clique. */
 export function AvisoAtualizacao() {

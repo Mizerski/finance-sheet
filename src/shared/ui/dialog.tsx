@@ -64,7 +64,6 @@ function DialogContent({
         )}
         {...props}
       >
-        {/* Faixa com as três primárias no topo de toda janela. No escuro, o contorno separa as cores: vermelho encostado no azul vibra. */}
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(to_right,var(--vermelho)_0_33.34%,var(--azul)_33.34%_66.67%,var(--amarelo)_66.67%)] dark:bg-[linear-gradient(to_right,var(--vermelho)_0_calc(33.34%_-_1px),var(--contorno)_0_calc(33.34%_+_1px),var(--azul)_0_calc(66.67%_-_1px),var(--contorno)_0_calc(66.67%_+_1px),var(--amarelo)_0)]"

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { COR_RISCO } from '@/features/risco/cores'
+import { COR_RISCO } from '@/features/risco/constants/cores'
 import { DataForte, DinheiroForte, Forte, NomeNivel, SaldoForte } from '@/features/risco/components/Destaques'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
 import { Ajuda } from '@/shared/components/Ajuda'
@@ -10,9 +10,9 @@ import { BOTAO, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
-import { aporteParaOPrazo, resumirMeta } from '../aportes'
-import type { MetaEconomia } from '../meta'
-import type { AvaliacaoMeta } from '../useAvaliacaoMeta'
+import { aporteParaOPrazo, resumirMeta } from '../utils/aportes'
+import type { MetaEconomia } from '../model/meta'
+import type { AvaliacaoMeta } from '../hooks/useAvaliacaoMeta'
 
 interface DiagnosticoMetaProps {
   /** A meta como está no formulário (o aporte pode ser zero enquanto não foi preenchido). */
@@ -172,7 +172,6 @@ function Folga({
     )
   }
 
-  // Atalhos: o maior valor que não piora o risco e, se for outro, o maior que ainda cabe.
   const usarSemPiorar = semPiorar > 0 && semPiorar < aporte && (
     <Usar centavos={semPiorar} detalhe="sem piorar" onUsarAporte={onUsarAporte} />
   )
@@ -224,7 +223,6 @@ function Folga({
             <NomeNivel nivel={nivel} />.
           </>
         ) : (
-          // O aporte só tira dinheiro da conta, então sem piorar o nível é o mesmo de antes.
           nivel && (
             <>
               <Forte>Seu caixa continua</Forte> <NomeNivel nivel={nivel} />.
@@ -235,7 +233,6 @@ function Folga({
     )
   }
 
-  // Com o maior aporte que cabe, quando a meta termina (e se perde o prazo).
   const conclusao = maximo > 0 ? resumirMeta({ ...rascunho, aporteMensalCentavos: maximo }, hoje).conclusaoNoPlano : null
   const depoisDoPrazo = conclusao && rascunho.prazo && conclusao > rascunho.prazo
 

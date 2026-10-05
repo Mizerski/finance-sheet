@@ -3,9 +3,9 @@ import { formatarBRL, formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
-import { AREA_GRAFICO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
+import { AREA_GRAFICO, escalaY, SERIES, type DadoPeriodo } from '../utils/graficos'
 import type { Unidade } from '@/shared/lib/periodo'
-import { NOME_UNIDADE } from '../relatorio'
+import { NOME_UNIDADE } from '../utils/relatorio'
 import { CardGrafico } from './CardGrafico'
 import { TabelaPeriodos } from './TabelaPeriodos'
 import { TooltipGrafico } from './TooltipGrafico'
@@ -99,7 +99,6 @@ export function GraficoSaldo({ dados, unidade, className }: GraficoSaldoProps) {
             activeDot={{ r: 6, fill: 'var(--amarelo)', stroke: 'var(--contorno)', strokeWidth: 2 }}
             isAnimationActive={false}
           >
-            {/* Rótulo direto só no último mês: o valor que a projeção entrega. */}
             <LabelList
               dataKey="saldo"
               content={({ x, y, value, index }) =>

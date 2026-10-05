@@ -1,9 +1,9 @@
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Rectangle, XAxis, YAxis, type BarShapeProps } from 'recharts'
 import { formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
-import { AREA_GRAFICO, CONTORNO, escalaY, SERIES, type DadoPeriodo } from '../graficos'
+import { AREA_GRAFICO, CONTORNO, escalaY, SERIES, type DadoPeriodo } from '../utils/graficos'
 import type { Unidade } from '@/shared/lib/periodo'
-import { NOME_UNIDADE } from '../relatorio'
+import { NOME_UNIDADE } from '../utils/relatorio'
 import { CardGrafico } from './CardGrafico'
 import { TabelaPeriodos } from './TabelaPeriodos'
 import { TooltipGrafico } from './TooltipGrafico'
@@ -65,7 +65,6 @@ export function GraficoSobras({ dados, unidade }: { dados: DadoPeriodo[]; unidad
             }}
           />
           <Bar dataKey="sobra" maxBarSize={24} shape={BarraComSinal} isAnimationActive={false}>
-            {/* Sobra negativa (gastou mais do que entrou) na cor de negativo; o sinal também aparece pela posição. */}
             {dados.map((d) => (
               <Cell key={d.chave} fill={d.sobra < 0 ? 'var(--negativo)' : 'var(--color-sobra)'} />
             ))}

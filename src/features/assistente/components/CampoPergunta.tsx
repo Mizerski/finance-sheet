@@ -2,9 +2,12 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { ArrowUp, Square } from '@/shared/ui/icones'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { ID_CAMPO_PERGUNTA, useAssistente } from '../assistente-context'
+import { ID_CAMPO_PERGUNTA, useAssistente } from '../context/assistente-context'
 
-/** Caixa de texto da pergunta: Enter envia, Shift+Enter quebra a linha. Enquanto responde, o botão para. */
+/**
+ * Caixa de texto da pergunta: Enter envia, Shift+Enter quebra a linha. Enquanto responde, o botão para.
+ * Cresce com o texto até umas 6 linhas.
+ */
 export function CampoPergunta() {
   const { enviar, parar, respondendo, aberto } = useAssistente()
   const [texto, setTexto] = useState('')
@@ -14,7 +17,6 @@ export function CampoPergunta() {
     if (aberto) campo.current?.focus()
   }, [aberto])
 
-  // Cresce com o texto até umas 6 linhas.
   useEffect(() => {
     const el = campo.current
     if (!el) return

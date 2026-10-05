@@ -2,8 +2,8 @@ import { formatarData, formatarMesAno, nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
-import { COR_RISCO } from '../cores'
-import { NIVEL, type RiscoDoMes } from '../risco'
+import { COR_RISCO } from '../constants/cores'
+import { NIVEL, type RiscoDoMes } from '../utils/risco'
 
 interface FaixaMesesProps {
   meses: RiscoDoMes[]
@@ -27,13 +27,11 @@ export function FaixaMeses({ meses, rotulo, comRotulo, onMes }: FaixaMesesProps)
       >
         {meses.map((m, i) => {
           const mes = Number(m.mes.slice(5, 7)) - 1
-          // O ano aparece no primeiro mês e em janeiro, para a virada ficar clara.
           const ano = i === 0 || mes === 0 ? m.mes.slice(2, 4) : ''
           const descricao = `${formatarMesAno(`${m.mes}-01`)}: ${NIVEL[m.nivel].nome}. Dia mais apertado ${formatarData(m.menorSaldo.data)}, com ${formatarBRL(m.menorSaldo.valorCentavos)}`
           const conteudo = (
             <>
               <span className="flex flex-col items-center py-1 leading-none">
-                {/* No celular, 13 meses não cabem com três letras: fica a inicial (o nome completo vai no title). */}
                 <span className="text-[0.65rem] font-semibold uppercase">
                   <span className="sm:hidden">{nomeDoMes(mes, 'curto').charAt(0)}</span>
                   <span className="hidden sm:inline">{nomeDoMes(mes, 'curto')}</span>

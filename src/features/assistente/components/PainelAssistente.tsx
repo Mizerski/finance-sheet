@@ -5,9 +5,9 @@ import { Forma } from '@/shared/components/Forma'
 import { TITULO_CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { useAssistente, type Fase, type SituacaoMotor } from '../assistente-context'
-import { infoModelo } from '../modelos'
-import { useDadosFinanceiros, useRetratoFinanceiro } from '../useDadosFinanceiros'
+import { useAssistente, type Fase, type SituacaoMotor } from '../context/assistente-context'
+import { infoModelo } from '../constants/modelos'
+import { useDadosFinanceiros, useRetratoFinanceiro } from '../hooks/useDadosFinanceiros'
 import { CampoPergunta } from './CampoPergunta'
 import { Conversa } from './Conversa'
 import { EscolhaModelo } from './EscolhaModelo'
@@ -21,14 +21,13 @@ const SITUACAO: Record<SituacaoMotor, string> = {
 }
 
 /**
- * Painel lateral do assistente. Não é um dialog: a pessoa continua usando o app (e os atalhos)
- * com ele aberto, para seguir o passo a passo que ele explica. Esc fecha quando o foco está nele.
+ * Painel lateral, não modal: o app e os atalhos continuam funcionando com ele aberto.
+ * Esc fecha, e o foco volta para onde estava.
  */
 export function PainelAssistente() {
   const { aberto, setAberto, fase, motor, mensagens, novaConversa, erro } = useAssistente()
   const anterior = useRef<HTMLElement | null>(null)
 
-  // Ao fechar, o foco volta para onde estava (o botão do cabeçalho).
   useEffect(() => {
     if (!aberto) return
     anterior.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -45,7 +44,6 @@ export function PainelAssistente() {
       }}
       className="fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l-2 border-contorno bg-background shadow-bloco-lg duration-150 min-[34rem]:w-[28rem] motion-safe:animate-in motion-safe:slide-in-from-right-8 motion-safe:fade-in-0"
     >
-      {/* Faixa com as três primárias, como no topo dos dialogs. */}
       <span
         aria-hidden
         className="h-1.5 shrink-0 bg-[linear-gradient(to_right,var(--vermelho)_0_33.34%,var(--azul)_33.34%_66.67%,var(--amarelo)_66.67%)] dark:bg-[linear-gradient(to_right,var(--vermelho)_0_calc(33.34%_-_1px),var(--contorno)_0_calc(33.34%_+_1px),var(--azul)_0_calc(66.67%_-_1px),var(--contorno)_0_calc(66.67%_+_1px),var(--amarelo)_0)]"

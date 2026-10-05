@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
 import { Plus } from '@/shared/ui/icones'
-import type { TipoMovimento } from '@/features/lancamentos/lancamento'
-import { totalPorCategoria } from '@/features/projecao/projecao'
-import { useDiasDosCaixas } from '@/features/projecao/projecoes-por-caixa'
-import { useAno } from '@/features/projecao/useAno'
+import type { TipoMovimento } from '@/features/lancamentos/model/lancamento'
+import { totalPorCategoria } from '@/features/projecao/utils/projecao'
+import { useDiasDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
+import { useAno } from '@/features/projecao/hooks/useAno'
 import { CabecalhoOrganizacao } from '@/features/organizacao/components/CabecalhoOrganizacao'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
-import { useFinancas } from '@/store/financas-context'
-import type { Categoria } from './categoria'
+import { useFinancas } from '@/store/context/financas-context'
+import type { Categoria } from './model/categoria'
 import { CardCategorias } from './components/CardCategorias'
 import { DialogCategoria } from './components/DialogCategoria'
 
@@ -20,10 +20,12 @@ interface Selecao {
   tipoInicial?: TipoMovimento
 }
 
-/** Aba Categorias da tela Organização. */
+/**
+ * Aba Categorias da tela Organização.
+ * Os totais somam todos os caixas, como as próprias categorias.
+ */
 export function SecaoCategorias() {
   const { estado, dispatch } = useFinancas()
-  // Categorias, tags e pastas valem para todos os caixas: os totais também.
   const { ano } = useAno()
   const dias = useDiasDosCaixas(ano)
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })

@@ -29,7 +29,6 @@ export function ControleSegmentado<T extends string>({
   desabilitado,
   className,
 }: ControleSegmentadoProps<T>) {
-  // Setas movem a seleção, como num grupo de rádio.
   function aoTeclar(e: KeyboardEvent<HTMLDivElement>) {
     const passo = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
     if (!passo) return

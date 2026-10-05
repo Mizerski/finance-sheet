@@ -14,9 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
-import { useFinancas } from '@/store/financas-context'
-import { aportesDaMeta, guardadoNaMeta } from '../aportes'
-import type { MetaEconomia } from '../meta'
+import { useFinancas } from '@/store/context/financas-context'
+import { aportesDaMeta, guardadoNaMeta } from '../utils/aportes'
+import type { MetaEconomia } from '../model/meta'
 
 interface DialogAportesProps {
   aberto: boolean
@@ -52,16 +52,13 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
   const { dispatch } = useFinancas()
   const [ajustes, setAjustes] = useState(meta.ajustes)
 
-  // Meses recalculados com os valores em edição: guardar menos pode trazer mais um mês para a lista.
   const rascunho = { ...meta, ajustes }
   const aportes = aportesDaMeta(rascunho, hoje)
-  // O que está na meta: os aportes menos o dinheiro já usado.
   const guardado = guardadoNaMeta(rascunho, hoje)
 
   function alterar(mes: string, centavos: number) {
     setAjustes((atual) => {
       const { [mes]: _anterior, ...resto } = atual
-      // Igual ao plano não precisa de ajuste.
       return centavos === meta.aporteMensalCentavos ? resto : { ...resto, [mes]: centavos }
     })
   }

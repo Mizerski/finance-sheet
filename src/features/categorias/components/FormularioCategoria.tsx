@@ -1,16 +1,16 @@
 import { useState, type FormEvent } from 'react'
-import type { TipoMovimento } from '@/features/lancamentos/lancamento'
+import type { TipoMovimento } from '@/features/lancamentos/model/lancamento'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { BOTAO, CAMPO, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
 import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
-import { useFinancas } from '@/store/financas-context'
-import type { Categoria } from '../categoria'
-import { proximaCorLivre } from '../cores'
+import { useFinancas } from '@/store/context/financas-context'
+import type { Categoria } from '../model/categoria'
+import { proximaCorLivre } from '../constants/cores'
 import { SeletorCor } from './SeletorCor'
-import { COR_ATIVA_TIPO } from '@/features/lancamentos/cores'
+import { COR_ATIVA_TIPO } from '@/features/lancamentos/constants/cores'
 
 interface FormularioCategoriaProps {
   /** Ausente = nova categoria. */
@@ -26,6 +26,10 @@ const OPCOES_TIPO = [
   { valor: 'entrada' as const, rotulo: 'Entrada', corAtiva: COR_ATIVA_TIPO.entrada },
 ]
 
+/**
+ * O tipo não muda com a categoria em uso. O submit não sobe para o formulário de lançamento, de onde o dialog pode
+ * abrir.
+ */
 export function FormularioCategoria({ categoria, tipoInicial = 'saida', onConcluir }: FormularioCategoriaProps) {
   const { estado, dispatch } = useFinancas()
   const [nome, setNome] = useState(categoria?.nome ?? '')
@@ -33,7 +37,6 @@ export function FormularioCategoria({ categoria, tipoInicial = 'saida', onConclu
   const [cor, setCor] = useState(() => categoria?.cor ?? proximaCorLivre(estado.categorias.map((c) => c.cor)))
   const [tentouSalvar, setTentouSalvar] = useState(false)
 
-  // Mudar o tipo deixaria lançamentos em uso com categoria do tipo errado.
   const emUso = categoria ? estado.lancamentos.filter((l) => l.categoriaId === categoria.id).length : 0
 
   function validar(): string | undefined {
@@ -48,7 +51,6 @@ export function FormularioCategoria({ categoria, tipoInicial = 'saida', onConclu
 
   function salvar(e: FormEvent) {
     e.preventDefault()
-    // O dialog pode abrir de dentro de outro formulário (o de lançamento); o submit não deve chegar lá.
     e.stopPropagation()
     if (validar()) {
       setTentouSalvar(true)

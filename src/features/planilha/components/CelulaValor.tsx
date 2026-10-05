@@ -1,10 +1,10 @@
-import { COR_RISCO } from '@/features/risco/cores'
-import type { NivelRisco } from '@/features/risco/risco'
+import { COR_RISCO } from '@/features/risco/constants/cores'
+import type { NivelRisco } from '@/features/risco/utils/risco'
 import { cn } from '@/shared/lib/utils'
 import { formatarBRL, formatarBRLSemSimbolo } from '@/shared/lib/dinheiro'
 import { VALOR_SALDO } from '@/shared/lib/estilos'
 import { TableCell } from '@/shared/ui/table'
-import { CELULA, COR_COLUNA } from '../cores'
+import { CELULA, COR_COLUNA } from '../constants/cores'
 
 interface CelulaProps {
   className?: string

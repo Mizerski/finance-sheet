@@ -1,8 +1,8 @@
 import { RouterProvider } from '@tanstack/react-router'
-import { AssistenteProvider } from '@/features/assistente/AssistenteProvider'
+import { AssistenteProvider } from '@/features/assistente/context/AssistenteProvider'
 import { AvisoAtualizacao } from '@/features/atualizacao/components/AvisoAtualizacao'
-import { criarArmazenamentoLocal } from '@/store/armazenamento-local'
-import { FinancasProvider } from '@/store/FinancasProvider'
+import { criarArmazenamentoLocal } from '@/store/repositorio/armazenamento-local'
+import { FinancasProvider } from '@/store/context/FinancasProvider'
 import { router } from '../router'
 
 const armazenamento = criarArmazenamentoLocal()

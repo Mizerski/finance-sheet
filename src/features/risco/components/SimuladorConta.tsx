@@ -9,8 +9,8 @@ import { BOTAO, TITULO_CARD } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Field, FieldLabel } from '@/shared/ui/field'
-import { COR_RISCO } from '../cores'
-import type { AnaliseRisco } from '../risco'
+import { COR_RISCO } from '../constants/cores'
+import type { AnaliseRisco } from '../utils/risco'
 import {
   contaSimulada,
   maiorContaSemPiorar,
@@ -18,7 +18,7 @@ import {
   riscoCom,
   type ContextoRisco,
   type FrequenciaConta,
-} from '../simulacao'
+} from '../utils/simulacao'
 import { DataForte, DinheiroForte, Forte, NomeNivel, SaldoForte } from './Destaques'
 import { FaixaMeses } from './FaixaMeses'
 import { DesdeQuando, FraseFalta } from './MensagemRisco'
@@ -38,7 +38,6 @@ export function SimuladorConta({ risco, contexto }: { risco: AnaliseRisco; conte
     () => (valor > 0 ? riscoCom(contexto, [...contexto.lancamentos, contaSimulada(valor, frequencia, data, contexto.caixa.id)]) : null),
     [contexto, valor, frequencia, data],
   )
-  // Não depende do valor digitado: só da frequência e da data.
   const maximo = useMemo(
     () => maiorContaSemPiorar(contexto, frequencia, data, risco),
     [contexto, frequencia, data, risco],
@@ -46,7 +45,6 @@ export function SimuladorConta({ risco, contexto }: { risco: AnaliseRisco; conte
   const porMes = frequencia === 'mensal' ? ' por mês' : ''
   const [aberto, setAberto] = useState(false)
 
-  // Fechado, o simulador é uma linha: quanto cabe hoje e o botão para abrir os campos.
   const quantoCabe =
     risco.menorSaldo.valorCentavos < 0 ? (
       <>Seu saldo já fica negativo nos próximos meses, então nenhuma conta nova cabe agora.</>

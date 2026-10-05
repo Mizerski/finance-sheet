@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
-import { ID_CAMPO_PERGUNTA, useAssistente } from '@/features/assistente/assistente-context'
+import { ID_CAMPO_PERGUNTA, useAssistente } from '@/features/assistente/context/assistente-context'
 import { DialogLancamento } from '@/features/lancamentos/components/DialogLancamento'
-import { ID_BUSCA } from '@/features/lancamentos/filtros'
+import { ID_BUSCA } from '@/features/lancamentos/utils/filtros'
 import { useAtalhos, type MapaAtalhos } from '@/shared/hooks/useAtalhos'
 import { EH_DESKTOP } from '@/shared/lib/plataforma'
 import { ITENS_MENU, type RotaMenu } from '../layout/itens-menu'
@@ -20,7 +20,6 @@ export function AtalhosGlobais() {
   const [novo, setNovo] = useState(false)
   const [ajuda, setAjuda] = useState(false)
 
-  // Cada aba abre como o usuário a deixou, como no menu.
   const ir = (to: RotaMenu) => navigate({ to, search: buscaPara(to) })
 
   const buscar = async () => {

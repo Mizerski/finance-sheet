@@ -4,11 +4,28 @@ Regras que mantêm o código consistente. Se algo aqui parecer estranho, provave
 
 ## Organização: package by feature
 
-- Cada funcionalidade tem sua pasta em `src/features/<feature>/`, com página, componentes, tipos e lógica juntos. Ex.: `src/features/economias/` tem `EconomiasPage.tsx`, `meta.ts` (tipo), `aportes.ts` (lógica) e `components/`.
+- Cada funcionalidade tem sua pasta em `src/features/<feature>/`, com página, componentes, tipos e lógica juntos.
+- Dentro da feature, só a página (`EconomiasPage.tsx`) ou a seção que outra tela usa (`SecaoTags.tsx`, `PortaoAutenticacao.tsx`) fica na raiz. O resto vai para a subpasta do que o arquivo é (crie só as que a feature usa):
+
+  | Pasta | O que guarda | Exemplo |
+  |---|---|---|
+  | `components/` | Componentes React | `CardMeta.tsx` |
+  | `hooks/` | Hooks (`use…`) | `useAvaliacaoMeta.ts` |
+  | `context/` | Context e provider | `AssistenteProvider.tsx` |
+  | `model/` | Tipos do domínio e as regras pequenas deles | `meta.ts`, `caixa.ts` |
+  | `utils/` | Lógica pura, sem React (cálculos, filtros, validação da busca) | `aportes.ts`, `busca.ts` |
+  | `constants/` | Cores, textos e catálogos | `cores.ts`, `textos.ts` |
+  | `api/` | Conversa com o lado de fora (comandos e plugins do Tauri) | `motor.ts`, `atualizador.ts` |
+  | `doc/` | Texto que não é código | `manual.md` |
 - O que é genérico fica em `src/shared/`: `ui/` (shadcn), `components/`, `lib/` (datas, dinheiro, estilos, utilitários) e `hooks/`.
 - **Não** crie pastas por tipo técnico na raiz de `src` (`src/components/`, `src/pages/`, `src/lib/`).
-- Constantes de estilo de uma feature ficam num arquivo próprio (ex.: `cores.ts`), não dentro de um componente, por causa do Fast Refresh do Vite.
+- Constantes de estilo de uma feature ficam em `constants/` (ex.: `cores.ts`), não dentro de um componente, por causa do Fast Refresh do Vite.
 - Os imports usam o alias `@/` para `src/`.
+
+## Comentários
+
+- Documente com JSDoc simples (`/** … */`) na declaração: o que ela faz e, se não for óbvio, o porquê. Uma ou duas linhas bastam.
+- Sem comentários soltos (`//` no meio do código, `{/* */}` no JSX). Se a explicação importa, ela vai para o JSDoc da função, do componente ou da constante; se não importa, sai.
 
 ## Nomes em português
 
@@ -26,11 +43,16 @@ Componentes pequenos: se um arquivo cresce demais ou mistura assuntos, separe.
 ## Estado e dados
 
 - O estado é `useReducer` + Context em `src/store/`, e funciona como cache em memória do que está salvo. Os componentes mudam dados só com `dispatch`.
+  - `context/`: `FinancasProvider` e `useFinancas`;
+  - `reducer/`: `financasReducer`, `EstadoFinancas` e `AcaoFinancas`;
+  - `model/`: `DadosFinancas` (o que fica salvo), `VERSAO_DADOS` e a conversão de versões antigas;
+  - `repositorio/`: o `Armazenamento` (padrão repository) e as duas implementações, Supabase e arquivo local;
+  - `doc/versoes-dos-dados.md`: o que mudou em cada versão dos dados.
 - **Ação nova que altera dados** precisa de:
-  1. um caso no `financasReducer` (`src/store/estado.ts`);
-  2. um caso em `persistir` (`src/store/armazenamento-supabase.ts`);
+  1. um caso no `financasReducer` (`src/store/reducer/financas-reducer.ts`);
+  2. um caso em `persistir` (`src/store/repositorio/armazenamento-supabase.ts`);
   3. se ela **não** deve ser salva, entrar na lista de ignoradas em `armazenamento-local.ts`.
-- **Mudou o formato de `DadosFinancas`?** Aumente `VERSAO_DADOS` e converta o arquivo antigo e os backups antigos ao carregar (`atualizarDados`). Quem atualiza o app desktop não pode perder dados.
+- **Mudou o formato de `DadosFinancas`?** Aumente `VERSAO_DADOS` (`src/store/model/dados.ts`), anote em `src/store/doc/versoes-dos-dados.md` e converta o arquivo antigo e os backups antigos ao carregar (`atualizarDados`). Quem atualiza o app desktop não pode perder dados.
 - **Tabela nova no Supabase:** crie uma migração nova em `supabase/migrations/` (nunca edite uma que já foi publicada), com `user_id` e RLS `(select auth.uid()) = user_id`.
 - Colunas do banco em snake_case; a tradução para camelCase fica só em `armazenamento-supabase.ts`.
 - Não há dados de exemplo nem `localStorage` para dados na versão web.
@@ -42,7 +64,7 @@ Componentes pequenos: se um arquivo cresce demais ou mistura assuntos, separe.
 
 ## Lógica separada da interface
 
-- O cálculo da projeção são funções puras em `src/features/projecao/projecao.ts`. Regras de negócio de uma feature também ficam em arquivos `.ts` sem React (ex.: `aportes.ts`, `grupos.ts`, `filtros.ts`).
+- O cálculo da projeção são funções puras em `src/features/projecao/utils/projecao.ts`. Regras de negócio de uma feature também ficam em `utils/`, sem React (ex.: `aportes.ts`, `grupos.ts`, `filtros.ts`).
 - Componentes só montam a tela a partir do resultado dessas funções.
 
 ## Regras de domínio

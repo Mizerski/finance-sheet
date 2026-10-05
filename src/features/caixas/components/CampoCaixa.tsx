@@ -2,8 +2,8 @@ import { PontoCor } from '@/shared/components/PontoCor'
 import { CAMPO_SELECT } from '@/shared/lib/estilos'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useFinancas } from '@/store/financas-context'
-import { caixasAtivos, NOME_TOTAL, type Caixa } from '../caixa'
+import { useFinancas } from '@/store/context/financas-context'
+import { caixasAtivos, NOME_TOTAL, type Caixa } from '../model/caixa'
 
 interface CampoCaixaProps {
   id: string
@@ -22,8 +22,7 @@ interface CampoCaixaProps {
 }
 
 /**
- * Campo "Caixa" dos formulários. Só aparece com 2 ou mais opções: quem tem um caixa não vê nada novo.
- * Um caixa arquivado já escolhido (ao editar) continua na lista.
+ * Campo "Caixa" dos formulários. Só aparece quando há escolha a fazer; um caixa arquivado já escolhido continua na lista.
  */
 export function CampoCaixa({
   id,
@@ -40,7 +39,6 @@ export function CampoCaixa({
   const ativos = caixasAtivos(estado.caixas).filter(filtro)
   const atual = estado.caixas.find((c) => c.id === valor)
   const opcoes = atual && !ativos.includes(atual) ? [...ativos, atual] : ativos
-  // Sem escolha a fazer (um caixa só, ou uma conta só para a meta), o campo não aparece.
   if (opcoes.length < (sempre ? 1 : 2)) return null
 
   return (

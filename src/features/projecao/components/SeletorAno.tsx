@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from '@/shared/ui/icones'
 import { BOTAO_GRUPO, GRUPO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { useAno } from '../useAno'
+import { useAno } from '../hooks/useAno'
 
 /** Grupo "‹ 2026 ›" que troca o ano de todas as telas. */
 export function SeletorAno() {
@@ -11,7 +11,6 @@ export function SeletorAno() {
 
   return (
     <div className={cn(GRUPO, 'shrink-0')}>
-      {/* O title fica no span porque botão desabilitado não recebe o hover. */}
       <span className="flex" title={noInicio ? `Os dados começam em ${intervalo.min}` : undefined}>
         <Button
           variant="ghost"

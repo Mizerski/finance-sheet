@@ -10,8 +10,8 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { ehCartao, ehUltimaConta, NOME_TOTAL, rotuloDoCaixa, somaNoTotal, type Caixa, type usosDoCaixa } from '../caixa'
-import { EXPLICACAO_TIPO } from '../textos'
+import { ehCartao, ehUltimaConta, NOME_TOTAL, rotuloDoCaixa, somaNoTotal, type Caixa, type usosDoCaixa } from '../model/caixa'
+import { EXPLICACAO_TIPO } from '../constants/textos'
 
 interface CardCaixasProps {
   /** Na ordem do seletor (os arquivados vão para o fim). */
@@ -38,7 +38,6 @@ const SEM_USO: UsoDoCaixa = { lancamentos: 0, metas: 0, cartoes: 0 }
 function detalhe(caixa: Caixa, uso: UsoDoCaixa): string {
   const partes = [rotuloDoCaixa(caixa)]
   if (ehCartao(caixa)) partes.push(`fecha dia ${caixa.cartao.diaFechamento}, vence dia ${caixa.cartao.diaVencimento}`)
-  // O benefício sempre fica fora do total; na conta, só a exceção é dita.
   if (!somaNoTotal(caixa)) partes.push('fora do total')
   partes.push(contar(uso.lancamentos, 'lançamento', 'lançamentos'))
   if (uso.metas > 0) partes.push(contar(uso.metas, 'meta', 'metas'))
@@ -100,7 +99,6 @@ export function CardCaixas({ caixas, usos, onEditar, onMover, onArquivar, onExcl
             return (
               <TableRow key={c.id} className={cn(TABELA.linha, c.arquivado && 'text-muted-foreground')}>
                 <TableCell className="w-0 py-1 pr-0 pl-2 align-middle sm:pl-3">
-                  {/* Setas empilhadas: mudam a posição no seletor (arquivados não aparecem nele). */}
                   {!c.arquivado && (
                     <div className="flex flex-col">
                       <BotaoPosicao rotulo={`Subir ${c.nome}`} desabilitado={posicao === 0} onClick={() => onMover(c, -1)}>
@@ -154,7 +152,6 @@ export function CardCaixas({ caixas, usos, onEditar, onMover, onArquivar, onExcl
                         <ArchiveRestore />
                       </Button>
                     ) : emUso ? (
-                      // Com lançamentos ou metas, não dá para excluir: arquivar mantém o histórico.
                       <Button
                         variant="ghost"
                         size="icon"

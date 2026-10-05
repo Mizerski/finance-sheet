@@ -4,7 +4,7 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { cn } from '@/shared/lib/utils'
 import { Checkbox } from '@/shared/ui/checkbox'
 import { TableCell, TableRow } from '@/shared/ui/table'
-import type { GrupoPasta } from '../grupos'
+import type { GrupoPasta } from '../utils/grupos'
 
 interface CabecalhoGrupoProps {
   grupo: GrupoPasta

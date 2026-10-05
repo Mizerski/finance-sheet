@@ -1,5 +1,5 @@
 import { Badge } from '@/shared/ui/badge'
-import type { Tag } from '../tag'
+import type { Tag } from '../model/tag'
 
 /** Tag de um lançamento: etiqueta com contorno preto e a cor dela numa faixa à esquerda. */
 export function PilulaTag({ tag }: { tag: Pick<Tag, 'nome' | 'cor'> }) {

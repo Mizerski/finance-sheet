@@ -1,5 +1,5 @@
 //! Modelos que o app oferece para baixar. URL presa a um commit e sha256 conferido no fim do download.
-//! Nome e descrição de cada um ficam no front (`src/features/assistente/modelos.ts`), pelo `id`.
+//! Nome e descrição de cada um ficam no front (`src/features/assistente/constants/modelos.ts`), pelo `id`.
 
 #[derive(Clone, Copy)]
 pub struct Amostragem {

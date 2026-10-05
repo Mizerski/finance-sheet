@@ -1,8 +1,8 @@
-import { caixasAtivos, NOME_TOTAL } from '@/features/caixas/caixa'
+import { caixasAtivos, NOME_TOTAL } from '@/features/caixas/model/caixa'
 import { CAMADA, ROTULO, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 import { EH_DESKTOP } from '@/shared/lib/plataforma'
 import { ITENS_MENU } from '../layout/itens-menu'
 

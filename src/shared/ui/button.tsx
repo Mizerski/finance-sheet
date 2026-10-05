@@ -8,10 +8,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Ação principal: bloco preto com a sombra vermelha.
         default: "border-contorno bg-foreground text-background shadow-[3px_3px_0_0_var(--vermelho)] hover:bg-foreground/85",
         outline:
-          // Ação secundária: papel com contorno preto; o hover pinta de amarelo.
           "border-contorno bg-card text-foreground shadow-bloco-sm hover:bg-amarelo hover:text-tinta aria-expanded:bg-amarelo aria-expanded:text-tinta",
         secondary:
           "border-contorno bg-muted text-foreground hover:bg-amarelo hover:text-tinta aria-expanded:bg-amarelo aria-expanded:text-tinta",

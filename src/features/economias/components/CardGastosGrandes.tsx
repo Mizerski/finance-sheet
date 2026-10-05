@@ -1,7 +1,7 @@
-import { COR_RISCO } from '@/features/risco/cores'
+import { COR_RISCO } from '@/features/risco/constants/cores'
 import { DinheiroForte, Forte } from '@/features/risco/components/Destaques'
 import { Ajuda } from '@/shared/components/Ajuda'
-import { nivelDoSaldo } from '@/features/risco/risco'
+import { nivelDoSaldo } from '@/features/risco/utils/risco'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
@@ -10,7 +10,7 @@ import { CARD, ROTULO, TABELA, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import type { GastosGrandes } from '../gastos-grandes'
+import type { GastosGrandes } from '../utils/gastos-grandes'
 
 /** Colunas justas no celular, para as quatro caberem em 339px. */
 const CELULA = 'px-1 py-2.5 sm:px-3'

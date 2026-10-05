@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import type { Caixa } from '@/features/caixas/caixa'
+import type { Caixa } from '@/features/caixas/model/caixa'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
-import { useVisao } from '@/features/caixas/useVisao'
+import { useVisao } from '@/features/caixas/hooks/useVisao'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/field'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 
 interface DialogSaldoInicialProps {
   aberto: boolean
@@ -35,7 +35,6 @@ export function DialogSaldoInicial({ aberto, onOpenChange }: DialogSaldoInicialP
             Quanto havia na conta no começo de um dia. A projeção parte daí; os dias anteriores ficam fora do cálculo.
           </DialogDescription>
         </DialogHeader>
-        {/* Desmonta ao fechar: sempre abre com o valor salvo. */}
         <FormularioSaldoInicial onConcluir={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
@@ -56,7 +55,6 @@ function FormularioSaldoInicial({ onConcluir }: { onConcluir: () => void }) {
   if (!caixa) return null
 
   return (
-    // Trocar de caixa recomeça o formulário com o saldo salvo dele.
     <FormularioDoCaixa key={caixa.id} caixa={caixa} onTrocarCaixa={setCaixaId} onConcluir={onConcluir} />
   )
 }

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import type { GastoTag } from '@/features/projecao/projecao'
+import type { GastoTag } from '@/features/projecao/utils/projecao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { CardGrafico } from './CardGrafico'
 import { RoscaGastos } from './RoscaGastos'

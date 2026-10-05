@@ -2,7 +2,7 @@ import { useState, type KeyboardEvent } from 'react'
 import { Check } from '@/shared/ui/icones'
 import { ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
-import { GRUPOS_CORES_CATEGORIA, type CorCategoria } from '../cores'
+import { GRUPOS_CORES_CATEGORIA, type CorCategoria } from '../constants/cores'
 
 interface SeletorCorProps {
   id?: string
@@ -11,12 +11,11 @@ interface SeletorCorProps {
 }
 
 /**
- * Paleta Bauhaus em quadradinhos com contorno e sombra dura, como um grupo de rádio só (setas percorrem todas).
- * A cor escolhida fica afundada, como um botão pressionado. Uma cor salva que saiu da paleta aparece em "Atual".
+ * Paleta em quadradinhos, como um grupo de rádio só (setas percorrem todas); a escolhida fica afundada.
+ * A cor salva que saiu da paleta continua disponível em "Atual".
  */
 export function SeletorCor({ id, valor, onChange }: SeletorCorProps) {
   const hex = valor.toLowerCase()
-  // A cor com que o seletor abriu: se saiu da paleta, continua disponível mesmo depois de escolher outra.
   const [inicial] = useState(hex)
   const naPaleta = GRUPOS_CORES_CATEGORIA.some((g) => g.cores.some((c) => c.hex === inicial))
   const grupos = naPaleta
@@ -41,7 +40,6 @@ export function SeletorCor({ id, valor, onChange }: SeletorCorProps) {
           <span aria-hidden className={cn(ROTULO, 'text-muted-foreground')}>
             {grupo.nome}
           </span>
-          {/* Folga embaixo e à direita para a sombra dura não ser cortada. */}
           <div className="flex flex-wrap gap-2.5 pr-1 pb-1">
             {grupo.cores.map((c) => {
               const i = todas.indexOf(c)
@@ -75,7 +73,6 @@ function Quadradinho({ cor, ativo, focavel, onClick }: { cor: CorCategoria; ativ
       className={cn(
         'flex size-8 items-center justify-center border-2 border-contorno transition-[translate,box-shadow] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
         cor.clara ? 'text-tinta' : 'text-papel',
-        // Afunda ao clicar; a escolhida fica afundada.
         ativo
           ? 'motion-safe:translate-x-[2px] motion-safe:translate-y-[2px]'
           : 'shadow-bloco-sm hover:shadow-bloco motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px] active:shadow-none',

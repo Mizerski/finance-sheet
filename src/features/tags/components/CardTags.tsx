@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { Pencil, Plus, Sparkles, Trash2 } from '@/shared/ui/icones'
-import { FILTRO_SEM_TAG } from '@/features/lancamentos/filtros'
-import type { GastoTag } from '@/features/projecao/projecao'
+import { FILTRO_SEM_TAG } from '@/features/lancamentos/utils/filtros'
+import type { GastoTag } from '@/features/projecao/utils/projecao'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { PontoCor } from '@/shared/components/PontoCor'
@@ -13,7 +13,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { SEM_TAG, TAGS_SUGERIDAS, type Tag } from '../tag'
+import { SEM_TAG, TAGS_SUGERIDAS, type Tag } from '../model/tag'
 
 interface CardTagsProps {
   tags: Tag[]
@@ -144,7 +144,6 @@ export function CardTags({ tags, usos, gastos, onNova, onUsarSugeridas, onEditar
               )
             })}
 
-            {/* Saídas ainda sem tag: atalho para classificá-las na tela de lançamentos. */}
             {semTag.usos > 0 && (
               <TableRow className={cn(TABELA.linha, 'text-muted-foreground')}>
                 <TableCell className={cn(TABELA.celula, TABELA.primeira, 'whitespace-normal')}>

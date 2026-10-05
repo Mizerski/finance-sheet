@@ -2,13 +2,13 @@
  * Dados de demonstração do app desktop (formato atual de DadosFinancas), usados pelos prints do README.
  * Uma pessoa com conta corrente, poupança e vale-refeição; valores inventados.
  */
-import type { Caixa } from '@/features/caixas/caixa'
-import type { Categoria } from '@/features/categorias/categoria'
-import type { MetaEconomia } from '@/features/economias/meta'
-import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from '@/features/lancamentos/lancamento'
-import type { Pasta } from '@/features/pastas/pasta'
-import type { Tag } from '@/features/tags/tag'
-import type { DadosFinancas } from '@/store/estado'
+import type { Caixa } from '@/features/caixas/model/caixa'
+import type { Categoria } from '@/features/categorias/model/categoria'
+import type { MetaEconomia } from '@/features/economias/model/meta'
+import type { Lancamento, Natureza, Recorrencia, TipoMovimento } from '@/features/lancamentos/model/lancamento'
+import type { Pasta } from '@/features/pastas/model/pasta'
+import type { Tag } from '@/features/tags/model/tag'
+import type { DadosFinancas } from '@/store/model/dados'
 
 let contador = 0
 const novoId = () => `demo-${++contador}`

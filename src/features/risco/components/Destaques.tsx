@@ -3,8 +3,8 @@ import { formatarData, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
-import { COR_RISCO } from '../cores'
-import { NIVEL, type NivelRisco } from '../risco'
+import { COR_RISCO } from '../constants/cores'
+import { NIVEL, type NivelRisco } from '../utils/risco'
 
 /** Pedaços em negrito das frases sobre o caixa, com a mesma cor em todas as telas. */
 

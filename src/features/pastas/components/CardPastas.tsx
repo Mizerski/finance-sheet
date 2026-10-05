@@ -8,8 +8,8 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { CHAVE_SEM_PASTA, type GrupoPasta } from '../grupos'
-import type { Pasta } from '../pasta'
+import { CHAVE_SEM_PASTA, type GrupoPasta } from '../utils/grupos'
+import type { Pasta } from '../model/pasta'
 
 interface CardPastasProps {
   pastas: Pasta[]

@@ -9,8 +9,8 @@ import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
-import type { ResumoMeta } from '../aportes'
-import type { MetaEconomia } from '../meta'
+import type { ResumoMeta } from '../utils/aportes'
+import type { MetaEconomia } from '../model/meta'
 import { BarraProgresso } from './BarraProgresso'
 
 interface CardMetaProps {
@@ -50,7 +50,6 @@ export function CardMeta({
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
       <header className="flex items-stretch border-b-2 border-contorno">
-        {/* Meia-lua amarela: a forma da tela Economias. */}
         <span aria-hidden className="flex w-12 shrink-0 items-center justify-center border-r-2 border-contorno bg-amarelo text-tinta sm:w-14">
           <Forma forma="semicirculo" cor="tinta" className="size-7" />
         </span>
@@ -111,7 +110,6 @@ export function CardMeta({
       </header>
 
       {alvo === undefined ? (
-        // Cofrinho: sem alvo não há percentual nem barra; o número principal é o que já foi guardado.
         <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 px-4 pt-4 pb-4 sm:px-5">
           <p className="flex items-baseline gap-2">
             <span className={cn('text-[2rem] sm:text-[2.75rem]', VALOR_DESTAQUE)}>
@@ -137,7 +135,6 @@ export function CardMeta({
         </div>
       )}
 
-      {/* Três dados em colunas separadas por réguas, como uma tabela de cartaz. */}
       <dl className="grid grid-cols-3 border-y-2 border-contorno">
         {alvo === undefined ? (
           <Dado rotulo="Por mês">{formatarBRL(meta.aporteMensalCentavos)}</Dado>

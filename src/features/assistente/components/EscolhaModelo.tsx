@@ -6,22 +6,24 @@ import { BOTAO, ROTULO } from '@/shared/lib/estilos'
 import type { FormaDaPagina } from '@/shared/lib/formas'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import type { ModeloInstalavel, PlacaDeVideo } from '../api'
-import { useAssistente } from '../assistente-context'
-import { formatarTamanho, infoModelo, modeloRecomendado } from '../modelos'
+import type { ModeloInstalavel, PlacaDeVideo } from '../api/motor'
+import { useAssistente } from '../context/assistente-context'
+import { formatarTamanho, infoModelo, modeloRecomendado } from '../constants/modelos'
 
 const FORMA_MODELO: Record<string, FormaDaPagina> = {
   'qwen3.5-4b': { forma: 'circulo', cor: 'azul' },
   'gemma4-e2b': { forma: 'triangulo', cor: 'amarelo' },
 }
 
-/** Primeira vez (ou troca de modelo): explica, recomenda um modelo pela placa de vídeo e baixa. */
+/**
+ * Primeira vez (ou troca de modelo): explica, recomenda um modelo pela placa de vídeo e baixa.
+ * Um download pausado vem marcado, para continuar com um clique; na troca, nunca o modelo em uso.
+ */
 export function EscolhaModelo() {
   const { modelos, placa, baixar, voltarDaEscolha, erro } = useAssistente()
   const recomendado = placa === undefined ? undefined : modeloRecomendado(placa)
   const [escolhido, setEscolhido] = useState<string | undefined>(undefined)
   const atual = modelos.find((m) => m.baixado)
-  // Um download pausado vem marcado, para continuar com um clique; na troca, nunca o modelo em uso.
   const pausado = modelos.find((m) => m.parcial > 0 && !m.baixado)
   const outro = modelos.find((m) => !m.baixado)
   const sugerido = recomendado && recomendado !== atual?.id ? recomendado : outro?.id
@@ -93,7 +95,6 @@ function OpcoesModelo({
   recomendado: string | undefined
   onChange: (id: string) => void
 }) {
-  // Setas trocam a escolha, como num grupo de rádio.
   function aoTeclar(e: KeyboardEvent<HTMLDivElement>) {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
     e.preventDefault()

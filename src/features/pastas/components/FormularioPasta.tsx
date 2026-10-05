@@ -1,13 +1,13 @@
 import { useState, type FormEvent } from 'react'
-import { proximaCorLivre } from '@/features/categorias/cores'
+import { proximaCorLivre } from '@/features/categorias/constants/cores'
 import { SeletorCor } from '@/features/categorias/components/SeletorCor'
 import { BOTAO, CAMPO, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
 import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
-import { useFinancas } from '@/store/financas-context'
-import type { Pasta } from '../pasta'
+import { useFinancas } from '@/store/context/financas-context'
+import type { Pasta } from '../model/pasta'
 
 interface FormularioPastaProps {
   /** Ausente = nova pasta. */
@@ -16,6 +16,7 @@ interface FormularioPastaProps {
   onConcluir: (pasta: Pasta) => void
 }
 
+/** O submit não sobe para o formulário de lançamento, de onde o dialog pode abrir. */
 export function FormularioPasta({ pasta, onConcluir }: FormularioPastaProps) {
   const { estado, dispatch } = useFinancas()
   const [nome, setNome] = useState(pasta?.nome ?? '')
@@ -34,7 +35,6 @@ export function FormularioPasta({ pasta, onConcluir }: FormularioPastaProps) {
 
   function salvar(e: FormEvent) {
     e.preventDefault()
-    // O dialog pode abrir de dentro de outro formulário (o de lançamento); o submit não deve chegar lá.
     e.stopPropagation()
     if (validar()) {
       setTentouSalvar(true)

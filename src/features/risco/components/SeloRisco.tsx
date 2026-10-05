@@ -1,7 +1,7 @@
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
-import { COR_RISCO } from '../cores'
-import { NIVEL, type NivelRisco } from '../risco'
+import { COR_RISCO } from '../constants/cores'
+import { NIVEL, type NivelRisco } from '../utils/risco'
 
 /** Nome do nível num bloco na cor dele. */
 export function SeloRisco({ nivel, curto, className }: { nivel: NivelRisco; curto?: boolean; className?: string }) {

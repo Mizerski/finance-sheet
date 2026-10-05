@@ -5,7 +5,7 @@ import { CAMADA, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
-import { SEM_PASTA, type Pasta } from '../pasta'
+import { SEM_PASTA, type Pasta } from '../model/pasta'
 
 interface MoverParaPastaProps {
   /** Descrição do lançamento, para o nome acessível do botão. */
