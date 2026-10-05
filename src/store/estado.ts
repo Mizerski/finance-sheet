@@ -21,8 +21,10 @@ import type { Tag } from '@/features/tags/tag'
  * impede que um app antigo importe o backup e volte esses dias ao valor normal.
  * Versão 10: cartão de crédito (`tipo: 'cartao'` com `cartao`: fechamento, vencimento, conta que paga e limite).
  * Sem conversão; o número novo impede que um app antigo importe um backup com um tipo de caixa que ele não conhece.
+ * Versão 11: conta de investimento (`investimento` na conta). Sem conversão; o número novo impede que um app antigo
+ * importe o backup e trate o investimento como conta do dia a dia.
  */
-export const VERSAO_DADOS = 10
+export const VERSAO_DADOS = 11
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {
@@ -85,6 +87,14 @@ export function atualizarDados(dados: DadosFinancasSalvos, novoId: () => string 
     tags,
     pastas,
   }
+}
+
+/** Sem o que é só calculado na tela (o saldo da conta de investimento), para não ir para o arquivo nem o banco. */
+function semCalculados(meta: MetaEconomia): MetaEconomia {
+  if (meta.naContaCentavos === undefined) return meta
+  const copia = { ...meta }
+  delete copia.naContaCentavos
+  return copia
 }
 
 function semDestino(l: Lancamento): Lancamento {
@@ -167,7 +177,7 @@ export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): Est
       return { ...estado, lancamentos: estado.lancamentos.filter((l) => !ids.has(l.id)) }
     }
     case 'meta/salvar':
-      return { ...estado, metas: salvar(estado.metas, acao.meta) }
+      return { ...estado, metas: salvar(estado.metas, semCalculados(acao.meta)) }
     case 'meta/excluir':
       return { ...estado, metas: estado.metas.filter((m) => m.id !== acao.id) }
     case 'tag/salvar':

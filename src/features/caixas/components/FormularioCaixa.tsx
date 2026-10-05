@@ -19,6 +19,7 @@ import { useFinancas } from '@/store/financas-context'
 import {
   caixasAtivos,
   cartoesPagosPor,
+  ehContaCorrente,
   ehUltimaConta,
   metasDoCaixa,
   ROTULO_TIPO_CAIXA,
@@ -43,13 +44,18 @@ const OPCOES_SINAL = [
   { valor: 'negativo' as const, rotulo: 'Negativo' },
 ]
 
-/** Forma de cada tipo no cartão de escolha (decorativa). */
-const FORMA_TIPO: Record<TipoCaixa, Omit<FormaDaPagina, 'cor'>> = {
+/** O que a pessoa escolhe em "Que dinheiro é esse?": o investimento é uma conta com `investimento`. */
+type Escolha = TipoCaixa | 'investimento'
+
+/** Forma de cada escolha no cartão (decorativa). */
+const FORMA_TIPO: Record<Escolha, Omit<FormaDaPagina, 'cor'>> = {
   conta: { forma: 'circulo' },
+  investimento: { forma: 'semicirculo' },
   beneficio: { forma: 'quarto' },
   cartao: { forma: 'quadrado' },
 }
-const TIPOS: TipoCaixa[] = ['conta', 'beneficio', 'cartao']
+const ESCOLHAS: Escolha[] = ['conta', 'investimento', 'beneficio', 'cartao']
+const ROTULO_ESCOLHA: Record<Escolha, string> = { ...ROTULO_TIPO_CAIXA, investimento: 'Investimento' }
 
 type Erros = Partial<Record<'nome' | 'tipo' | 'fechamento' | 'vencimento' | 'pagadora', string>>
 
@@ -62,7 +68,9 @@ function lerDia(texto: string): number | null {
 export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
   const { estado, dispatch } = useFinancas()
   const [nome, setNome] = useState(caixa?.nome ?? '')
-  const [tipo, setTipo] = useState<TipoCaixa>(caixa?.tipo ?? 'conta')
+  const [escolha, setEscolha] = useState<Escolha>(caixa?.investimento ? 'investimento' : (caixa?.tipo ?? 'conta'))
+  const tipo: TipoCaixa = escolha === 'investimento' ? 'conta' : escolha
+  const investimento = escolha === 'investimento'
   const [cor, setCor] = useState(() => caixa?.cor ?? proximaCorLivre(estado.caixas.map((c) => c.cor)))
   const [centavos, setCentavos] = useState(Math.abs(caixa?.saldoInicialCentavos ?? 0))
   const [sinal, setSinal] = useState<'positivo' | 'negativo'>(
@@ -73,7 +81,7 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
   // Só a conta escolhe: benefício fica sempre fora do total (o dinheiro dele não paga qualquer conta).
   const [contaNoTotal, setContaNoTotal] = useState(caixa && caixa.tipo !== 'beneficio' ? caixa.entraNoTotal : true)
   // Cartão: ciclo da fatura, conta que paga e limite (opcional).
-  const contas = caixasAtivos(estado.caixas).filter((c) => c.tipo === 'conta' && c.id !== caixa?.id)
+  const contas = caixasAtivos(estado.caixas).filter((c) => ehContaCorrente(c) && c.id !== caixa?.id)
   const [fechamento, setFechamento] = useState(caixa?.cartao ? String(caixa.cartao.diaFechamento) : '')
   const [vencimento, setVencimento] = useState(caixa?.cartao ? String(caixa.cartao.diaVencimento) : '')
   const [pagadora, setPagadora] = useState(caixa?.cartao?.contaPagadoraId ?? contas[0]?.id ?? '')
@@ -100,6 +108,16 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         erros.tipo = 'Este caixa tem transferências, e transferência é só entre contas.'
       }
     }
+    // Virar investimento: a conta sai do risco e deixa de pagar cartão e de ser origem de meta.
+    if (caixa && investimento && ehContaCorrente(caixa)) {
+      const outrasDoDiaADia = caixasAtivos(estado.caixas).filter((c) => ehContaCorrente(c) && c.id !== caixa.id)
+      if (outrasDoDiaADia.length === 0) erros.tipo = 'É a única conta do dia a dia: o app precisa de pelo menos uma.'
+      else if (cartoesPagosPor(estado.caixas, caixa.id).length > 0) erros.tipo = 'Esta conta paga a fatura de um cartão.'
+      else if (estado.metas.some((m) => m.caixaId === caixa.id)) erros.tipo = 'Esta conta tem metas que guardam dinheiro dela.'
+    }
+    if (caixa && investimento && estado.metas.filter((m) => m.destinoId === caixa.id).length > 1) {
+      erros.tipo = 'Mais de uma meta manda dinheiro para esta conta; o investimento fica com uma só.'
+    }
     if (cartao) {
       if (lerDia(fechamento) === null) erros.fechamento = 'Use um dia entre 1 e 31.'
       if (lerDia(vencimento) === null) erros.vencimento = 'Use um dia entre 1 e 31.'
@@ -124,10 +142,11 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         cor,
         tipo,
         // Benefício não fica negativo no começo: o sinal só vale para conta. No cartão, o valor é o que se deve.
-        saldoInicialCentavos: cartao ? -centavos : tipo === 'conta' && sinal === 'negativo' ? -centavos : centavos,
+        saldoInicialCentavos: cartao ? -centavos : escolha === 'conta' && sinal === 'negativo' ? -centavos : centavos,
         dataSaldoInicial: data,
         saldoDefinido: true,
         entraNoTotal: tipo !== 'beneficio' && contaNoTotal,
+        ...(investimento && { investimento: true }),
         ...(cartao && {
           cartao: {
             diaFechamento: lerDia(fechamento)!,
@@ -153,7 +172,15 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
           autoFocus
           value={nome}
           onChange={(e) => setNome(e.target.value)}
-          placeholder={tipo === 'conta' ? 'Ex.: Nubank, Carteira' : cartao ? 'Ex.: Cartão Nubank' : 'Ex.: Vale-refeição'}
+          placeholder={
+            investimento
+              ? 'Ex.: Tesouro, CDB, Corretora'
+              : tipo === 'conta'
+                ? 'Ex.: Nubank, Carteira'
+                : cartao
+                  ? 'Ex.: Cartão Nubank'
+                  : 'Ex.: Vale-refeição'
+          }
           aria-invalid={!!erros.nome || undefined}
           className={CAMPO}
         />
@@ -162,7 +189,14 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
 
       <Field data-invalid={!!erros.tipo || undefined}>
         <FieldLabel id="caixa-tipo-rotulo">Que dinheiro é esse?</FieldLabel>
-        <EscolhaTipo valor={tipo} onChange={setTipo} />
+        <EscolhaTipo
+          valor={escolha}
+          onChange={(e) => {
+            setEscolha(e)
+            // Investimento novo começa fora do total (não é dinheiro para o dia a dia); dá para mudar em Mais opções.
+            if (!caixa) setContaNoTotal(e !== 'investimento')
+          }}
+        />
         <FieldError>{erros.tipo}</FieldError>
       </Field>
 
@@ -177,7 +211,7 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
             rotulo="Paga com"
             valor={pagadora}
             onChange={setPagadora}
-            filtro={(c) => c.tipo === 'conta' && c.id !== caixa?.id}
+            filtro={(c) => ehContaCorrente(c) && c.id !== caixa?.id}
             placeholder="Escolher"
             descricao="A fatura sai desta conta no dia do vencimento."
             erro={erros.pagadora}
@@ -198,7 +232,8 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
         </Field>
       </div>
 
-      {tipo === 'conta' && (
+      {/* Só a conta do dia a dia fica negativa (cheque especial). */}
+      {escolha === 'conta' && (
         <Field>
           <FieldLabel htmlFor="caixa-sinal">Situação da conta</FieldLabel>
           <ControleSegmentado
@@ -241,7 +276,9 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
             <FieldDescription>
               {cartao
                 ? 'Com "Sim", o Total desconta o que você deve no cartão já no dia da compra. Com "Não", o Total só muda quando a fatura sai da conta.'
-                : 'Escolha "Não" para uma conta que fica de lado, como investimento ou poupança: ela continua com saldo e risco próprios, mas não entra no saldo do Total.'}
+                : investimento
+                  ? 'Com "Sim", o dinheiro aplicado entra no saldo do Total. O risco do caixa nunca conta com ele.'
+                  : 'Escolha "Não" para uma conta que fica de lado, como investimento ou poupança: ela continua com saldo e risco próprios, mas não entra no saldo do Total.'}
             </FieldDescription>
           </Field>
         </MaisDetalhes>
@@ -265,8 +302,8 @@ export function FormularioCaixa({ caixa, onConcluir }: FormularioCaixaProps) {
  * Conta ou benefício em dois cartões com a explicação à vista: a diferença muda o que o app calcula
  * (total, risco e metas na conta; quanto dá por dia até a recarga no benefício). O escolhido fica em bloco preto.
  */
-function EscolhaTipo({ valor, onChange }: { valor: TipoCaixa; onChange: (tipo: TipoCaixa) => void }) {
-  const tipos = TIPOS
+function EscolhaTipo({ valor, onChange }: { valor: Escolha; onChange: (escolha: Escolha) => void }) {
+  const tipos = ESCOLHAS
 
   // Setas trocam a escolha, como num grupo de rádio.
   function aoTeclar(e: KeyboardEvent<HTMLDivElement>) {
@@ -279,7 +316,7 @@ function EscolhaTipo({ valor, onChange }: { valor: TipoCaixa; onChange: (tipo: T
   }
 
   return (
-    <div role="radiogroup" aria-labelledby="caixa-tipo-rotulo" onKeyDown={aoTeclar} className="grid gap-2 sm:grid-cols-3">
+    <div role="radiogroup" aria-labelledby="caixa-tipo-rotulo" onKeyDown={aoTeclar} className="grid gap-2 sm:grid-cols-2">
       {tipos.map((t) => {
         const ativo = t === valor
         return (
@@ -299,7 +336,7 @@ function EscolhaTipo({ valor, onChange }: { valor: TipoCaixa; onChange: (tipo: T
           >
             <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.06em] uppercase">
               <Forma {...FORMA_TIPO[t]} cor={ativo ? 'papel' : 'tinta'} className="size-3.5" />
-              {ROTULO_TIPO_CAIXA[t]}
+              {ROTULO_ESCOLHA[t]}
             </span>
             <span className={cn('text-[0.8125rem] leading-snug', ativo ? 'text-background/85' : 'text-muted-foreground dark:group-hover:text-tinta/80')}>
               {EXPLICACAO_TIPO[t]}

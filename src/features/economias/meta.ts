@@ -30,6 +30,12 @@ export interface MetaEconomia {
    * para o alvo e para o que dá para usar, mas não mexe no saldo: ele já existia.
    */
   jaGuardadoCentavos?: number
+  /**
+   * Calculado, nunca salvo: na meta que manda o dinheiro para uma conta de investimento, o saldo dela sem os aportes
+   * desta meta (o que já estava aplicado, rendimentos e transferências). Substitui `jaGuardadoCentavos`.
+   * Quem calcula é `metasComContas`; o reducer tira o campo ao salvar.
+   */
+  naContaCentavos?: number
   /** Dia do aporte; se o mês não tiver esse dia, vale o último dia do mês. */
   diaDoMes: number
   /** Nenhum aporte acontece antes desta data. */

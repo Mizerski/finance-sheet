@@ -99,11 +99,18 @@ function FormularioAportes({ meta, hoje, onConcluir }: { meta: MetaEconomia; hoj
         </ul>
       )}
 
-      {!!meta.jaGuardadoCentavos && (
+      {meta.naContaCentavos !== undefined ? (
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Já guardado antes do app</span>
-          <span className="tabular-nums">{formatarBRL(meta.jaGuardadoCentavos)}</span>
+          <span className="text-muted-foreground">Já na conta de investimento</span>
+          <span className="tabular-nums">{formatarBRL(meta.naContaCentavos)}</span>
         </div>
+      ) : (
+        !!meta.jaGuardadoCentavos && (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Já guardado antes do app</span>
+            <span className="tabular-nums">{formatarBRL(meta.jaGuardadoCentavos)}</span>
+          </div>
+        )
       )}
 
       <div className="flex justify-between border-t-2 border-contorno pt-3 text-sm">

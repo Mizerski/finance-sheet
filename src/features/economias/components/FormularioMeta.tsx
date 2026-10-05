@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { caixasAtivos, type Caixa } from '@/features/caixas/caixa'
+import { caixasAtivos, ehContaCorrente, ehInvestimento, type Caixa } from '@/features/caixas/caixa'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
 import { useVisao } from '@/features/caixas/useVisao'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
 import { formatarMesAno, paraDataISO, type DataISO } from '@/shared/lib/datas'
+import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, CAMPO, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
@@ -15,6 +16,7 @@ import { Input } from '@/shared/ui/input'
 import { useFinancas } from '@/store/financas-context'
 import { aporteParaOPrazo, resumirMeta } from '../aportes'
 import type { MetaEconomia } from '../meta'
+import { contaDeInvestimentoDaMeta, saldoProprioDaConta } from '../na-conta'
 import { useAvaliacaoMeta } from '../useAvaliacaoMeta'
 import { DiagnosticoMeta } from './DiagnosticoMeta'
 
@@ -48,6 +50,11 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
   // Com uma conta só, o dinheiro fica separado nela (não há para onde mandar).
   const variasContas = caixasAtivos(estado.caixas).filter(ehConta).length >= 2 || !!meta?.destinoId
   const comDestino = onde === 'outra' && !!destinoId && destinoId !== caixaId
+  // Conta de investimento como destino: o saldo dela conta como guardado (no lugar de "Já tenho guardado").
+  const investimento = comDestino ? contaDeInvestimentoDaMeta({ destinoId }, estado.caixas) : undefined
+  const naConta = investimento ? saldoProprioDaConta(investimento, estado.lancamentos, hoje) : null
+  /** Investimento que já é o destino de outra meta: cada conta de investimento fica com uma meta só. */
+  const ocupado = (c: Caixa) => ehInvestimento(c) && estado.metas.some((m) => m.destinoId === c.id && m.id !== meta?.id)
   const [nome, setNome] = useState(sugestao?.nome ?? meta?.nome ?? '')
   const [alvo, setAlvo] = useState(sugestao?.valorAlvoCentavos ?? meta?.valorAlvoCentavos ?? 0)
   const [aporte, setAporte] = useState(sugestao?.aporteMensalCentavos ?? meta?.aporteMensalCentavos ?? 0)
@@ -71,7 +78,7 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
           nome: '',
           ...(alvo > 0 && { valorAlvoCentavos: alvo }),
           aporteMensalCentavos: aporte,
-          ...(jaGuardado > 0 && { jaGuardadoCentavos: jaGuardado }),
+          ...(naConta !== null ? { naContaCentavos: naConta } : jaGuardado > 0 && { jaGuardadoCentavos: jaGuardado }),
           diaDoMes,
           inicio,
           ...(prazo && { prazo }),
@@ -89,7 +96,9 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
     const erros: Erros = {}
     if (!nome.trim()) erros.nome = 'Informe um nome.'
     if (onde === 'outra' && !comDestino) erros.destino = 'Escolha a conta que recebe o dinheiro.'
-    if (alvo > 0 && jaGuardado >= alvo) erros.jaGuardado = 'Já passa do valor que quer juntar.'
+    if (alvo > 0 && (naConta ?? jaGuardado) >= alvo) {
+      erros.jaGuardado = naConta !== null ? 'A conta já tem o valor que quer juntar.' : 'Já passa do valor que quer juntar.'
+    }
     if (aporte <= 0) erros.aporte = 'Informe quanto guardar por mês.'
     if (!diaValido) erros.dia = 'Use um dia de 1 a 31.'
     if (!inicio) erros.inicio = 'Escolha a data do primeiro aporte.'
@@ -142,7 +151,7 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
           setCaixaId(id)
           if (id === destinoId) setDestinoId('')
         }}
-        filtro={ehConta}
+        filtro={ehContaCorrente}
         descricao="Conta de onde sai o dinheiro guardado."
       />
 
@@ -165,9 +174,13 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
           rotulo="Vai para"
           valor={destinoId}
           onChange={setDestinoId}
-          filtro={(c) => ehConta(c) && c.id !== caixaId}
+          filtro={(c) => ehConta(c) && c.id !== caixaId && !ocupado(c)}
           placeholder="Escolher"
-          descricao="Cada aporte vira uma transferência para essa conta."
+          descricao={
+            investimento
+              ? `Cada aporte vira uma transferência para lá, e o que ${investimento.nome} já tem (${formatarBRL(naConta ?? 0)} hoje) conta como guardado nesta meta.`
+              : 'Cada aporte vira uma transferência para essa conta.'
+          }
           erro={erros.destino}
           sempre
         />
@@ -181,22 +194,34 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
           <CampoDinheiro id="meta-alvo" centavos={alvo} onChange={setAlvo} />
           {alvo === 0 && <FieldDescription>Sem valor, guarda todo mês, sem fim.</FieldDescription>}
         </Field>
-        <Field data-invalid={!!erros.jaGuardado || undefined}>
-          <FieldLabel htmlFor="meta-ja-guardado">
-            Já tenho guardado <span className="font-normal text-muted-foreground">(opcional)</span>
-          </FieldLabel>
-          <CampoDinheiro
-            id="meta-ja-guardado"
-            centavos={jaGuardado}
-            onChange={setJaGuardado}
-            aria-invalid={!!erros.jaGuardado || undefined}
-          />
-          {erros.jaGuardado ? (
-            <FieldError>{erros.jaGuardado}</FieldError>
-          ) : (
-            <FieldDescription>Juntado antes, fora do app. Conta para a meta e não mexe no saldo.</FieldDescription>
-          )}
-        </Field>
+        {naConta !== null ? (
+          <Field data-invalid={!!erros.jaGuardado || undefined}>
+            <FieldLabel>Já está na conta</FieldLabel>
+            <p className="flex h-10 items-center text-sm font-semibold tabular-nums">{formatarBRL(naConta)}</p>
+            {erros.jaGuardado ? (
+              <FieldError>{erros.jaGuardado}</FieldError>
+            ) : (
+              <FieldDescription>O saldo de {investimento?.nome}, com rendimentos lançados. Muda sozinho.</FieldDescription>
+            )}
+          </Field>
+        ) : (
+          <Field data-invalid={!!erros.jaGuardado || undefined}>
+            <FieldLabel htmlFor="meta-ja-guardado">
+              Já tenho guardado <span className="font-normal text-muted-foreground">(opcional)</span>
+            </FieldLabel>
+            <CampoDinheiro
+              id="meta-ja-guardado"
+              centavos={jaGuardado}
+              onChange={setJaGuardado}
+              aria-invalid={!!erros.jaGuardado || undefined}
+            />
+            {erros.jaGuardado ? (
+              <FieldError>{erros.jaGuardado}</FieldError>
+            ) : (
+              <FieldDescription>Juntado antes, fora do app. Conta para a meta e não mexe no saldo.</FieldDescription>
+            )}
+          </Field>
+        )}
         <Field data-invalid={!!erros.prazo || undefined}>
           <FieldLabel htmlFor="meta-prazo">
             Até quando <span className="font-normal text-muted-foreground">(opcional)</span>

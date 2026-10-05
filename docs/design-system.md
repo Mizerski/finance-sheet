@@ -214,7 +214,7 @@ Sem categoria: `#a39a8e`.
 | Barra de seleção (lote) | presa embaixo (`fixed inset-x-4 bottom-4`), `shadow-bloco-lg`; a contagem em bloco amarelo à esquerda, ações em botões `outline`, aviso do que mudou com "Desfazer" na linha de cima. A página ganha folga embaixo para a barra não cobrir a última linha |
 | Botão Assistente (só desktop) | bloco como as abas do menu, em `bg-tinta text-papel` com as três formas da marca e "Assistente" em caixa alta; hover amarelo; aberto, afundado em amarelo (o triângulo amarelo vira preto). Na janela estreita (abaixo de 40rem), só as formas |
 | Seletor de caixa | um botão em bloco (`shadow-bloco-sm`) com a bolinha da cor, o nome e ▾, que afunda e fica amarelo quando aberto; a lista numera os atalhos em quadradinhos (preto no escolhido) |
-| Escolha com explicação (tipo do caixa) | cartões lado a lado com forma, nome em caixa alta e uma frase; o escolhido fica em bloco preto, afundado |
+| Escolha com explicação (tipo do caixa) | cartões em grade 2×2 (conta: círculo, investimento: meia-lua, benefício: quarto de círculo, cartão: quadrado) com nome em caixa alta e uma frase; o escolhido fica em bloco preto, afundado |
 | Campo (input, select) | `CAMPO`, `CAMPO_SELECT` — `h-10`, borda de 2px em `border-input` (preta no claro, cinza no escuro); foco com sombra azul deslocada |
 | Botão com texto | `Button` + `BOTAO`; principal preto com sombra vermelha, secundário (`outline`) papel com sombra preta e hover amarelo |
 | Botão só com ícone | `variant="ghost" size="icon" className="rounded-full"` (círculo), com `aria-label` |
