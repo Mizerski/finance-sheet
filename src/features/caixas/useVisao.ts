@@ -6,7 +6,7 @@ import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import type { Projecao } from '@/features/projecao/projecao'
 import type { DataISO } from '@/shared/lib/datas'
 import { useFinancas } from '@/store/financas-context'
-import { caixasAtivos, caixasNoTotal, configPadrao, primeiraConta, primeiraData, type Caixa } from './caixa'
+import { caixasAtivos, caixasNoTotal, configPadrao, ehContaCorrente, primeiraConta, primeiraData, type Caixa } from './caixa'
 
 /** O que as telas mostram: um caixa escolhido em `?caixa=` ou o Total. */
 export interface Visao {
@@ -101,7 +101,7 @@ export function useVisao(): Visao {
     ehBeneficio: caixa?.tipo === 'beneficio',
     ehCartao: caixa?.tipo === 'cartao',
     caixaPadrao: caixa ?? primeiraConta(todosOsCaixas),
-    contaPadrao: caixa?.tipo === 'conta' ? caixa : primeiraConta(todosOsCaixas),
+    contaPadrao: caixa && ehContaCorrente(caixa) ? caixa : primeiraConta(todosOsCaixas),
   }
 }
 

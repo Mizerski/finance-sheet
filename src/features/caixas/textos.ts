@@ -6,7 +6,9 @@ import type { ResumoCartao } from './cartao'
 
 /** O que o tipo quer dizer, em linguagem simples (formulário e lista de caixas). */
 export const EXPLICACAO_TIPO = {
-  conta: 'Dinheiro livre: banco, carteira, poupança. Paga qualquer conta, soma no total e tem risco, metas e reserva.',
+  conta: 'Dinheiro livre: banco, carteira. Paga qualquer conta, soma no total e tem risco, metas e reserva.',
+  investimento:
+    'Dinheiro aplicado: poupança, CDB, corretora. Fica fora do risco, e a meta que manda dinheiro para ela conta o saldo dela.',
   beneficio:
     'Dinheiro carimbado: vale-refeição, vale-alimentação. Só paga alguns gastos, por isso fica fora do total e mostra quanto dá por dia até a recarga.',
   cartao:

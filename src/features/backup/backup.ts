@@ -72,7 +72,9 @@ function ehCaixa(c: unknown): c is Caixa {
     typeof c.saldoDefinido === 'boolean' &&
     typeof c.entraNoTotal === 'boolean' &&
     Number.isInteger(c.ordem) &&
-    (c.arquivado === undefined || typeof c.arquivado === 'boolean')
+    (c.arquivado === undefined || typeof c.arquivado === 'boolean') &&
+    // A partir da versão 11: conta de investimento (só em conta).
+    (c.investimento === undefined || (typeof c.investimento === 'boolean' && (!c.investimento || c.tipo === 'conta')))
   )
 }
 

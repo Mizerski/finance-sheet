@@ -43,6 +43,11 @@ export interface Caixa extends Configuracao {
   arquivado?: boolean
   /** Só (e sempre) no cartão de crédito. */
   cartao?: CicloCartao
+  /**
+   * Só em conta: conta de investimento (poupança, CDB, corretora). Fica fora do risco e não paga cartão nem é origem
+   * de meta; a meta que manda dinheiro para ela conta o saldo dela como guardado (`naContaCentavos`).
+   */
+  investimento?: boolean
 }
 
 export const NOME_CONTA_PRINCIPAL = 'Conta principal'
@@ -99,6 +104,21 @@ export function somaNoTotal(caixa: Caixa): boolean {
   return caixa.tipo !== 'beneficio' && caixa.entraNoTotal
 }
 
+/** Conta de investimento: dinheiro aplicado, fora do risco. */
+export function ehInvestimento(caixa: Caixa): boolean {
+  return caixa.tipo === 'conta' && !!caixa.investimento
+}
+
+/** Conta do dia a dia (não investimento): tem risco, paga cartão e é origem de metas. */
+export function ehContaCorrente(caixa: Caixa): boolean {
+  return caixa.tipo === 'conta' && !caixa.investimento
+}
+
+/** "Conta", "Investimento", "Benefício" ou "Cartão de crédito". */
+export function rotuloDoCaixa(caixa: Caixa): string {
+  return ehInvestimento(caixa) ? 'Investimento' : ROTULO_TIPO_CAIXA[caixa.tipo]
+}
+
 /** Cartão de crédito com o ciclo preenchido. */
 export function ehCartao(caixa: Caixa): caixa is Caixa & { tipo: 'cartao'; cartao: CicloCartao } {
   return caixa.tipo === 'cartao' && !!caixa.cartao
@@ -114,9 +134,9 @@ export function caixasNoTotal(caixas: Caixa[]): Caixa[] {
   return ordenarCaixas(caixas.filter(somaNoTotal))
 }
 
-/** Primeira conta ativa: o caixa padrão de lançamentos e metas novos. */
+/** Primeira conta ativa do dia a dia: o caixa padrão de lançamentos e metas novos. */
 export function primeiraConta(caixas: Caixa[]): Caixa | undefined {
-  return caixasAtivos(caixas).find((c) => c.tipo === 'conta')
+  return caixasAtivos(caixas).find(ehContaCorrente) ?? caixasAtivos(caixas).find((c) => c.tipo === 'conta')
 }
 
 /** Data mais antiga entre os caixas (o primeiro dia com dados); null sem caixas. */

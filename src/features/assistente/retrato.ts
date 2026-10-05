@@ -1,4 +1,4 @@
-import { caixasAtivos, caixasNoTotal, lancamentosDoCaixa, type Caixa } from '@/features/caixas/caixa'
+import { caixasAtivos, caixasNoTotal, ehContaCorrente, ehInvestimento, lancamentosDoCaixa, type Caixa } from '@/features/caixas/caixa'
 import { idsDeRecarga, resumirBeneficio } from '@/features/caixas/beneficio'
 import type { Categoria } from '@/features/categorias/categoria'
 import { resumirMeta } from '@/features/economias/aportes'
@@ -109,9 +109,11 @@ export function montarRetrato(e: EntradaRetrato): string {
         ? 'benefício'
         : c.tipo === 'cartao'
           ? `cartão de crédito${idsNoTotal.has(c.id) ? '' : ' fora do total'}`
-          : idsNoTotal.has(c.id)
-            ? 'conta'
-            : 'conta fora do total'
+          : ehInvestimento(c)
+            ? `conta de investimento${idsNoTotal.has(c.id) ? '' : ' fora do total'}`
+            : idsNoTotal.has(c.id)
+              ? 'conta'
+              : 'conta fora do total'
     const cartao = c.cartao && hojeCaixa !== null ? resumirCartao(diasDoCaixa, c.cartao, hoje) : null
     const valores =
       hojeCaixa === null
@@ -222,7 +224,7 @@ export function montarRetrato(e: EntradaRetrato): string {
   }
 
   // Risco de cada conta
-  const contas = ativos.filter((c) => c.tipo === 'conta')
+  const contas = ativos.filter(ehContaCorrente)
   const riscos: string[] = []
   for (const c of contas) {
     const diasDaConta = (e.porCaixa.get(c.id) ?? []).flatMap((p) => p.dias)
@@ -283,7 +285,11 @@ export function montarRetrato(e: EntradaRetrato): string {
           ? `prazo ${data(m.prazo)}: ${r.noPrazo ? 'no prazo' : `atrasada; precisaria de ${brl(r.aporteParaOPrazoCentavos ?? 0)} por mês`}`
           : '',
         variosCaixas ? `conta ${nomeDaConta(m.caixaId)}` : '',
-        m.jaGuardadoCentavos ? `começou com ${brl(m.jaGuardadoCentavos)} já guardados fora do app` : '',
+        m.naContaCentavos !== undefined
+          ? `inclui ${brl(m.naContaCentavos)} que já estavam na conta de investimento dela`
+          : m.jaGuardadoCentavos
+            ? `começou com ${brl(m.jaGuardadoCentavos)} já guardados fora do app`
+            : '',
         m.destinoId ? `o dinheiro vai para a conta ${nomeDaConta(m.destinoId)}` : 'o dinheiro fica separado na conta (fora do saldo disponível)',
         usado(m) ? `já usou ${brl(usado(m))}` : '',
         r.encerrada ? 'encerrada (não guarda mais)' : '',

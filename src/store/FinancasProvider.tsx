@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react'
+import { metasComContas } from '@/features/economias/na-conta'
+import { paraDataISO } from '@/shared/lib/datas'
 import { traduzirErro } from '@/shared/lib/erros'
 import { AvisoErro } from '@/shared/components/AvisoErro'
 import { TelaCentralizada } from '@/shared/components/TelaCentralizada'
@@ -59,7 +61,12 @@ export function FinancasProvider({ armazenamento, children }: { armazenamento: A
     [armazenamento],
   )
 
-  const valor = useMemo(() => ({ estado, dispatch }), [estado, dispatch])
+  // A tela vê as metas com o saldo da conta de investimento delas (calculado, nunca salvo: ver `metasComContas`).
+  const [hoje] = useState(() => paraDataISO(new Date()))
+  const valor = useMemo(() => {
+    const metas = metasComContas(estado.metas, estado.caixas, estado.lancamentos, hoje)
+    return { estado: metas === estado.metas ? estado : { ...estado, metas }, dispatch }
+  }, [estado, dispatch, hoje])
 
   if (carga.situacao === 'carregando') return <TelaCentralizada titulo="Carregando seus dados…" />
   if (carga.situacao === 'erro') {

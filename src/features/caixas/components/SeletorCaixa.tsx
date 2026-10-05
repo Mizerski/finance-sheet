@@ -14,7 +14,7 @@ import { CAMADA, ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
-import { NOME_TOTAL, somaNoTotal, type Caixa } from '../caixa'
+import { NOME_TOTAL, rotuloDoCaixa, somaNoTotal, type Caixa } from '../caixa'
 import { resumoCurtoBeneficio, resumoCurtoCartao } from '../textos'
 import { useBeneficios } from '../useBeneficio'
 import { useCartoes } from '../useCartao'
@@ -75,7 +75,7 @@ function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; cart
         .map((c) => ({
           caixa: c,
           nome: c.nome,
-          detalhe: somaNoTotal(c) ? 'Conta' : 'Conta · fora do total',
+          detalhe: somaNoTotal(c) ? rotuloDoCaixa(c) : `${rotuloDoCaixa(c)} · fora do total`,
           alerta: false,
           saldoCentavos: saldoDoDia(porCaixa.get(c.id), hoje),
           nivel: nivelPorConta.get(c.id) ?? null,

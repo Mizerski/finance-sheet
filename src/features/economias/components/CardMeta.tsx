@@ -70,11 +70,18 @@ export function CardMeta({
             <p className="text-sm text-muted-foreground">
               <span className="tabular-nums">{formatarBRL(meta.aporteMensalCentavos)}</span> todo dia {meta.diaDoMes} ·
               desde {formatarData(meta.inicio)}
-              {!!meta.jaGuardadoCentavos && (
+              {meta.naContaCentavos !== undefined ? (
                 <>
                   {' '}
-                  · começou com <span className="tabular-nums">{formatarBRL(meta.jaGuardadoCentavos)}</span>
+                  · <span className="tabular-nums">{formatarBRL(meta.naContaCentavos)}</span> já na conta
                 </>
+              ) : (
+                !!meta.jaGuardadoCentavos && (
+                  <>
+                    {' '}
+                    · começou com <span className="tabular-nums">{formatarBRL(meta.jaGuardadoCentavos)}</span>
+                  </>
+                )
               )}
               {meta.prazo && <> · até {formatarMesAno(meta.prazo, 'curto')}</>}
               {destino && <> · vai para {destino}</>}

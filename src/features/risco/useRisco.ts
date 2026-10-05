@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { caixasAtivos, lancamentosDoCaixa, metasDoCaixa } from '@/features/caixas/caixa'
+import { caixasAtivos, ehContaCorrente, lancamentosDoCaixa, metasDoCaixa } from '@/features/caixas/caixa'
 import { useVisao } from '@/features/caixas/useVisao'
 import { paraProjetar, useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
 import { paraDataISO } from '@/shared/lib/datas'
@@ -17,7 +17,8 @@ export function useRisco(): RiscoDaVisao | null {
   const { porCaixa } = useProjecoesDosCaixas()
   const [hoje] = useState(() => paraDataISO(new Date()))
 
-  const contas = useMemo(() => caixasDaVisao.filter((c) => c.tipo === 'conta' && !c.arquivado), [caixasDaVisao])
+  // Conta de investimento não tem risco: o dinheiro dela não paga as contas do dia a dia.
+  const contas = useMemo(() => caixasDaVisao.filter((c) => ehContaCorrente(c) && !c.arquivado), [caixasDaVisao])
   const soAConta = caixasDaVisao.length === 1 && contas.length === 1
 
   return useMemo(() => {
@@ -42,7 +43,7 @@ export function useRiscoDaConta(caixaId: string | undefined): RiscoDeUmaConta | 
   const { lancamentos, metas } = estado
 
   return useMemo(() => {
-    if (!caixa || caixa.tipo !== 'conta' || !projecoes) return null
+    if (!caixa || !ehContaCorrente(caixa) || !projecoes) return null
     const atual = analisarRisco(projecoes.flatMap((p) => p.dias), hoje)
     if (!atual) return null
     const contexto = {
@@ -61,7 +62,7 @@ export function useRiscosDasContas(): RiscoDaConta[] {
   const { porCaixa } = useProjecoesDosCaixas()
   const [hoje] = useState(() => paraDataISO(new Date()))
   return useMemo(() => {
-    const contas = caixasAtivos(estado.caixas).filter((c) => c.tipo === 'conta')
+    const contas = caixasAtivos(estado.caixas).filter(ehContaCorrente)
     return riscosDasContas(
       contas.map((caixa) => ({ caixa, dias: porCaixa.get(caixa.id)!.flatMap((p) => p.dias) })),
       hoje,

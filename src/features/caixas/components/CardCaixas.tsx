@@ -10,7 +10,7 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { ehCartao, ehUltimaConta, NOME_TOTAL, ROTULO_TIPO_CAIXA, somaNoTotal, type Caixa, type usosDoCaixa } from '../caixa'
+import { ehCartao, ehUltimaConta, NOME_TOTAL, rotuloDoCaixa, somaNoTotal, type Caixa, type usosDoCaixa } from '../caixa'
 import { EXPLICACAO_TIPO } from '../textos'
 
 interface CardCaixasProps {
@@ -36,7 +36,7 @@ const SEM_USO: UsoDoCaixa = { lancamentos: 0, metas: 0, cartoes: 0 }
 
 /** O que o caixa é, numa linha curta embaixo do nome: tipo, ciclo do cartão, se soma no total, uso e se está arquivado. */
 function detalhe(caixa: Caixa, uso: UsoDoCaixa): string {
-  const partes = [ROTULO_TIPO_CAIXA[caixa.tipo]]
+  const partes = [rotuloDoCaixa(caixa)]
   if (ehCartao(caixa)) partes.push(`fecha dia ${caixa.cartao.diaFechamento}, vence dia ${caixa.cartao.diaVencimento}`)
   // O benefício sempre fica fora do total; na conta, só a exceção é dita.
   if (!somaNoTotal(caixa)) partes.push('fora do total')

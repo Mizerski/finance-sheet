@@ -76,7 +76,7 @@ export function resgatesDaMeta(meta: MetaEconomia, ate: DataISO = '9999-12-31'):
 
 /** O que já estava guardado fora do app ao criar a meta. */
 export function jaGuardado(meta: MetaEconomia): number {
-  return meta.jaGuardadoCentavos ?? 0
+  return meta.naContaCentavos ?? meta.jaGuardadoCentavos ?? 0
 }
 
 /** O que está na meta no fim de `data`: o que já estava guardado, mais os aportes, menos o que foi usado. */

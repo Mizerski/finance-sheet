@@ -1,4 +1,4 @@
-import { caixasAtivos, caixasNoTotal, lancamentosDoCaixa, metasDoCaixa, type Caixa } from '@/features/caixas/caixa'
+import { caixasAtivos, caixasNoTotal, ehContaCorrente, lancamentosDoCaixa, metasDoCaixa, type Caixa } from '@/features/caixas/caixa'
 import type { Pasta } from '@/features/pastas/pasta'
 import { diasNoPeriodo, saldoAntesDoDia, type Projecao } from '@/features/projecao/projecao'
 import { analisarRisco, NIVEL, type AnaliseRisco } from '@/features/risco/risco'
@@ -354,7 +354,7 @@ function simularGasto(args: Record<string, unknown>, d: DadosFerramentas): Resul
   const dia = ehDia(args.data) ? args.data : d.hoje
   if (dia < d.hoje) return { resumo: 'Simulação: data no passado', resultado: 'A data do gasto precisa ser hoje ou depois.' }
 
-  const contas = caixasNoTotal(d.caixas).filter((c) => c.tipo === 'conta' && !c.arquivado)
+  const contas = caixasNoTotal(d.caixas).filter((c) => ehContaCorrente(c) && !c.arquivado)
   const escolhida = lerCaixa(args.conta, contas)
   if (typeof escolhida === 'string') return { resumo: 'Simulação: conta não encontrada', resultado: escolhida }
   const conta = escolhida ?? contas[0]
