@@ -1,11 +1,11 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ChevronDown, Settings2 } from '@/shared/ui/icones'
-import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
-import type { Projecao } from '@/features/projecao/projecao'
+import { useProjecoesDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
+import type { Projecao } from '@/features/projecao/utils/projecao'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
-import { NIVEL, type NivelRisco } from '@/features/risco/risco'
-import { useRiscosDasContas } from '@/features/risco/useRisco'
+import { NIVEL, type NivelRisco } from '@/features/risco/utils/risco'
+import { useRiscosDasContas } from '@/features/risco/hooks/useRisco'
 import { Forma } from '@/shared/components/Forma'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { paraDataISO, type DataISO } from '@/shared/lib/datas'
@@ -14,11 +14,11 @@ import { CAMADA, ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
-import { NOME_TOTAL, rotuloDoCaixa, somaNoTotal, type Caixa } from '../caixa'
-import { resumoCurtoBeneficio, resumoCurtoCartao } from '../textos'
-import { useBeneficios } from '../useBeneficio'
-import { useCartoes } from '../useCartao'
-import { useEscolherCaixa, useVisao } from '../useVisao'
+import { NOME_TOTAL, rotuloDoCaixa, somaNoTotal, type Caixa } from '../model/caixa'
+import { resumoCurtoBeneficio, resumoCurtoCartao } from '../constants/textos'
+import { useBeneficios } from '../hooks/useBeneficio'
+import { useCartoes } from '../hooks/useCartao'
+import { useEscolherCaixa, useVisao } from '../hooks/useVisao'
 
 /** A partir deste nível, o risco aparece no próprio botão: alerta fica sempre à vista, o "tudo certo" fica na lista. */
 const NIVEL_ALERTA: NivelRisco = 3
@@ -41,8 +41,7 @@ function saldoDoDia(projecoes: Projecao[] | undefined, hoje: DataISO): number | 
 }
 
 /**
- * Lista do seletor: Total, as contas, os benefícios e os cartões, com o saldo de hoje e o risco (contas), a recarga
- * (benefícios) ou a fatura (cartões).
+ * Opções do seletor com o saldo de hoje e o risco, a recarga ou a fatura. O risco do Total é o da conta mais apertada.
  */
 function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; cartoes: Opcao[]; noTotal: Caixa[] } {
   const { caixas } = useVisao()
@@ -55,7 +54,6 @@ function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; cart
   return useMemo(() => {
     const nivelPorConta = new Map(riscos.map((r) => [r.caixa.id, r.analise.nivel]))
     const noTotal = caixas.filter(somaNoTotal)
-    // O risco do Total é o da conta mais apertada entre as que somam nele.
     const niveisDoTotal = noTotal.flatMap((c) => nivelPorConta.get(c.id) ?? [])
     const resumoPorBeneficio = new Map(beneficios.map((b) => [b.caixa.id, b.resumo]))
     const resumoPorCartao = new Map(cartoes.map((c) => [c.caixa.id, c.resumo]))
@@ -97,8 +95,8 @@ function useOpcoes(): { total: Opcao; contas: Opcao[]; beneficios: Opcao[]; cart
 }
 
 /**
- * Escolha do caixa que as telas mostram: um botão só, ao lado do saldo, que abre a lista com o saldo de hoje,
- * o risco de cada conta e a recarga de cada benefício. Só aparece com 2 ou mais caixas ativos.
+ * Escolha do caixa das telas, ao lado do saldo. Só com 2 ou mais caixas ativos.
+ * Alerta de outro caixa também aparece no botão, num triângulo vermelho.
  */
 export function SeletorCaixa({ className }: { className?: string }) {
   const { caixas, caixa } = useVisao()
@@ -110,10 +108,8 @@ export function SeletorCaixa({ className }: { className?: string }) {
   const opcoes = [total, ...contas, ...beneficios, ...cartoes]
   const atual = opcoes.find((o) => o.caixa?.id === caixa?.id) ?? total
   const temAlerta = (o: Opcao) => o.alerta || (o.nivel !== null && o.nivel >= NIVEL_ALERTA)
-  // Alerta de outro caixa (ex.: o vale acaba antes da recarga) também fica à vista: um triângulo vermelho no botão.
   const alertasDeOutros = temAlerta(atual) ? [] : opcoes.filter((o) => o !== atual && o.caixa && temAlerta(o))
   const avisoOutros = alertasDeOutros.map((o) => `${o.nome}: ${o.alerta ? o.detalhe.toLowerCase() : NIVEL[o.nivel!].nome}`).join(' · ')
-  // Posição nos atalhos: Alt+0 é o Total, Alt+1…9 seguem a ordem dos caixas.
   const tecla = (c: Caixa | null) => (c ? caixas.indexOf(c) + 1 : 0)
   const trocar = (c: Caixa | null) => {
     escolher(c?.id ?? null)
@@ -130,7 +126,6 @@ export function SeletorCaixa({ className }: { className?: string }) {
       <PopoverTrigger
         className={cn(
           'flex h-9 min-w-0 shrink items-center gap-2 border-2 border-contorno bg-card px-2.5 text-xs font-semibold tracking-[0.06em] uppercase shadow-bloco-sm transition-[background-color,box-shadow,translate] duration-100 outline-none hover:bg-amarelo hover:text-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:shadow-none motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]',
-          // Aberto, fica afundado como a aba ativa do menu.
           'data-[state=open]:bg-amarelo data-[state=open]:text-tinta data-[state=open]:shadow-none motion-safe:data-[state=open]:translate-x-[2px] motion-safe:data-[state=open]:translate-y-[2px]',
           className,
         )}

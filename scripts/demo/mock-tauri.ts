@@ -3,7 +3,7 @@
  * Carregado antes do src/main.tsx (entrada.ts, por scripts/demo/vite.config.ts). Nada é gravado em disco.
  */
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks'
-import { VERSAO_DADOS } from '@/store/estado'
+import { VERSAO_DADOS } from '@/store/model/dados'
 import { dadosDemo } from './dados-demo'
 
 const arquivos = new Map<string, Map<string, unknown>>([

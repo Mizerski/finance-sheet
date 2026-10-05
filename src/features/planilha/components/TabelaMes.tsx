@@ -1,7 +1,7 @@
-import type { Categoria } from '@/features/categorias/categoria'
+import type { Categoria } from '@/features/categorias/model/categoria'
 import { QuadradoRisco } from '@/features/risco/components/SeloRisco'
-import { NIVEL, type NivelRisco } from '@/features/risco/risco'
-import type { DiaProjetado, ResumoMes } from '@/features/projecao/projecao'
+import { NIVEL, type NivelRisco } from '@/features/risco/utils/risco'
+import type { DiaProjetado, ResumoMes } from '@/features/projecao/utils/projecao'
 import type { DataISO } from '@/shared/lib/datas'
 import { nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -17,8 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/ui/table'
-import { somarColunas } from '../colunas'
-import { CELULA, CELULA_DIA, COR_COLUNA } from '../cores'
+import { somarColunas } from '../utils/colunas'
+import { CELULA, CELULA_DIA, COR_COLUNA } from '../constants/cores'
 import { CelulaSaldo, CelulaValor } from './CelulaValor'
 import { LinhaDia } from './LinhaDia'
 
@@ -89,7 +89,6 @@ export function TabelaMes({
   const saldoInicial = resumo.saldoInicialCentavos
   const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
   const totais = somarColunas(dias)
-  // Risco do mês: o nível do dia mais apertado.
   const niveis = dias.map((d) => nivelDoDia?.(d) ?? null)
   const doMes = niveis.filter((n): n is NivelRisco => n !== null)
   const nivelDoMes = doMes.length > 0 ? (Math.max(...doMes) as NivelRisco) : null
@@ -98,7 +97,6 @@ export function TabelaMes({
     <Card className={CARD}>
       <header className="flex items-stretch justify-between gap-3 border-b-2 border-contorno">
         <div className="flex items-stretch">
-          {/* Número do mês em bloco preto, como a numeração de um cartaz. */}
           <span
             aria-hidden
             className="flex w-12 items-center justify-center bg-foreground font-heading text-xl font-bold text-background tabular-nums sm:w-14 sm:text-2xl"
@@ -140,7 +138,6 @@ export function TabelaMes({
                 key={c.rotulo}
                 className={cn(
                   c.rotulo === 'Dia' ? CELULA_DIA : CELULA,
-                  // No celular, sem o espaçamento entre letras: os rótulos em caixa alta não podem alargar as colunas.
                   'h-auto text-right text-[0.6rem] font-semibold uppercase sm:text-[0.65rem] sm:tracking-[0.06em]',
                   c.largura,
                   c.className,

@@ -96,12 +96,12 @@ Texto sobre bloco vermelho ou azul é `text-sobre-bloco` (papel no claro, tinta 
 - Um valor de entrada é **sempre** azul, um de saída **sempre** vermelho, um aporte de economia **sempre** amarelo/ocre e um saldo negativo **sempre** `text-negativo`, em qualquer tela.
 - **Transferência** entre contas não é entrada nem saída: valor em `text-foreground` com as setas (`ArrowLeftRight`), sem sinal na lista; a opção ativa do tipo fica no bloco preto. Na planilha de uma conta ela soma nas colunas de entrada e saída, como num extrato.
 - Todos os pares de texto e fundo acima passam de 4,5:1 (conferido ao criar a paleta).
-- Na planilha, as combinações ficam em `COR_COLUNA` (`src/features/planilha/cores.ts`). Reaproveite essas constantes.
-- Seletores de tipo (Saída/Entrada) pintam a opção ativa com `COR_ATIVA_TIPO` (`src/features/lancamentos/cores.ts`).
+- Na planilha, as combinações ficam em `COR_COLUNA` (`src/features/planilha/constants/cores.ts`). Reaproveite essas constantes.
+- Seletores de tipo (Saída/Entrada) pintam a opção ativa com `COR_ATIVA_TIPO` (`src/features/lancamentos/constants/cores.ts`).
 
 ### Risco do caixa
 
-Cinco níveis, do mais tranquilo ao mais arriscado, numa escala que sai do azul, passa pelo amarelo e chega ao vermelho. Tokens `--risco-N`, `--risco-N-suave` e `--risco-N-texto` (N de 1 a 5), com as classes em `COR_RISCO` (`src/features/risco/cores.ts`).
+Cinco níveis, do mais tranquilo ao mais arriscado, numa escala que sai do azul, passa pelo amarelo e chega ao vermelho. Tokens `--risco-N`, `--risco-N-suave` e `--risco-N-texto` (N de 1 a 5), com as classes em `COR_RISCO` (`src/features/risco/constants/cores.ts`).
 
 | Nível | Bloco forte | Fundo suave | Texto sobre o bloco |
 |---|---|---|---|
@@ -118,14 +118,14 @@ Cinco níveis, do mais tranquilo ao mais arriscado, numa escala que sai do azul,
 ### Gráficos
 
 - Entradas, saídas e economia usam `--grafico-entrada` (azul), `--grafico-saida` (vermelho) e `--grafico-economia` (amarelo). Saldo e sobra usam `--grafico-saldo` (preto).
-- **Toda barra e fatia leva o contorno preto** `CONTORNO` (`src/features/dashboard/graficos.ts`): separa os blocos e dá contraste ao amarelo. Barras retas, sem raio.
+- **Toda barra e fatia leva o contorno preto** `CONTORNO` (`src/features/dashboard/utils/graficos.ts`): separa os blocos e dá contraste ao amarelo. Barras retas, sem raio.
 - Linha de saldo com 3px, cantos vivos e marcadores quadrados; o zero, quando há negativos, é uma linha vermelha tracejada.
 - `--chart-1` a `--chart-5`: vermelho, azul, amarelo, preto, cinza.
 - Gráficos por categoria usam a cor da própria categoria.
 
 ### Cores de categoria
 
-São dados e ficam em hex. A paleta Bauhaus oferecida no seletor fica em `GRUPOS_CORES_CATEGORIA` (`src/features/categorias/cores.ts`): Primárias (vermelho, azul, amarelo, preto), Quentes, Frias e Neutras.
+São dados e ficam em hex. A paleta Bauhaus oferecida no seletor fica em `GRUPOS_CORES_CATEGORIA` (`src/features/categorias/constants/cores.ts`): Primárias (vermelho, azul, amarelo, preto), Quentes, Frias e Neutras.
 
 - O `SeletorCor` mostra quadradinhos com contorno preto e sombra dura; a cor escolhida fica afundada com ✓ (`text-tinta` nas cores marcadas `clara`, papel nas outras). Uma cor salva que não está mais na paleta aparece no grupo "Atual" e continua disponível.
 - Toda cor de usuário aparece com contorno preto: `PontoCor` é um quadradinho com borda de 1,5px, e as legendas, barras e fatias levam `CONTORNO`. Por isso a paleta pode ter cores claras (amarelo, rosa, areia).

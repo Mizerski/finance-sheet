@@ -5,8 +5,8 @@ import { BOTAO, CAMADA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/shared/ui/popover'
-import { useAssistente } from '../assistente-context'
-import { formatarTamanho, infoModelo } from '../modelos'
+import { useAssistente } from '../context/assistente-context'
+import { formatarTamanho, infoModelo } from '../constants/modelos'
 
 /** Modelo instalado: trocar por outro ou apagar para liberar espaço. */
 export function OpcoesAssistente({ id }: { id: string }) {

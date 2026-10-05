@@ -7,8 +7,8 @@ import { Button } from '@/shared/ui/button'
 import { Field, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/shared/ui/popover'
-import { useIniciarComSistema } from '../useIniciarComSistema'
-import { useLembrete } from '../useLembrete'
+import { useIniciarComSistema } from '../hooks/useIniciarComSistema'
+import { useLembrete } from '../hooks/useLembrete'
 
 /** Desktop: liga, desliga e escolhe o horário do lembrete diário de registrar os gastos. */
 export function BotaoLembrete() {
@@ -66,7 +66,6 @@ export function BotaoLembrete() {
               Testar notificação
             </Button>
 
-            {/* Para o lembrete chegar com a janela fechada, o app precisa continuar rodando na bandeja. */}
             <div className="flex flex-col gap-3 border-t-2 border-contorno pt-3">
               <Field>
                 <FieldLabel>Ao fechar a janela</FieldLabel>

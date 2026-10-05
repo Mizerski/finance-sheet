@@ -38,12 +38,19 @@ src/
 │   ├── autenticacao/     # Login e sessão (só web)
 │   ├── backup/           # Exportar e importar JSON (só desktop)
 │   └── atualizacao/      # Aviso de versão nova e instalação (só desktop)
+│       (dentro de cada feature: a página na raiz e components/, hooks/, context/,
+│        model/, utils/, constants/, api/ e doc/, conforme o que ela usa)
 ├── shared/               # O que não pertence a nenhuma feature
 │   ├── ui/               # Componentes shadcn
 │   ├── components/       # Componentes do app (CabecalhoPagina, Forma, Marca…)
 │   ├── lib/              # Datas, dinheiro, estilos, utilitários
 │   └── hooks/
 ├── store/                # Estado global e armazenamento
+│   ├── context/          # FinancasProvider e useFinancas
+│   ├── reducer/          # financasReducer e as ações
+│   ├── model/            # DadosFinancas, versão e conversão dos dados antigos
+│   ├── repositorio/      # Armazenamento (Supabase e arquivo local)
+│   └── doc/              # Histórico das versões dos dados
 ├── index.css             # Tokens do design system
 └── main.tsx              # Escolhe a raiz web ou desktop
 
@@ -75,7 +82,7 @@ As telas não sabem onde os dados ficam: elas só conversam com o `FinancasProvi
 - O estado vive num `useReducer` com Context (`src/store/`). Ele é um **cache em memória** do que está salvo.
 - Os componentes chamam `dispatch` com uma ação (`lancamento/salvar`, `meta/excluir`…). O `FinancasProvider` aplica a ação na tela na hora e coloca a gravação numa **fila**, que roda na ordem em que as ações aconteceram.
 - Se uma gravação falhar, o provider recarrega os dados salvos e mostra um aviso, para a tela nunca mostrar algo que não foi salvo.
-- O `Armazenamento` (`src/store/armazenamento.ts`) é a interface entre o estado e o lugar onde os dados ficam:
+- O `Armazenamento` (`src/store/repositorio/armazenamento.ts`) é a interface entre o estado e o lugar onde os dados ficam:
   - **Supabase** (`armazenamento-supabase.ts`): cada ação vira um `insert`, `update` ou `delete`. As colunas do banco são snake_case; a tradução para o estado em camelCase fica só nesse arquivo.
   - **Arquivo local** (`armazenamento-local.ts`): grava o estado inteiro num JSON (`financas.json`) com o `plugin-store` do Tauri. O formato tem versão (`VERSAO_DADOS`), e dados e backups antigos são convertidos ao carregar.
 
@@ -85,7 +92,7 @@ Toda tabela tem `user_id` e uma regra de RLS `(select auth.uid()) = user_id`. O 
 
 ## Como a projeção funciona
 
-O coração do app são funções puras em `src/features/projecao/projecao.ts`, sem React:
+O coração do app são funções puras em `src/features/projecao/utils/projecao.ts`, sem React:
 
 1. **`projetarAnos`** percorre os anos desde a data do saldo inicial. O saldo do fim de um ano é a abertura do seguinte.
 2. Para cada dia, **`ocorreEm`** decide quais lançamentos acontecem (única, semanal, mensal, diária ou só em dias úteis, dentro de início e fim). Dia 31 em mês de 30 dias cai no último dia do mês.

@@ -23,7 +23,6 @@ interface NavegacaoMesesProps {
 export function NavegacaoMeses({ meses, temAnterior, temProximo, onAnterior, onProximo, className }: NavegacaoMesesProps) {
   const primeiro = meses[0]
   const ultimo = meses[meses.length - 1]
-  // Atravessando o ano, os meses viram abreviações para os dois anos caberem.
   const viraAno = primeiro.ano !== ultimo.ano
   const formato = viraAno ? 'curto' : 'longo'
   const ano = (a: number) => <span className="font-light">{a}</span>

@@ -1,5 +1,5 @@
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
-import type { ResumoMes } from '@/features/projecao/projecao'
+import type { ResumoMes } from '@/features/projecao/utils/projecao'
 import { nomeDoMes } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO, TABELA } from '@/shared/lib/estilos'
@@ -8,7 +8,7 @@ import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { sobraDoMes } from '../sobras'
+import { sobraDoMes } from '../utils/sobras'
 
 /** Colunas mais justas no celular, para as cinco caberem em 343px. */
 const CELULA = 'px-1 py-2.5 sm:px-3'
@@ -20,8 +20,8 @@ const COLUNAS = [
   { rotulo: 'Sobra', cor: '' },
 ]
 
+/** Meses antes do saldo inicial ficam fora da média. */
 export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) {
-  // Meses antes do saldo inicial não têm cálculo e ficam fora da média.
   const calculados = meses.filter((m) => m.saldoFinalCentavos !== null)
   const soma = (f: (m: ResumoMes) => number) => calculados.reduce((t, m) => t + f(m), 0)
   const total = {
@@ -51,7 +51,6 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
         acoes={<SeletorAno />}
       />
 
-      {/* No celular, letra menor e mais junta para as cinco colunas caberem em 343px. */}
       <Table className={cn(TABELA.tabela, 'text-[0.7rem] tracking-tight sm:tracking-normal')}>
         <TableHeader>
           <TableRow className={TABELA.linhaCabecalho}>
@@ -118,7 +117,6 @@ function Valor({ centavos, cor, sobra, ultima }: { centavos: number | null; cor?
         ultima && 'pr-4 sm:pr-5',
       )}
     >
-      {/* Movimento zero fica em branco, como na planilha; a sobra sempre aparece. */}
       {centavos === null ? '—' : centavos === 0 && !sobra ? '' : formatarBRL(centavos)}
     </TableCell>
   )

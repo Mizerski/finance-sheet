@@ -13,7 +13,6 @@ const FORMATO: Record<TipoForma, string> = {
   quadrado: '',
   circulo: 'rounded-full',
   triangulo: '[clip-path:polygon(50%_0,100%_100%,0_100%)]',
-  // Meia-lua deitada: ocupa a metade de baixo do quadrado, com a curva para cima.
   semicirculo: 'rounded-t-full [clip-path:inset(0_0_50%_0)] translate-y-1/4',
   quarto: 'rounded-tl-full',
 }

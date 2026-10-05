@@ -1,11 +1,11 @@
 import { useContext } from 'react'
 import { LogOut } from '@/shared/ui/icones'
 import { Button } from '@/shared/ui/button'
-import { SessaoContext } from '../sessao-context'
+import { SessaoContext } from '../context/sessao-context'
 
+/** Some sem sessão (no desktop, que não tem login). */
 export function BotaoSair() {
   const sessao = useContext(SessaoContext)
-  // Sem sessão (app desktop, que não tem login): não há de onde sair.
   if (!sessao) return null
   const { usuario, sair } = sessao
 

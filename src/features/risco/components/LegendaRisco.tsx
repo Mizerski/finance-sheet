@@ -1,6 +1,6 @@
 import { cn } from '@/shared/lib/utils'
-import { COR_RISCO } from '../cores'
-import { NIVEIS, NIVEL, type NivelRisco } from '../risco'
+import { COR_RISCO } from '../constants/cores'
+import { NIVEIS, NIVEL, type NivelRisco } from '../utils/risco'
 
 /** Os cinco níveis com o que cada um quer dizer e, se houver, quantos dias do período ficam nele. */
 export function LegendaCompleta({ diasPorNivel }: { diasPorNivel?: Record<NivelRisco, number> }) {

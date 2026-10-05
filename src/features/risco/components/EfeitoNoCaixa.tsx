@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
-import type { Lancamento, TipoLancamento } from '@/features/lancamentos/lancamento'
+import type { Lancamento, TipoLancamento } from '@/features/lancamentos/model/lancamento'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
 import { ROTULO } from '@/shared/lib/estilos'
-import { COR_RISCO } from '../cores'
-import { naoPiora, riscoCom } from '../simulacao'
-import { useRiscoDaConta } from '../useRisco'
+import { COR_RISCO } from '../constants/cores'
+import { naoPiora, riscoCom } from '../utils/simulacao'
+import { useRiscoDaConta } from '../hooks/useRisco'
 import { DataForte, Forte, NomeNivel, SaldoForte } from './Destaques'
 import { DesdeQuando, FraseFalta } from './MensagemRisco'
 import { SeloRisco } from './SeloRisco'
@@ -20,14 +20,10 @@ interface EfeitoNoCaixaProps {
   caixaId: string
 }
 
-/**
- * O que o lançamento do formulário faz com o risco do caixa nos próximos 12 meses, antes de salvar.
- * Saídas sempre mostram o efeito; entradas, só quando melhoram o nível.
- */
+/** Efeito do lançamento no risco do caixa, antes de salvar: saídas sempre, entradas só se melhoram o nível. */
 export function EfeitoNoCaixa({ simulados, substitui, tipo, caixaId }: EfeitoNoCaixaProps) {
   const daConta = useRiscoDaConta(caixaId)
   const contexto = daConta?.contexto
-  // O formulário recria os lançamentos a cada tecla; em texto, só recalcula quando a conta muda.
   const chave = simulados && JSON.stringify(simulados)
 
   const depois = useMemo(() => {

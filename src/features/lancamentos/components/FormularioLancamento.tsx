@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { Plus } from '@/shared/ui/icones'
-import { caixasAtivos, type Caixa } from '@/features/caixas/caixa'
+import { caixasAtivos, type Caixa } from '@/features/caixas/model/caixa'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
-import { useVisao } from '@/features/caixas/useVisao'
-import type { Categoria } from '@/features/categorias/categoria'
+import { useVisao } from '@/features/caixas/hooks/useVisao'
+import type { Categoria } from '@/features/categorias/model/categoria'
 import { DialogCategoria } from '@/features/categorias/components/DialogCategoria'
 import { DialogPasta } from '@/features/pastas/components/DialogPasta'
 import { DialogTag } from '@/features/tags/components/DialogTag'
@@ -20,21 +20,21 @@ import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 import {
   paraLancamento,
   rascunhoDe,
   rascunhoVazio,
   validarLancamento,
   type RascunhoLancamento,
-} from '../formulario'
-import { COR_ATIVA_TIPO } from '../cores'
-import type { Lancamento, TipoLancamento } from '../lancamento'
-import { ROTULO_NATUREZA, ROTULO_TIPO } from '../textos'
+} from '../utils/formulario'
+import { COR_ATIVA_TIPO } from '../constants/cores'
+import type { Lancamento, TipoLancamento } from '../model/lancamento'
+import { ROTULO_NATUREZA, ROTULO_TIPO } from '../constants/textos'
 import { CampoVezes } from './CampoVezes'
 import { ListaExcecoes } from './ListaExcecoes'
 import { SeletorDiasSemana } from './SeletorDiasSemana'
-import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../vigencia'
+import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../utils/vigencia'
 
 interface FormularioLancamentoProps {
   /** Ausente = novo lançamento. */
@@ -74,6 +74,10 @@ const OPCOES_VIGENCIA = [
   { valor: 'sempre' as const, rotulo: 'Desde o início' },
 ]
 
+/**
+ * Num recorrente que já aconteceu, pergunta se a mudança vale para os meses que passaram (menos quando o início ou o
+ * fim mudou). Num lançamento novo, a recorrência começa na data escolhida.
+ */
 export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: FormularioLancamentoProps) {
   const { estado, dispatch } = useFinancas()
   const { caixaPadrao } = useVisao()
@@ -96,8 +100,6 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   const idsValidos = new Set(categoriasDoTipo.map((c) => c.id))
   const erros = tentouSalvar ? validarLancamento(rascunho, idsValidos) : {}
 
-  // Recorrente que já aconteceu: pergunta se a mudança vale para os meses que passaram.
-  // Quem mexe no início ou no fim já está cuidando do período, então não pergunta.
   const editado = lancamento && paraLancamento(rascunho, lancamento.id)
   const perguntarVigencia =
     !!lancamento &&
@@ -110,10 +112,8 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   const dividirDe = perguntarVigencia && vigencia === 'daqui' ? lancamento : undefined
   const erroVigencia = tentouSalvar && dividirDe ? validarVigencia(dividirDe, aPartirDe) : undefined
 
-  // O que seria salvo, para mostrar o efeito no caixa antes de salvar. Descrição e categoria não mudam a conta.
   const errosAgora = validarLancamento(rascunho, idsValidos)
   const faltaNaConta = Object.keys(errosAgora).some((campo) => campo !== 'descricao' && campo !== 'categoriaId')
-  // O recorrente como ficaria, para contar as vezes (só a recorrência precisa estar certa).
   const recorrente =
     rascunho.recorrencia !== 'unica' && !errosAgora.diasDaSemana && !errosAgora.diaDoMes
       ? paraLancamento(rascunho, lancamento?.id ?? 'simulado')
@@ -131,8 +131,6 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   }
 
   function alterarRecorrencia(recorrencia: RascunhoLancamento['recorrencia']) {
-    // "Todo dia 10 daqui em diante": num lançamento novo, a recorrência começa na data escolhida (hoje ou o
-    // dia clicado na planilha), e não desde o saldo inicial. O início continua editável logo abaixo.
     setRascunho((r) => ({
       ...r,
       recorrencia,
@@ -140,9 +138,8 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
     }))
   }
 
+  /** Ignora o valor vazio que o select do Radix avisa logo depois de criar uma categoria. */
   function escolherCategoria(valor: string) {
-    // Logo depois de criar uma categoria, o <select> oculto do Radix ainda não tem a opção nova e avisa
-    // um valor vazio; a lista não tem opção vazia, então ignorar não perde nenhuma escolha real.
     if (!valor) return
     if (valor === NOVA) setCriandoCategoria(true)
     else alterar('categoriaId', valor)
@@ -161,12 +158,10 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   }
 
   function alterarTipo(tipo: TipoLancamento) {
-    // A categoria precisa ser do mesmo tipo do lançamento.
     const categoria = estado.categorias.find((c) => c.id === rascunho.categoriaId)
     setRascunho((r) => {
       const novo = { ...r, tipo, categoriaId: categoria?.tipo === tipo ? r.categoriaId : '' }
       if (tipo !== 'transferencia') return novo
-      // Transferência sai de uma conta para outra: já sugere as duas.
       const origem = contas.some((c) => c.id === r.caixaId) ? r.caixaId : (contas[0]?.id ?? r.caixaId)
       const destino = r.caixaDestinoId && r.caixaDestinoId !== origem ? r.caixaDestinoId : contas.find((c) => c.id !== origem)?.id
       return { ...novo, caixaId: origem, caixaDestinoId: destino ?? '' }
@@ -251,7 +246,6 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           <FieldError>{erros.valorCentavos}</FieldError>
         </Field>
 
-        {/* Transferência não é entrada nem gasto: não tem categoria, tag nem natureza. */}
         {!transferencia && (
           <Field data-invalid={!!erros.categoriaId || undefined}>
             <FieldLabel htmlFor="lanc-categoria">Categoria</FieldLabel>
@@ -314,7 +308,6 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
             />
           </Field>
 
-          {/* Tag só existe em saídas: diz se o gasto era necessário ou evitável. */}
           {saida && (
             <Field>
               <FieldLabel htmlFor="lanc-tag">

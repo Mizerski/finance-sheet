@@ -1,7 +1,7 @@
 import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import type { MetaEconomia } from '../meta'
+import type { MetaEconomia } from '../model/meta'
 import { FormularioMeta, type SugestaoMeta } from './FormularioMeta'
 
 interface DialogMetaProps {
@@ -25,7 +25,6 @@ export function DialogMeta({ aberto, onOpenChange, meta, sugestao }: DialogMetaP
           </DialogTitle>
           <DialogDescription>Quanto você quer juntar e quanto separar do saldo a cada mês.</DialogDescription>
         </DialogHeader>
-        {/* key: o formulário recomeça do zero ao trocar de meta. */}
         <FormularioMeta key={meta?.id ?? 'nova'} meta={meta} sugestao={sugestao} onConcluir={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>

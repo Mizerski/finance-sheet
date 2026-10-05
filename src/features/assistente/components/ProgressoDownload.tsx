@@ -3,8 +3,8 @@ import { BarraProgresso } from '@/features/economias/components/BarraProgresso'
 import { BOTAO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { useAssistente, type Fase } from '../assistente-context'
-import { formatarTamanho, infoModelo } from '../modelos'
+import { useAssistente, type Fase } from '../context/assistente-context'
+import { formatarTamanho, infoModelo } from '../constants/modelos'
 
 /** "faltam 3 min", pela velocidade desde o começo deste download. */
 function tempoRestante(fase: Extract<Fase, { tipo: 'baixando' }>): string | null {

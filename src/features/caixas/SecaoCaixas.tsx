@@ -4,8 +4,8 @@ import { CabecalhoOrganizacao } from '@/features/organizacao/components/Cabecalh
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
-import { useFinancas } from '@/store/financas-context'
-import { ordenarCaixas, usosDoCaixa, type Caixa } from './caixa'
+import { useFinancas } from '@/store/context/financas-context'
+import { ordenarCaixas, usosDoCaixa, type Caixa } from './model/caixa'
 import { CardCaixas } from './components/CardCaixas'
 import { DialogCaixa } from './components/DialogCaixa'
 
@@ -15,7 +15,10 @@ interface Selecao {
   caixa?: Caixa
 }
 
-/** Aba Caixas da tela Organização: contas e benefícios, cada um com o próprio saldo. */
+/**
+ * Aba Caixas da tela Organização: contas e benefícios, cada um com o próprio saldo.
+ * As setas trocam o caixa de lugar com o vizinho e renumeram os ativos em sequência.
+ */
 export function SecaoCaixas() {
   const { estado, dispatch } = useFinancas()
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
@@ -28,7 +31,6 @@ export function SecaoCaixas() {
   )
   const nova = () => setEdicao({ aberto: true })
 
-  // Troca de lugar com o vizinho e renumera os ativos em sequência (a ordem antiga pode ter repetidos).
   const mover = (caixa: Caixa, passo: -1 | 1) => {
     const ativos = caixas.filter((c) => !c.arquivado)
     const i = ativos.indexOf(caixa)

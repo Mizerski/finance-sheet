@@ -1,13 +1,13 @@
 import { useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { ArrowDown, ArrowLeftRight, ArrowUp, ChevronsUpDown, Pencil, Trash2 } from '@/shared/ui/icones'
-import type { Caixa } from '@/features/caixas/caixa'
-import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
+import type { Caixa } from '@/features/caixas/model/caixa'
+import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/model/categoria'
 import { CabecalhoGrupo } from '@/features/pastas/components/CabecalhoGrupo'
 import { MoverParaPasta } from '@/features/pastas/components/MoverParaPasta'
-import type { GrupoPasta } from '@/features/pastas/grupos'
-import type { Pasta } from '@/features/pastas/pasta'
+import type { GrupoPasta } from '@/features/pastas/utils/grupos'
+import type { Pasta } from '@/features/pastas/model/pasta'
 import { PilulaTag } from '@/features/tags/components/PilulaTag'
-import type { Tag } from '@/features/tags/tag'
+import type { Tag } from '@/features/tags/model/tag'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -17,10 +17,10 @@ import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { ehTransferencia, type Lancamento } from '../lancamento'
-import type { CampoOrdem, Ordem } from '../ordenacao'
-import { parcelasDe, type Parcelas } from '../parcelas'
-import { descreverPeriodo, descreverRecorrencia, ROTULO_NATUREZA } from '../textos'
+import { ehTransferencia, type Lancamento } from '../model/lancamento'
+import type { CampoOrdem, Ordem } from '../utils/ordenacao'
+import { parcelasDe, type Parcelas } from '../utils/parcelas'
+import { descreverPeriodo, descreverRecorrencia, ROTULO_NATUREZA } from '../constants/textos'
 
 /** Descrição, categoria, tag, natureza, recorrência, valor e ações. */
 const COLUNAS = 7
@@ -94,7 +94,6 @@ export function TabelaLancamentos({
   const agrupar = pastas.length > 0
   const colunas = COLUNAS + (selecao ? 1 : 0)
   const todos = grupos.flatMap((g) => g.lancamentos.map((l) => l.id))
-  // Recorrentes com início e fim: quantas vezes já foram e quanto falta.
   const [hoje] = useState(() => paraDataISO(new Date()))
   const parcelas = useMemo(
     () => new Map(grupos.flatMap((g) => g.lancamentos).map((l) => [l.id, parcelasDe(l, hoje)])),
@@ -272,7 +271,6 @@ function LinhaLancamento({
 }: LinhaLancamentoProps) {
   const entrada = l.tipo === 'entrada'
   const transferencia = ehTransferencia(l)
-  // Transferência não tem categoria: no lugar dela, de onde sai e para onde vai.
   const classificacao = transferencia ? (
     <Rota origem={caixa} destino={destino} />
   ) : (
@@ -294,7 +292,6 @@ function LinhaLancamento({
       className={cn(TABELA.linha, 'data-[state=selected]:bg-selecao data-[state=selected]:hover:bg-selecao-forte')}
     >
       {onSelecionar && (
-        // A célula inteira marca (alvo maior que o quadradinho); Shift marca o intervalo.
         <TableCell
           className={cn(TABELA.celula, TABELA.primeira, 'w-0 cursor-pointer pr-0 select-none')}
           onClick={selecionar}
@@ -307,13 +304,11 @@ function LinhaLancamento({
           />
         </TableCell>
       )}
-      {/* Palavra longa quebra no celular, para a tabela caber no card (os botões da linha ocupam espaço fixo). */}
       <TableCell
         className={cn(TABELA.celula, onSelecionar ? 'pl-2' : TABELA.primeira, 'whitespace-normal [overflow-wrap:anywhere]')}
       >
         <div className="flex flex-col gap-1">
           <span className="flex items-center gap-1.5 font-medium">
-            {/* Bolinha (não quadradinho, que é a categoria) na cor do caixa. */}
             {caixa && (
               <span title={caixa.nome} className="flex">
                 <PontoCor cor={caixa.cor} className="rounded-full" />
@@ -322,7 +317,6 @@ function LinhaLancamento({
             )}
             {l.descricao}
           </span>
-          {/* No celular, categoria, tag, natureza e recorrência vêm empilhadas sob a descrição. */}
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground lg:hidden">
             {classificacao}
             {tag && (
@@ -361,7 +355,6 @@ function LinhaLancamento({
           transferencia ? 'text-foreground' : entrada ? 'text-entrada' : 'text-saida',
         )}
       >
-        {/* Transferência só muda o dinheiro de conta: sem sinal e em preto, com as setas no lugar. */}
         {transferencia ? (
           <span className="inline-flex items-center gap-1">
             <ArrowLeftRight aria-label="Transferência" className="size-3" />
@@ -372,7 +365,6 @@ function LinhaLancamento({
             {entrada ? '+' : '−'} {formatarBRL(l.valorCentavos)}
           </>
         )}
-        {/* Com filtro de data, o recorrente diz quantas vezes acontece no período e quanto soma. */}
         {noPeriodo && noPeriodo.vezes > 1 && (
           <span className="block text-[0.7rem] font-normal text-muted-foreground">
             {noPeriodo.vezes}× · {formatarBRL(noPeriodo.totalCentavos)}

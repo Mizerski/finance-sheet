@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Search, SlidersHorizontal, X } from '@/shared/ui/icones'
-import type { Categoria } from '@/features/categorias/categoria'
-import { useAno } from '@/features/projecao/useAno'
-import { SEM_TAG, type Tag } from '@/features/tags/tag'
+import type { Categoria } from '@/features/categorias/model/categoria'
+import { useAno } from '@/features/projecao/hooks/useAno'
+import { SEM_TAG, type Tag } from '@/features/tags/model/tag'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { SeletorPeriodo } from '@/shared/components/SeletorPeriodo'
@@ -13,9 +13,9 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { COR_ATIVA_TIPO } from '../cores'
+import { COR_ATIVA_TIPO } from '../constants/cores'
 import { paraDataISO } from '@/shared/lib/datas'
-import { contarFiltros, FILTRO_SEM_TAG, ID_BUSCA, periodoDoFiltro, temFiltro, type FiltrosLancamento } from '../filtros'
+import { contarFiltros, FILTRO_SEM_TAG, ID_BUSCA, periodoDoFiltro, temFiltro, type FiltrosLancamento } from '../utils/filtros'
 
 interface FiltrosLancamentosProps {
   filtros: FiltrosLancamento
@@ -38,7 +38,6 @@ const OPCOES_TIPO_COM_TRANSFERENCIA = [
   ...OPCOES_TIPO,
   {
     valor: 'transferencia' as const,
-    // No celular, abreviado para as quatro opções caberem na largura.
     rotulo: (
       <>
         <span className="sm:hidden">Transf.</span>
@@ -148,12 +147,10 @@ function CampoBusca({ valor, onChange }: { valor: string; onChange: (q: string) 
 function Controles({ filtros, categorias, tags, comTransferencia, onChange }: FiltrosLancamentosProps) {
   const { intervalo } = useAno()
   const [hoje] = useState(() => paraDataISO(new Date()))
-  // Com um tipo escolhido, só faz sentido listar categorias desse tipo.
   const categoriasVisiveis = filtros.tipo ? categorias.filter((c) => c.tipo === filtros.tipo) : categorias
 
   return (
     <>
-      {/* Data como no Dashboard: Dia, Semana, Mês, Ano ou um intervalo; mostra só o que acontece nele. */}
       <SeletorPeriodo
         rotulo="Filtrar por data"
         periodo={periodoDoFiltro(filtros)}
@@ -175,7 +172,6 @@ function Controles({ filtros, categorias, tags, comTransferencia, onChange }: Fi
             ...filtros,
             tipo,
             categoria: tipo && categoria && categoria.tipo !== tipo ? undefined : filtros.categoria,
-            // Só saídas têm tag.
             tag: tipo === 'entrada' || tipo === 'transferencia' ? undefined : filtros.tag,
           })
         }}
@@ -190,7 +186,6 @@ function Controles({ filtros, categorias, tags, comTransferencia, onChange }: Fi
         className="w-full sm:w-auto"
       />
 
-      {/* Transferência não tem categoria nem tag. */}
       {filtros.tipo !== 'transferencia' && (
         <Select
           value={filtros.categoria ?? TODAS}

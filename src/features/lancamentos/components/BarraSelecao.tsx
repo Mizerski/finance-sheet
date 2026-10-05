@@ -1,16 +1,16 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
 import { Check, FolderInput, Shapes, Tag as IconeTag, Trash2, Undo2, Wallet, X } from '@/shared/ui/icones'
-import type { Caixa } from '@/features/caixas/caixa'
-import type { Categoria } from '@/features/categorias/categoria'
-import { SEM_PASTA, type Pasta } from '@/features/pastas/pasta'
-import { SEM_TAG, type Tag } from '@/features/tags/tag'
+import type { Caixa } from '@/features/caixas/model/caixa'
+import type { Categoria } from '@/features/categorias/model/categoria'
+import { SEM_PASTA, type Pasta } from '@/features/pastas/model/pasta'
+import { SEM_TAG, type Tag } from '@/features/tags/model/tag'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { BOTAO, CAMADA, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
-import type { Lancamento } from '../lancamento'
-import type { AlteracaoLote } from '../lote'
+import type { Lancamento } from '../model/lancamento'
+import type { AlteracaoLote } from '../utils/lote'
 
 /** Aviso depois de uma ação em lote, com o "Desfazer" quando algo mudou. */
 export interface AvisoLote {
@@ -36,10 +36,7 @@ interface BarraSelecaoProps {
   onPausarAviso: (pausado: boolean) => void
 }
 
-/**
- * Barra presa embaixo da tela enquanto há lançamentos marcados: quantos são e o que dá para fazer com todos
- * de uma vez (categoria, tag, pasta, caixa, excluir). Depois de cada ação, mostra o que mudou e oferece desfazer.
- */
+/** Ações em lote para os lançamentos marcados, com o aviso do que mudou e "Desfazer". */
 export function BarraSelecao({
   selecionados,
   categorias,
@@ -55,7 +52,6 @@ export function BarraSelecao({
 }: BarraSelecaoProps) {
   const quantidade = selecionados.length
   const visivel = quantidade > 0 || !!aviso
-  // A barra some sem passar pelo "mouse saiu": a pausa não pode ficar presa para o próximo aviso.
   useEffect(() => {
     if (!visivel) onPausarAviso(false)
   }, [visivel, onPausarAviso])
@@ -63,7 +59,6 @@ export function BarraSelecao({
 
   const tipos = new Set(selecionados.map((l) => l.tipo))
   const temSaidas = tipos.has('saida')
-  // Com entradas e saídas marcadas, as categorias vêm separadas por tipo (cada uma só vale para o seu).
   const gruposCategoria = (['saida', 'entrada'] as const)
     .filter((t) => tipos.has(t))
     .map((t) => ({
@@ -115,7 +110,6 @@ export function BarraSelecao({
 
       {quantidade > 0 && (
         <div className="flex items-stretch">
-          {/* Quantos estão marcados, em bloco amarelo como a seleção nas linhas. */}
           <div className="flex shrink-0 items-center gap-2 border-r-2 border-contorno bg-amarelo px-4 py-2 text-tinta">
             <span className="font-heading text-2xl leading-none font-bold tabular-nums">{quantidade}</span>
             <span className={cn(ROTULO, 'font-semibold')}>{quantidade === 1 ? 'selecionado' : 'selecionados'}</span>

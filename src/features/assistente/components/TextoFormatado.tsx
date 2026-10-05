@@ -9,7 +9,10 @@ type Bloco =
 const ITEM = /^\s*(?:[-*•]|(\d+)[.)])\s+(.*)$/
 const TITULO = /^\s*#{1,6}\s+(.*)$/
 
-/** Divide o markdown simples que o modelo escreve em parágrafos, títulos e listas. */
+/**
+ * Divide o markdown simples que o modelo escreve em parágrafos, títulos e listas.
+ * Linha em branco entre itens não quebra a lista, e linha recuada logo depois de um item continua o item.
+ */
 function blocos(texto: string): Bloco[] {
   const resultado: Bloco[] = []
   for (const linha of texto.split('\n')) {
@@ -26,7 +29,6 @@ function blocos(texto: string): Bloco[] {
     const item = ITEM.exec(linha)
     if (item) {
       const ordenada = item[1] !== undefined
-      // Uma linha em branco entre os itens não quebra a lista (senão a numeração recomeça).
       const vazio = ultimo?.tipo === 'paragrafo' && ultimo.linhas.length === 0
       const lista = vazio ? resultado.at(-2) : ultimo
       if (lista?.tipo === 'lista' && lista.ordenada === ordenada) {
@@ -37,7 +39,6 @@ function blocos(texto: string): Bloco[] {
       }
       continue
     }
-    // Linha recuada logo depois de um item continua o item.
     if (ultimo?.tipo === 'lista' && /^\s{2,}/.test(linha)) {
       ultimo.itens[ultimo.itens.length - 1] += ` ${linha.trim()}`
     } else if (ultimo?.tipo === 'paragrafo') {

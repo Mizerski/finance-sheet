@@ -87,9 +87,11 @@ export function formatarMesAno(data: DataISO, formato: 'longo' | 'curto' = 'long
   return formato === 'longo' ? `${nomeDoMes(mes)} de ${ano}` : `${nomeDoMes(mes, 'curto')}/${ano}`
 }
 
-/** 0 → "domingo" / "dom", 1 → "segunda-feira" / "seg" … */
+/**
+ * 0 → "domingo" / "dom", 1 → "segunda-feira" / "seg" …
+ * Conta a partir de 02/01/2000, um domingo.
+ */
 export function nomeDoDiaDaSemana(diaDaSemana: number, formato: 'longo' | 'curto' = 'curto'): string {
-  // 02/01/2000 foi um domingo.
   const nome = format(new Date(2000, 0, 2 + diaDaSemana), 'EEEE', { locale: ptBR })
   return formato === 'longo' ? nome : nome.slice(0, 3)
 }

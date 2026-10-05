@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from '@/shared/ui/icones'
-import { useGuardadoSeparado } from '@/features/economias/useGuardado'
+import { useGuardadoSeparado } from '@/features/economias/hooks/useGuardado'
 import { formatarData, paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { useFinancas } from '@/store/financas-context'
-import { useAno } from '../useAno'
-import { useProjecoes } from '../useProjecao'
+import { useFinancas } from '@/store/context/financas-context'
+import { useAno } from '../hooks/useAno'
+import { useProjecoes } from '../hooks/useProjecao'
 
-/**
- * Saldo de hoje e saldo projetado no fim do ano selecionado, com o botão que oculta todos os saldos do app.
- * Os dois têm rótulo explícito para o saldo do fim do ano não ser lido como o saldo atual.
- */
+/** Saldo de hoje e do fim do ano, com o botão que oculta todos os saldos do app (até em popovers e dialogs). */
 export function SaldoProjetado() {
   const { estado, dispatch } = useFinancas()
   const { ano, intervalo } = useAno()
@@ -26,14 +23,12 @@ export function SaldoProjetado() {
   const saldoHoje = doAnoDeHoje?.dias.find((d) => d.data === hoje)?.saldoCentavos ?? null
   const saldoFimDoAno = projecoes[ano - intervalo.min].resumo.saldoFinalCentavos
 
-  // No <html>, para valer também em popovers e dialogs (renderizados em portal).
   useEffect(() => {
     document.documentElement.toggleAttribute('data-saldos-ocultos', ocultos)
   }, [ocultos])
 
   return (
     <div className="flex items-center gap-2 sm:gap-3">
-      {/* Régua vertical entre os dois saldos, como nas colunas de um cartaz. */}
       <Saldo
         rotulo="Hoje"
         titulo={

@@ -3,7 +3,7 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { TABELA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import type { DadoGastoAno, SerieCategoria } from '../graficos'
+import type { DadoGastoAno, SerieCategoria } from '../utils/graficos'
 
 interface TabelaGastosAnoProps {
   dados: DadoGastoAno[]

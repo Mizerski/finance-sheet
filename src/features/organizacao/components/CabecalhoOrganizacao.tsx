@@ -4,7 +4,7 @@ import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
-import type { Aba } from '../aba'
+import type { Aba } from '../utils/aba'
 
 const OPCOES_ABA = [
   { valor: 'categorias' as const, rotulo: 'Categorias' },

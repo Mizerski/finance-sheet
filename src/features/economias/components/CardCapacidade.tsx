@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
-import { COR_RISCO } from '@/features/risco/cores'
+import { COR_RISCO } from '@/features/risco/constants/cores'
 import { DataForte, DinheiroForte, Forte, NomeNivel, SaldoForte } from '@/features/risco/components/Destaques'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
-import { NIVEIS, type AnaliseRisco, type NivelRisco } from '@/features/risco/risco'
+import { NIVEIS, type AnaliseRisco, type NivelRisco } from '@/features/risco/utils/risco'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
@@ -12,7 +12,7 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO, VALOR_DESTAQUE, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
-import type { CapacidadePoupanca } from '../capacidade'
+import type { CapacidadePoupanca } from '../utils/capacidade'
 
 interface CardCapacidadeProps {
   capacidade: CapacidadePoupanca

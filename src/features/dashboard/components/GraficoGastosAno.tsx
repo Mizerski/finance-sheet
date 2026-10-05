@@ -1,7 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts'
 import { formatarBRLCompacto } from '@/shared/lib/dinheiro'
 import { ChartContainer, ChartTooltip } from '@/shared/ui/chart'
-import { AREA_GRAFICO, escalaY, CONTORNO, SERIES, type DadoGastoAno, type SerieCategoria } from '../graficos'
+import { AREA_GRAFICO, escalaY, CONTORNO, SERIES, type DadoGastoAno, type SerieCategoria } from '../utils/graficos'
 import { CardGrafico } from './CardGrafico'
 import { Legenda } from './Legenda'
 import { TabelaGastosAno } from './TabelaGastosAno'

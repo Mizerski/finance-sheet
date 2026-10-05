@@ -1,4 +1,4 @@
-import { caixasNoTotal } from '@/features/caixas/caixa'
+import { caixasNoTotal } from '@/features/caixas/model/caixa'
 import { formatarData } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG, VALOR_SALDO, ROTULO as ROTULO_BASE } from '@/shared/lib/estilos'
@@ -13,8 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
-import type { DadosFinancas } from '@/store/estado'
-import type { Backup } from '../backup'
+import type { DadosFinancas } from '@/store/model/dados'
+import type { Backup } from '../utils/backup'
 
 interface ConfirmarImportacaoProps {
   /** Backup escolhido; null mantém o dialog fechado. */

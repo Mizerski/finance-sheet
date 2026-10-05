@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Plus } from '@/shared/ui/icones'
 import { CabecalhoOrganizacao } from '@/features/organizacao/components/CabecalhoOrganizacao'
-import { gastosPorTag } from '@/features/projecao/projecao'
-import { useDiasDosCaixas } from '@/features/projecao/projecoes-por-caixa'
-import { useAno } from '@/features/projecao/useAno'
+import { gastosPorTag } from '@/features/projecao/utils/projecao'
+import { useDiasDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
+import { useAno } from '@/features/projecao/hooks/useAno'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 import { CardTags } from './components/CardTags'
 import { DialogTag } from './components/DialogTag'
-import { TAGS_SUGERIDAS, type Tag } from './tag'
+import { TAGS_SUGERIDAS, type Tag } from './model/tag'
 
 /** O item continua guardado ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Selecao {
@@ -18,17 +18,18 @@ interface Selecao {
   tag?: Tag
 }
 
-/** Aba Tags da tela Organização. */
+/**
+ * Aba Tags da tela Organização.
+ * Os totais somam todos os caixas, como as próprias tags.
+ */
 export function SecaoTags() {
   const { estado, dispatch } = useFinancas()
-  // Categorias, tags e pastas valem para todos os caixas: os totais também.
   const { ano } = useAno()
   const dias = useDiasDosCaixas(ano)
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
 
   const gastos = useMemo(() => gastosPorTag(dias, estado.tags), [dias, estado.tags])
-  // Só saídas levam tag; as sem tag (ou com tag já excluída) contam em ''.
   const usos = useMemo(() => {
     const ids = new Set(estado.tags.map((t) => t.id))
     const contagem = new Map<string, number>()

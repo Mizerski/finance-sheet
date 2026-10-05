@@ -1,6 +1,6 @@
 import { Moon, Sun } from '@/shared/ui/icones'
 import { Button } from '@/shared/ui/button'
-import { useTema } from '../useTema'
+import { useTema } from '../hooks/useTema'
 
 /** Alterna entre o tema claro e o escuro. */
 export function BotaoTema() {

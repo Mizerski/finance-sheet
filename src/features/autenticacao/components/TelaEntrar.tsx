@@ -15,6 +15,7 @@ const OPCOES_MODO = [
   { valor: 'criar' as const, rotulo: 'Criar conta' },
 ]
 
+/** Cadastro sem sessão de volta quer dizer que o projeto exige confirmar o e-mail antes do primeiro login. */
 export function TelaEntrar({ supabase }: { supabase: SupabaseClient }) {
   const [modo, setModo] = useState<Modo>('entrar')
   const [email, setEmail] = useState('')
@@ -38,7 +39,6 @@ export function TelaEntrar({ supabase }: { supabase: SupabaseClient }) {
           options: { emailRedirectTo: window.location.origin },
         })
         if (error) throw error
-        // Sem sessão = o projeto exige confirmar o e-mail antes do primeiro login.
         if (!data.session) setConfirmarEmail(true)
       }
     } catch (falha) {

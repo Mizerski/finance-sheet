@@ -8,9 +8,9 @@ import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Card } from '@/shared/ui/card'
-import type { ResumoBeneficio } from '../beneficio'
-import { NOME_TOTAL, type Caixa } from '../caixa'
-import { useResumoBeneficio } from '../useBeneficio'
+import type { ResumoBeneficio } from '../utils/beneficio'
+import { NOME_TOTAL, type Caixa } from '../model/caixa'
+import { useResumoBeneficio } from '../hooks/useBeneficio'
 
 /**
  * Faixa de um benefício (no lugar do risco do caixa, que é só das contas): quanto sobra até a próxima recarga

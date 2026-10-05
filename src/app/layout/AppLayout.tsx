@@ -3,8 +3,8 @@ import { BotaoAssistente } from '@/features/assistente/components/BotaoAssistent
 import { PainelAssistente } from '@/features/assistente/components/PainelAssistente'
 import { BotaoSair } from '@/features/autenticacao/components/BotaoSair'
 import { SeletorCaixa } from '@/features/caixas/components/SeletorCaixa'
-import { useAtalhosDeCaixa } from '@/features/caixas/useAtalhosDeCaixa'
-import { useVisao } from '@/features/caixas/useVisao'
+import { useAtalhosDeCaixa } from '@/features/caixas/hooks/useAtalhosDeCaixa'
+import { useVisao } from '@/features/caixas/hooks/useVisao'
 import { BotaoBackup } from '@/features/backup/components/BotaoBackup'
 import { BotaoLembrete } from '@/features/lembrete/components/BotaoLembrete'
 import { SaldoProjetado } from '@/features/projecao/components/SaldoProjetado'
@@ -33,7 +33,6 @@ const LINHA_UNICA = {
   comCaixas: {
     cabecalho: 'min-[90rem]:flex-row min-[90rem]:items-center min-[90rem]:justify-between',
     marca: 'min-[90rem]:justify-start',
-    // O menu não encolhe: se faltar espaço, quem cede é o nome do caixa (que trunca).
     menu: 'min-[90rem]:flex-initial min-[90rem]:shrink-0',
     aba: 'min-[90rem]:grow-0',
   },
@@ -65,7 +64,6 @@ export function AppLayout() {
   const { caixas } = useVisao()
   const larguras = EH_DESKTOP ? LINHA_UNICA_DESKTOP : LINHA_UNICA
   const linha = caixas.length >= 2 ? larguras.comCaixas : larguras.normal
-  // O caixa fica ao lado do saldo que ele explica; no celular, onde a primeira linha não tem espaço, abre a linha do menu.
   const telaLarga = useMediaQuery('(min-width: 40rem)')
 
   return (
@@ -111,7 +109,6 @@ function Menu({ linha }: { linha: LinhaUnica }) {
   const { buscaPara } = useMemoriaNavegacao()
 
   return (
-    // Folga embaixo e à direita para a sombra dura não ser cortada pela rolagem do celular.
     <nav className={cn('flex min-w-0 flex-1 gap-1.5 overflow-x-auto pr-[3px] pb-[3px] [scrollbar-width:none]', linha.menu)}>
       {ITENS_MENU.map(({ to, rotulo, forma }, i) => (
         <Link

@@ -14,8 +14,8 @@ interface Visita {
  */
 const CHAVES_DO_ANO = ['de', 'ate']
 
+/** Ano e caixa ficam de fora: o `retainSearchParams` da rota raiz já os mantém. */
 function registrar(memoria: Record<string, Visita>, { pathname, search }: ParsedLocation): Record<string, Visita> {
-  // Ano e caixa são globais e já são mantidos pelo retainSearchParams da rota raiz; aqui fica só o resto.
   const { ano, caixa: _, ...busca } = search as BuscaSalva
   return { ...memoria, [pathname]: { busca, ano } }
 }

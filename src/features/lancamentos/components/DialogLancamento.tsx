@@ -2,7 +2,7 @@ import type { DataISO } from '@/shared/lib/datas'
 import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import type { Lancamento } from '../lancamento'
+import type { Lancamento } from '../model/lancamento'
 import { FormularioLancamento } from './FormularioLancamento'
 
 interface DialogLancamentoProps {
@@ -31,7 +31,6 @@ export function DialogLancamento({ aberto, onOpenChange, lancamento, dataInicial
               : 'Entradas e saídas, únicas ou recorrentes, entram na projeção do ano.'}
           </DialogDescription>
         </DialogHeader>
-        {/* O conteúdo desmonta ao fechar, então o formulário sempre abre com o estado inicial. */}
         <FormularioLancamento lancamento={lancamento} dataInicial={dataInicial} onConcluir={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>

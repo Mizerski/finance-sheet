@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import { lancamentoDeAjuste } from '@/features/lancamentos/ajuste'
-import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
+import { lancamentoDeAjuste } from '@/features/lancamentos/utils/ajuste'
+import { useProjecoesDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -18,9 +18,9 @@ import {
 } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useFinancas } from '@/store/financas-context'
-import { ehCartao, type Caixa, type CicloCartao } from '../caixa'
-import { fechamentosRecentes, valorDaFatura, vencimentoDaFatura } from '../cartao'
+import { useFinancas } from '@/store/context/financas-context'
+import { ehCartao, type Caixa, type CicloCartao } from '../model/caixa'
+import { fechamentosRecentes, valorDaFatura, vencimentoDaFatura } from '../utils/cartao'
 
 interface DialogConferirFaturaProps {
   aberto: boolean
@@ -39,18 +39,17 @@ export function DialogConferirFatura({ aberto, onOpenChange, cartao }: DialogCon
             Informe quanto o banco fechou. Se o app estiver diferente, a diferença vira um ajuste no cartão.
           </DialogDescription>
         </DialogHeader>
-        {/* Desmonta ao fechar: sempre abre na fatura mais recente, sem valor. */}
         {ehCartao(cartao) && <FormularioConferir cartao={cartao} ciclo={cartao.cartao} onConcluir={() => onOpenChange(false)} />}
       </DialogContent>
     </Dialog>
   )
 }
 
+/** Só as faturas que vencem a partir do começo do cartão; a que fechou antes dele muda o "Quanto deve hoje". */
 function FormularioConferir({ cartao, ciclo, onConcluir }: { cartao: Caixa; ciclo: CicloCartao; onConcluir: () => void }) {
   const { dispatch } = useFinancas()
   const { porCaixa } = useProjecoesDosCaixas()
   const [hoje] = useState(() => paraDataISO(new Date()))
-  // Só as faturas que o app calcula: as que vencem a partir do começo do cartão.
   const fechamentos = fechamentosRecentes(hoje, ciclo).filter(
     (f) => vencimentoDaFatura(f, ciclo) >= cartao.dataSaldoInicial,
   )
@@ -62,7 +61,6 @@ function FormularioConferir({ cartao, ciclo, onConcluir }: { cartao: Caixa; cicl
   const noApp = fechamento ? valorDaFatura(dias, fechamento) : 0
   const diferenca = centavos - noApp
   const pronto = !!fechamento && informado && diferenca !== 0
-  // Fatura que fechou antes do começo do cartão: ela vem do "Quanto deve hoje", então é ele que muda.
   const antesDoComeco = !!fechamento && fechamento < cartao.dataSaldoInicial
 
   function salvar(e: FormEvent) {
@@ -71,7 +69,6 @@ function FormularioConferir({ cartao, ciclo, onConcluir }: { cartao: Caixa; cicl
     if (antesDoComeco) {
       dispatch({ tipo: 'caixa/salvar', caixa: { ...cartao, saldoInicialCentavos: cartao.saldoInicialCentavos - diferenca } })
     } else {
-      // O que se deve no fechamento é a fatura: o saldo do cartão nesse dia vai de −(app) para −(banco).
       const ajuste = lancamentoDeAjuste(-centavos, -noApp, fechamento, crypto.randomUUID(), cartao.id)
       if (ajuste) dispatch({ tipo: 'lancamento/salvar', lancamento: ajuste })
     }

@@ -1,5 +1,5 @@
 import { Pie, PieChart } from 'recharts'
-import { CATEGORIA_DESCONHECIDA } from '@/features/categorias/categoria'
+import { CATEGORIA_DESCONHECIDA } from '@/features/categorias/model/categoria'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { ROTULO, VALOR_DESTAQUE } from '@/shared/lib/estilos'
@@ -81,14 +81,12 @@ export function RoscaGastos({ itens, rotuloValor }: RoscaGastosProps) {
             />
           </PieChart>
         </ChartContainer>
-        {/* Total no centro da rosca; não intercepta o hover das fatias. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           <span className={cn(ROTULO, 'text-muted-foreground')}>Total</span>
           <span className={cn('text-xl', VALOR_DESTAQUE)}>{formatarBRL(total)}</span>
         </div>
       </div>
 
-      {/* Legenda com valores: identifica as fatias sem depender só da cor. */}
       <ul className="flex w-full min-w-0 flex-col text-sm">
         {fatias.map((f) => (
           <li key={f.id} className="flex items-center gap-2 border-b border-border py-2 last:border-b-0">

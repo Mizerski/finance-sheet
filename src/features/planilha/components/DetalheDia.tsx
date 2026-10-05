@@ -1,13 +1,13 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowLeftRight, CalendarDays, Pencil, PiggyBank, Plus, Trash2, Undo2 } from '@/shared/ui/icones'
-import { useVisao } from '@/features/caixas/useVisao'
-import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/categoria'
-import type { Aporte } from '@/features/economias/aportes'
-import { semExcecaoNoDia } from '@/features/lancamentos/excecoes'
-import type { Lancamento } from '@/features/lancamentos/lancamento'
-import { ocorreEm, type DiaProjetado, type MovimentoTransferencia, type Ocorrencia } from '@/features/projecao/projecao'
+import { useVisao } from '@/features/caixas/hooks/useVisao'
+import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/model/categoria'
+import type { Aporte } from '@/features/economias/utils/aportes'
+import { semExcecaoNoDia } from '@/features/lancamentos/utils/excecoes'
+import type { Lancamento } from '@/features/lancamentos/model/lancamento'
+import { ocorreEm, type DiaProjetado, type MovimentoTransferencia, type Ocorrencia } from '@/features/projecao/utils/projecao'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
-import { NIVEL, type NivelRisco } from '@/features/risco/risco'
+import { NIVEL, type NivelRisco } from '@/features/risco/utils/risco'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { deDataISO, diaDoCalendario, formatarData, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
@@ -16,7 +16,7 @@ import { cn } from '@/shared/lib/utils'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { PopoverDescription, PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 
 interface DetalheDiaProps {
   dia: DiaProjetado
@@ -33,11 +33,13 @@ interface DetalheDiaProps {
   nivel?: NivelRisco | null
 }
 
-/** Conteúdo do popover: lançamentos de um dia da planilha. */
+/**
+ * Conteúdo do popover: lançamentos de um dia da planilha.
+ * Recorrentes pulados no dia aparecem riscados, para poder voltar.
+ */
 export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, onAdicionar, nivel = null }: DetalheDiaProps) {
   const { lancamentos } = useVisao()
   const porId = new Map(lancamentos.map((l) => [l.id, l]))
-  // Recorrentes pulados neste dia: não entram na projeção, mas aparecem aqui para poder voltar.
   const calendario = diaDoCalendario(deDataISO(dia.data))
   const pulados = lancamentos.filter((l) => l.excecoes?.[dia.data] === 0 && ocorreEm(l, calendario))
   const quantidade = dia.ocorrencias.length + dia.transferencias.length + dia.aportes.length + pulados.length
@@ -53,7 +55,6 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
         <PopoverTitle className="first-letter:uppercase">
           {nomeDoDiaDaSemana(dia.diaDaSemana, 'longo')}, {formatarData(dia.data)}
         </PopoverTitle>
-        {/* Num dia cheio, a lista rola: a contagem diz quanto há embaixo. */}
         {quantidade > 5 && (
           <PopoverDescription className="text-xs tabular-nums">{quantidade} lançamentos neste dia</PopoverDescription>
         )}
@@ -64,7 +65,6 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
       ) : quantidade === 0 ? (
         <p className="text-muted-foreground">Nenhum lançamento neste dia.</p>
       ) : (
-        // A lista é a única parte que encolhe e rola; título, saldo e o botão de adicionar continuam à vista.
         <ul
           className={cn(
             '-mx-2 flex flex-col overflow-y-auto overscroll-contain',
@@ -122,7 +122,6 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
           title={NIVEL[nivel].significado}
         >
           Caixa no dia: <SeloRisco nivel={nivel} />{' '}
-          {/* Num dia cheio, o significado vira dica, para sobrar altura para a lista. */}
           {quantidade > 5 ? <span className="sr-only">{NIVEL[nivel].significado}</span> : <span>{NIVEL[nivel].significado}</span>}
         </p>
       )}
@@ -249,7 +248,6 @@ function ItemAporte({ aporte }: { aporte: Aporte }) {
           </span>
         </span>
       </Link>
-      {/* Aporte não se exclui aqui (é da meta); o espaço mantém os valores alinhados com os lançamentos. */}
       <span aria-hidden className="mx-0.5 size-7 shrink-0" />
     </li>
   )
@@ -384,7 +382,6 @@ function ItemOcorrencia({
   const entrada = ocorrencia.tipo === 'entrada'
 
   return (
-    // O véu do hover fica no item todo, para a lixeira fazer parte da mesma linha.
     <li className="group/item flex items-start transition-colors hover:bg-selecao-forte">
       <button
         type="button"
@@ -407,7 +404,6 @@ function ItemOcorrencia({
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
-          {/* Lápis só no hover/foco: indica que o item abre a edição. */}
           <Pencil
             aria-hidden
             className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-visible/item:opacity-100"

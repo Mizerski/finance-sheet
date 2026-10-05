@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Plus, Sparkles } from '@/shared/ui/icones'
-import { COR_RISCO } from '@/features/risco/cores'
+import { COR_RISCO } from '@/features/risco/constants/cores'
 import { DataForte, Forte, NomeNivel, SaldoForte } from '@/features/risco/components/Destaques'
-import type { AnaliseRisco } from '@/features/risco/risco'
+import type { AnaliseRisco } from '@/features/risco/utils/risco'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
@@ -12,8 +12,8 @@ import { BOTAO, CARD, ROTULO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
-import type { MetaEconomia } from '../meta'
-import type { EfeitoNaMeta, Sugestao } from '../sugestoes'
+import type { MetaEconomia } from '../model/meta'
+import type { EfeitoNaMeta, Sugestao } from '../utils/sugestoes'
 
 interface CardSugestoesProps {
   sugestoes: Sugestao[]

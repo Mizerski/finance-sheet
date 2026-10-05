@@ -18,9 +18,9 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
-import { useFinancas } from '@/store/financas-context'
-import { guardadoNaMeta, resgatesDaMeta } from '../aportes'
-import { temAlvo, type MetaEconomia } from '../meta'
+import { useFinancas } from '@/store/context/financas-context'
+import { guardadoNaMeta, resgatesDaMeta } from '../utils/aportes'
+import { temAlvo, type MetaEconomia } from '../model/meta'
 
 interface DialogResgateProps {
   aberto: boolean

@@ -1,5 +1,5 @@
 import { Pencil, Plus, Trash2 } from '@/shared/ui/icones'
-import type { TipoMovimento } from '@/features/lancamentos/lancamento'
+import type { TipoMovimento } from '@/features/lancamentos/model/lancamento'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
 import { PontoCor } from '@/shared/components/PontoCor'
@@ -9,7 +9,7 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import type { Categoria } from '../categoria'
+import type { Categoria } from '../model/categoria'
 
 interface CardCategoriasProps {
   tipo: TipoMovimento

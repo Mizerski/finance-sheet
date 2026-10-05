@@ -5,8 +5,8 @@ import { CAMPO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
-import type { Lancamento } from '../lancamento'
-import { fimDepoisDe, MAX_VEZES, parcelasDe } from '../parcelas'
+import type { Lancamento } from '../model/lancamento'
+import { fimDepoisDe, MAX_VEZES, parcelasDe } from '../utils/parcelas'
 
 interface CampoVezesProps {
   /** O recorrente como ficaria salvo; null enquanto a recorrência tem erro. */
@@ -16,12 +16,13 @@ interface CampoVezesProps {
   onAlterar: (fim: DataISO | undefined) => void
 }
 
-/** "Quantas vezes": para parcelas, calcula o fim a partir do início e mostra quanto falta. */
+/**
+ * "Quantas vezes": para parcelas, calcula o fim a partir do início e mostra quanto falta.
+ * Sem início não há de onde contar: pôr o início em hoje apagaria os meses que passaram.
+ */
 export function CampoVezes({ lancamento, hoje, onAlterar }: CampoVezesProps) {
-  // Texto enquanto a pessoa digita; fora disso, o campo mostra o número que sai do início e do fim.
   const [texto, setTexto] = useState<string | null>(null)
   const parcelas = lancamento && parcelasDe(lancamento, hoje)
-  // Sem início ("desde sempre") não há de onde contar; pôr o início em hoje apagaria os meses que passaram.
   const semInicio = !!lancamento && !lancamento.inicio
 
   function alterar(valor: string) {

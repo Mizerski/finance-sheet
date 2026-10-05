@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { formatarData, paraDataISO, somarDias } from '@/shared/lib/datas'
-import { useFinancas } from '@/store/financas-context'
-import type { Lancamento } from '../lancamento'
-import { encerrar, recorrenteEmAndamento } from '../vigencia'
+import { useFinancas } from '@/store/context/financas-context'
+import type { Lancamento } from '../model/lancamento'
+import { encerrar, recorrenteEmAndamento } from '../utils/vigencia'
 
 interface ExcluirLancamentoProps {
   aberto: boolean
@@ -12,11 +12,13 @@ interface ExcluirLancamentoProps {
   lancamento?: Lancamento
 }
 
-/** Confirmação de exclusão de um lançamento (Lançamentos e Planilha). */
+/**
+ * Confirmação de exclusão de um lançamento (Lançamentos e Planilha).
+ * Num recorrente que já aconteceu, encerrar mantém os meses que passaram; excluir apaga tudo.
+ */
 export function ExcluirLancamento({ aberto, onOpenChange, lancamento }: ExcluirLancamentoProps) {
   const { dispatch } = useFinancas()
   const [hoje] = useState(() => paraDataISO(new Date()))
-  // Recorrente que já aconteceu: encerrar mantém os meses que passaram, excluir apaga tudo.
   const encerravel = lancamento && recorrenteEmAndamento(lancamento, hoje) ? lancamento : undefined
 
   return (

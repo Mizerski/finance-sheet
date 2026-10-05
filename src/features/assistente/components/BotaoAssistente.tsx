@@ -1,6 +1,6 @@
 import { Forma } from '@/shared/components/Forma'
 import { cn } from '@/shared/lib/utils'
-import { useAssistente } from '../assistente-context'
+import { useAssistente } from '../context/assistente-context'
 
 /**
  * Desktop: abre e fecha o painel do assistente (atalho A). Bloco como as abas do menu, em preto com as três
@@ -25,14 +25,11 @@ export function BotaoAssistente() {
     >
       <span aria-hidden className="flex items-end gap-0.5">
         <Forma forma="circulo" cor="azul" className="size-2.5" />
-        {/* Sobre o amarelo (hover e aberto), o triângulo amarelo sumiria: vira preto, no mesmo lugar. */}
         <Forma forma="triangulo" cor="amarelo" className={cn('size-2.5', aberto ? 'hidden' : 'group-hover:hidden')} />
         <Forma forma="triangulo" cor="tinta" className={cn('size-2.5', !aberto && 'hidden group-hover:block')} />
         <Forma forma="quadrado" cor="vermelho" className="size-2.5" />
       </span>
-      {/* Na janela estreita, só as formas da marca: o menu ao lado precisa do espaço. */}
       <span className="sr-only sm:not-sr-only">Assistente</span>
-      {/* Download em andamento: um ponto amarelo, para a pessoa saber que continua mesmo com o painel fechado. */}
       {baixando && (
         <span
           aria-hidden

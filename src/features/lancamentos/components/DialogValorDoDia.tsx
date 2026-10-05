@@ -16,9 +16,9 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/field'
-import { useFinancas } from '@/store/financas-context'
-import { comValorNoDia, semExcecaoNoDia } from '../excecoes'
-import { valorNoDia, type Lancamento } from '../lancamento'
+import { useFinancas } from '@/store/context/financas-context'
+import { comValorNoDia, semExcecaoNoDia } from '../utils/excecoes'
+import { valorNoDia, type Lancamento } from '../model/lancamento'
 
 interface DialogValorDoDiaProps {
   aberto: boolean
@@ -38,7 +38,6 @@ export function DialogValorDoDia({ aberto, onOpenChange, lancamento, data }: Dia
             {lancamento?.descricao} · nos outros dias continua {lancamento && formatarBRL(lancamento.valorCentavos)}.
           </DialogDescription>
         </DialogHeader>
-        {/* Desmonta ao fechar: sempre abre com o valor do dia. */}
         {lancamento && data && (
           <FormularioValorDoDia lancamento={lancamento} data={data} onConcluir={() => onOpenChange(false)} />
         )}

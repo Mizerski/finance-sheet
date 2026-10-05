@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react'
 import { Plus } from '@/shared/ui/icones'
 import { CabecalhoOrganizacao } from '@/features/organizacao/components/CabecalhoOrganizacao'
-import { totalPorLancamento } from '@/features/projecao/projecao'
-import { useDiasDosCaixas } from '@/features/projecao/projecoes-por-caixa'
-import { useAno } from '@/features/projecao/useAno'
+import { totalPorLancamento } from '@/features/projecao/utils/projecao'
+import { useDiasDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
+import { useAno } from '@/features/projecao/hooks/useAno'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 import { CardPastas } from './components/CardPastas'
 import { DialogPasta } from './components/DialogPasta'
-import { agruparPorPasta } from './grupos'
-import type { Pasta } from './pasta'
+import { agruparPorPasta } from './utils/grupos'
+import type { Pasta } from './model/pasta'
 
 /** O item continua guardado ao fechar, para o conteúdo não mudar durante a animação de saída. */
 interface Selecao {
@@ -19,10 +19,12 @@ interface Selecao {
   pasta?: Pasta
 }
 
-/** Aba Pastas da tela Organização. */
+/**
+ * Aba Pastas da tela Organização.
+ * Os totais somam todos os caixas, como as próprias pastas.
+ */
 export function SecaoPastas() {
   const { estado, dispatch } = useFinancas()
-  // Categorias, tags e pastas valem para todos os caixas: os totais também.
   const { ano } = useAno()
   const dias = useDiasDosCaixas(ano)
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })

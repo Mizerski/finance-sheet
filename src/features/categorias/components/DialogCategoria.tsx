@@ -1,8 +1,8 @@
-import type { TipoMovimento } from '@/features/lancamentos/lancamento'
+import type { TipoMovimento } from '@/features/lancamentos/model/lancamento'
 import { CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import type { Categoria } from '../categoria'
+import type { Categoria } from '../model/categoria'
 import { FormularioCategoria } from './FormularioCategoria'
 
 interface DialogCategoriaProps {

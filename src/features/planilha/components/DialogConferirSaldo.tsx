@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
-import { useVisao } from '@/features/caixas/useVisao'
-import { guardadoSeparado } from '@/features/economias/aportes'
-import { lancamentoDeAjuste } from '@/features/lancamentos/ajuste'
-import { useProjecoesDosCaixas } from '@/features/projecao/projecoes-por-caixa'
+import { useVisao } from '@/features/caixas/hooks/useVisao'
+import { guardadoSeparado } from '@/features/economias/utils/aportes'
+import { lancamentoDeAjuste } from '@/features/lancamentos/utils/ajuste'
+import { useProjecoesDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
@@ -22,7 +22,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/field'
-import { useFinancas } from '@/store/financas-context'
+import { useFinancas } from '@/store/context/financas-context'
 
 interface DialogConferirSaldoProps {
   aberto: boolean
@@ -40,7 +40,6 @@ export function DialogConferirSaldo({ aberto, onOpenChange }: DialogConferirSald
             Informe quanto o banco mostra. Se a planilha estiver diferente, a diferença vira um lançamento de ajuste.
           </DialogDescription>
         </DialogHeader>
-        {/* Desmonta ao fechar: sempre abre vazio, com a data de hoje. */}
         <FormularioConferir onConcluir={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
@@ -59,11 +58,13 @@ const OPCOES_SINAL = [
   { valor: 'negativo' as const, rotulo: 'Negativo' },
 ]
 
+/**
+ * O ajuste é sempre de um caixa (no Total, a primeira conta) e corrige o disponível; o separado nas metas não muda.
+ */
 function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   const { estado, dispatch } = useFinancas()
   const { caixaPadrao } = useVisao()
   const { porCaixa } = useProjecoesDosCaixas()
-  // O caixa da tela (no Total, a primeira conta); o ajuste é sempre de um caixa, nunca da soma.
   const [caixaId, setCaixaId] = useState(caixaPadrao?.id ?? '')
   const projecoes = porCaixa.get(caixaId) ?? []
   const [data, setData] = useState<DataISO>(() => paraDataISO(new Date()))
@@ -72,7 +73,6 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   const [informado, setInformado] = useState(false)
   const [comparar, setComparar] = useState<Comparar>('com')
 
-  // O saldo da planilha é o disponível; o separado nas metas da conta também está nela.
   const separado = guardadoSeparado(estado.metas.filter((m) => m.caixaId === caixaId), data)
   const somaSeparado = separado > 0 && comparar === 'com'
   const disponivel = projecoes.flatMap((p) => p.dias).find((d) => d.data === data)?.saldoCentavos ?? null
@@ -84,7 +84,6 @@ function FormularioConferir({ onConcluir }: { onConcluir: () => void }) {
   function salvar(e: FormEvent) {
     e.preventDefault()
     if (!pronto || projetado === null) return
-    // O ajuste corrige o disponível pela diferença (o separado nas metas não muda).
     const ajuste = lancamentoDeAjuste(real, projetado, data, crypto.randomUUID(), caixaId)
     if (ajuste) dispatch({ tipo: 'lancamento/salvar', lancamento: ajuste })
     onConcluir()
