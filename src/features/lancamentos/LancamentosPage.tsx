@@ -21,6 +21,7 @@ import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { useFinancas } from '@/store/context/financas-context'
 import { BarraSelecao, type AvisoLote } from './components/BarraSelecao'
+import { DialogExtratoLancamento } from './components/DialogExtratoLancamento'
 import { DialogLancamento } from './components/DialogLancamento'
 import { ExcluirLancamento } from './components/ExcluirLancamento'
 import { FiltrosLancamentos } from './components/FiltrosLancamentos'
@@ -64,6 +65,7 @@ export function LancamentosPage() {
   const diasNoPeriodo = useDiasDosCaixasNoPeriodo(periodo, caixa?.id)
   const [edicao, setEdicao] = useState<Selecao>({ aberto: false })
   const [exclusao, setExclusao] = useState<Selecao>({ aberto: false })
+  const [extrato, setExtrato] = useState<Selecao>({ aberto: false })
   const [exclusaoLote, setExclusaoLote] = useState({ aberto: false, quantos: 0 })
 
   const categorias = useMemo(() => new Map(estado.categorias.map((c) => [c.id, c])), [estado.categorias])
@@ -233,6 +235,10 @@ export function LancamentosPage() {
         ajuda={
           <Ajuda titulo="Dicas da lista">
             <p>
+              <strong className="font-semibold">Ver um lançamento:</strong> clique nele para abrir o extrato, com tudo o
+              que foi lançado, as parcelas e as próximas vezes. Dali dá para editar.
+            </p>
+            <p>
               <strong className="font-semibold">Data:</strong> mostra só o que acontece no período escolhido, com quantas
               vezes e quanto soma cada lançamento que se repete.
             </p>
@@ -247,17 +253,12 @@ export function LancamentosPage() {
               </p>
             )}
             <p className="text-muted-foreground">
-              No teclado, <kbd className="font-semibold">N</kbd> abre um lançamento novo,{' '}
+              Para criar, use <strong className="font-semibold">+ Novo lançamento</strong> no topo da tela. No teclado,{' '}
+              <kbd className="font-semibold">N</kbd> abre um lançamento novo,{' '}
               <kbd className="font-semibold">/</kbd> vai para a busca e <kbd className="font-semibold">Esc</kbd> desmarca
               tudo.
             </p>
           </Ajuda>
-        }
-        acoes={
-          <Button className={BOTAO} onClick={novo} title="Novo lançamento (atalho N)">
-            <Plus />
-            Novo lançamento
-          </Button>
         }
       />
 
@@ -285,6 +286,7 @@ export function LancamentosPage() {
             onOrdenar={ordenar}
             onAlternarGrupo={alternarGrupo}
             onMover={mover}
+            onVer={(lancamento) => setExtrato({ aberto: true, lancamento })}
             onEditar={(lancamento) => setEdicao({ aberto: true, lancamento })}
             onExcluir={(lancamento) => setExclusao({ aberto: true, lancamento })}
           />
@@ -333,6 +335,20 @@ export function LancamentosPage() {
           onPausarAviso={setAvisoPausado}
         />
       )}
+
+      <DialogExtratoLancamento
+        aberto={extrato.aberto}
+        lancamento={extrato.lancamento}
+        onOpenChange={(aberto) => setExtrato((e) => ({ ...e, aberto }))}
+        onEditar={(lancamento) => {
+          setExtrato((e) => ({ ...e, aberto: false }))
+          setEdicao({ aberto: true, lancamento })
+        }}
+        onExcluir={(lancamento) => {
+          setExtrato((e) => ({ ...e, aberto: false }))
+          setExclusao({ aberto: true, lancamento })
+        }}
+      />
 
       <DialogLancamento
         aberto={edicao.aberto}

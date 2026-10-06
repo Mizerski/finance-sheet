@@ -20,7 +20,7 @@ Os tokens ficam em `:root` em `src/index.css` e são expostos ao Tailwind em `@t
 
 ### Tema escuro (Bauhaus escuro)
 
-Há tema claro e escuro (classe `dark` no `<html>`). Sem escolha, segue o sistema; o botão de sol/lua do cabeçalho (`BotaoTema`, `src/features/tema/`) troca e guarda a escolha no aparelho. `public/tema-inicial.js` aplica a classe antes do React, para a tela não piscar.
+Há tema claro e escuro (classe `dark` no `<html>`). Sem escolha, segue o sistema; "Cores da tela" no menu Mais do cabeçalho (`MenuMais`, com `useTema` de `src/features/tema/`) troca e guarda a escolha no aparelho. `public/tema-inicial.js` aplica a classe antes do React, para a tela não piscar.
 
 O escuro é **grafite médio**: o mesmo cartaz, impresso num papel cinza-grafite em vez de preto. Não é a inversão do claro (regra `color-dark-mode` da ui-ux-pro-max: variantes tonais próprias, contraste conferido à parte). Todas as cores têm valor próprio no bloco `.dark` de `src/index.css`. A versão anterior (carvão com linhas e texto creme) parecia terminal antigo: contorno a 9:1, mais forte que o texto secundário, sombra clara virando segunda borda e amarelo a 11:1 mandando na tela. As prévias da escolha ficam em `docs/previas/`.
 
@@ -150,12 +150,13 @@ Sem categoria: `#a39a8e`.
 
 | Assunto | Bloco e forma |
 |---|---|
-| Risco do caixa (Economias e Planilha) | bloco na cor do nível, triângulo |
+| Risco do caixa (topo de Economias, `ResumoEconomias`) | card dividido em três como o resumo da Planilha: o risco como selo grande na cor do nível, com triângulo; o guardado nas metas e quanto dá para guardar em número grande; embaixo, a frase do dia mais apertado e o mês a mês em barras |
+| Simulador de conta nova (`CardSimulador`) | preto com triângulo amarelo |
+| Resumo da Planilha (`ResumoPlanilha`) | card dividido em três (empilhado abaixo de 48rem): saldo de hoje e do fim do mês em número grande (`VALOR_DESTAQUE`), e o risco como selo grande na cor do nível, com triângulo e o nome escrito |
 | Metas, sobras | amarelo, meia-lua |
-| Quanto dá para guardar | amarelo, quarto de círculo |
-| Reserva de emergência | amarelo, quadrado |
+| Quanto dá para guardar (com a reserva de emergência dentro, `CardGuardar`) | amarelo, quarto de círculo; a reserva é a metade da direita, com quadrado amarelo no título |
 | Sugestões | azul, círculo amarelo |
-| Gastos grandes | vermelho, triângulo papel |
+| Contas grandes pela frente | vermelho, triângulo papel |
 | Categorias de entrada / saída, gastos por categoria | azul com círculo papel / vermelho com quadrado papel |
 | Tags | amarelo, triângulo |
 | Pastas | preto, quadrado amarelo |
@@ -214,16 +215,27 @@ Sem categoria: `#a39a8e`.
 | Barra de seleção (lote) | presa embaixo (`fixed inset-x-4 bottom-4`), `shadow-bloco-lg`; a contagem em bloco amarelo à esquerda, ações em botões `outline`, aviso do que mudou com "Desfazer" na linha de cima. A página ganha folga embaixo para a barra não cobrir a última linha |
 | Botão Assistente (só desktop) | bloco como as abas do menu, em `bg-tinta text-papel` com as três formas da marca e "Assistente" em caixa alta; hover amarelo; aberto, afundado em amarelo (o triângulo amarelo vira preto). Na janela estreita (abaixo de 40rem), só as formas |
 | Seletor de caixa | um botão em bloco (`shadow-bloco-sm`) com a bolinha da cor, o nome e ▾, que afunda e fica amarelo quando aberto; a lista numera os atalhos em quadradinhos (preto no escolhido) |
+| Extrato de um item (`Extrato.tsx`) | o "cupom": contorno, valor grande centralizado no topo (`VALOR_DESTAQUE`, na cor do assunto), partes separadas por régua tracejada (`border-dashed`), linhas com rótulo à esquerda e valor à direita, total em negrito; Editar no rodapé. É leitura, não formulário |
+| Fechar janela | X em pixel art (24px) num botão redondo no canto de todo dialog, hover amarelo |
+| Seção que abre e fecha (`Secao`) | título em Outfit extrabold caixa alta (`text-xl`) com a forma do assunto e a seta num quadradinho com sombra (hover amarelo, afunda ao clicar); a conclusão numa linha embaixo, à vista também fechada; régua preta embaixo. Agrupa cards de uma tela comprida (Economias) |
+| Mês a mês do risco (`FaixaMeses`) | uma coluna por mês com contorno; barra com contorno na cor do nível, de altura proporcional ao saldo do dia mais apertado; mês abreviado embaixo (a inicial no celular); "!" vermelho no mês em que falta dinheiro; legenda só com os níveis que aparecem. Sem números dentro |
+| Card clicável (meta) | o card todo abre o extrato: `cursor-pointer` e, no hover, sobe 2px com `shadow-bloco-lg` (o contrário de afundar); além disso, um botão "Ver extrato" com o ícone de recibo |
+| Caixa de sugestão (`CaixaSugestao`) | contorno, faixa amarela grossa à esquerda, fundo `bg-economia-suave`; título em `ROTULO` com ✦, a frase com o que o app sugere e o botão "Usar" (outline, `h-8`). Para toda sugestão aceita com um clique |
+| Pergunta com respostas em cartões (`EscolhaGrande`) | radiogroup de cartões de 56px ou mais, em papel com sombra e hover amarelo; a escolhida em bloco preto (ou `corAtiva`: vermelho na saída, azul na entrada), afundada; nome em `text-sm` semibold com forma ou `PontoCor` antes e uma frase curta opcional. Listas curtas (categorias, tags, repetição) em duas colunas |
+| Formulário em passos (modo simples) | "Passo N de M" em `ROTULO` e uma régua de blocos com contorno (cheios até o atual); a pergunta em `font-heading` `text-xl` (caixa normal, é uma frase); Voltar (outline, com ‹) à esquerda e Continuar (principal) à direita; "Ver todos os campos de uma vez" em link pequeno embaixo. A conferência é uma lista com contorno, rótulo à esquerda e "Mudar" em cada linha |
 | Escolha com explicação (tipo do caixa) | cartões em grade 2×2 (conta: círculo, investimento: meia-lua, benefício: quarto de círculo, cartão: quadrado) com nome em caixa alta e uma frase; o escolhido fica em bloco preto, afundado |
 | Campo (input, select) | `CAMPO`, `CAMPO_SELECT` — `h-10`, borda de 2px em `border-input` (preta no claro, cinza no escuro); foco com sombra azul deslocada |
 | Botão com texto | `Button` + `BOTAO`; principal preto com sombra vermelha, secundário (`outline`) papel com sombra preta e hover amarelo |
 | Botão só com ícone | `variant="ghost" size="icon" className="rounded-full"` (círculo), com `aria-label` |
 | Grupo de controles (‹ 2026 ›) | `GRUPO` no contêiner e `BOTAO_GRUPO` nos botões, com divisórias `border-x-2` |
 | Controle segmentado | `ControleSegmentado`: faixa com contorno, divisórias, ativa em bloco preto (ou `corAtiva`) |
-| Menu | abas em blocos separados com contorno e sombra dura, que afundam ao clicar; a ativa fica afundada (preta, deslocada 2px, sem sombra); hover amarelo |
+| Menu | abas em blocos separados com contorno e sombra dura (`BLOCO_CABECALHO` + `BLOCO_SOLTO`), que afundam ao clicar; a ativa fica afundada (preta, deslocada 2px, sem sombra); hover amarelo |
+| Barra de telas embaixo (abaixo de 64rem) | presa embaixo, `bg-card` com régua preta em cima e divisórias de contorno; cinco células de 64px de altura com a forma e o nome em caixa normal (para caber inteiro em 360px); a ativa em bloco preto. A página ganha folga embaixo (`pb-24`) |
+| Mais (cabeçalho) | bloco como o seletor de caixa, com ☰ e "Mais" (só a palavra abaixo de 30rem); abre uma lista de itens de 48px com ícone, nome e uma linha de detalhe ("Ligado, a partir das 20:00"). O que não é tela (cores, lembrete, backup, atalhos, sair) mora ali, nunca como ícone solto no cabeçalho |
+| Novo lançamento (cabeçalho) | botão principal (preto com sombra vermelha) "+ Novo lançamento", que encurta para "+ Novo" onde falta espaço; sempre à vista em qualquer largura |
 | Badge | canto reto, borda de 1,5px, caixa alta |
 | Barra de rolagem | global em `src/index.css` (`::-webkit-scrollbar`): 14px, trilho `--muted` com régua `--contorno`, puxador quadrado em `--input` (preto no claro, cinza no escuro) que fica amarelo no hover, botões ▲▼ com setas em pixel (`--seta-*`, uma cor por tema). Não use `scrollbar-color`/`scrollbar-width` (o Chromium passa a ignorar o estilo); `[scrollbar-width:none]` só para esconder a barra, como no menu |
-| Cursor | pixel art em grade de 2px, em `public/cursores/` (`.svg` e `@2x.svg`), pelos tokens `--cursor-seta`, `--cursor-mao` (amarela, em tudo que é clicável), `--cursor-texto` (campos) e `--cursor-bloqueado` (desabilitado). As classes `cursor-pointer`, `cursor-default` e `cursor-not-allowed` já usam os tokens. Para desenho novo, mude o arquivo nas duas resoluções e o ponto de clique no token |
+| Cursor | pixel art em `public/cursores/` (`.svg` com um pixel da arte por pixel da tela, do tamanho do cursor do sistema, e `@2x.svg`), em branco com contorno preto, pelos tokens `--cursor-seta`, `--cursor-mao` (em tudo que é clicável), `--cursor-texto` (campos) e `--cursor-bloqueado` (desabilitado). As classes `cursor-pointer`, `cursor-default` e `cursor-not-allowed` já usam os tokens. Para desenho novo, mude o arquivo nas duas resoluções e o ponto de clique no token |
 
 - Sombras: `shadow-bloco-sm` (3px, botões e grupos), `shadow-bloco` (4px, cards e popovers), `shadow-bloco-lg` (6px, dialogs e avisos), na cor `--sombra`. Nunca sombra com desfoque.
 - Botões com sombra "afundam" ao clicar (`translate` de 2px e sombra zerada), exceto com `prefers-reduced-motion`. Vale para todo controle em bloco com sombra: botões, abas do menu e quadradinhos do seletor de cor. O item escolhido de um grupo (aba ativa, cor escolhida) pode ficar afundado de vez.
@@ -276,7 +288,8 @@ Cada card responde uma pergunta de relance (regra `progressive-disclosure` da ui
 - Em telas pequenas, **abrevie em vez de esconder** (ex.: "Saídas fixas" vira "Fixas"). Rótulos em caixa alta perdem o espaçamento entre letras no celular quando apertam as colunas.
 - Breakpoints arbitrários devem usar **rem** (`min-[76rem]:`), não px.
 - Na planilha, os meses visíveis são 1 abaixo de 64rem, 2 entre 64rem e 90rem e 3 a partir de 90rem (72rem/106rem com a coluna Economia).
-- O menu rola na horizontal no celular (sem barra visível), mas nunca quebra em várias linhas. Abaixo de 76rem (90rem com o seletor de caixa) ele ocupa uma linha própria; no desktop, que tem mais botões no cabeçalho, abaixo de 84rem (98rem com o seletor).
+- Nenhuma tela do menu fica escondida. Abaixo de 64rem as telas vão para a barra de baixo; de 64rem até a linha única, o menu ocupa a segunda linha do cabeçalho; a linha única começa em 70rem (83rem com o seletor de caixa) e, no desktop, que tem o botão Assistente, em 80rem (93rem com o seletor). No celular, a marca divide a primeira linha com Assistente e Mais, e o caixa e o "Novo lançamento" (largo) ficam na segunda. Entre 64rem e 72rem o Assistente mostra só as formas.
+- Botões do cabeçalho: no máximo um ícone solto (o olho dos saldos); o resto tem nome escrito ou fica no Mais.
 - Colunas de texto livre (descrição) quebram palavras longas (`[overflow-wrap:anywhere]`), para a tabela caber no card mesmo com os botões da linha.
 
 ## Ícones

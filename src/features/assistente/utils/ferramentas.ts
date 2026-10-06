@@ -86,6 +86,10 @@ export const DEFINICOES_FERRAMENTAS = [
           valor: { type: 'number', description: 'Valor em reais (ex.: 3000 ou 149.90).' },
           data: { type: 'string', description: 'Dia do gasto, AAAA-MM-DD; sem ela, hoje. Mensal: o dia da primeira parcela.' },
           frequencia: { type: 'string', enum: ['unica', 'mensal'], description: 'unica = uma vez; mensal = todo mês.' },
+          vezes: {
+            type: 'number',
+            description: 'Compra parcelada: em quantas vezes (com frequencia mensal). O valor é o de cada parcela.',
+          },
           conta: { type: 'string', description: 'Nome da conta; sem ele, a primeira conta.' },
         },
         required: ['valor'],
@@ -348,7 +352,8 @@ function simularGasto(args: Record<string, unknown>, d: DadosFerramentas): Resul
   const valor = typeof args.valor === 'number' ? args.valor : Number(String(args.valor ?? '').replace(/\./g, '').replace(',', '.'))
   if (!Number.isFinite(valor) || valor <= 0) return { resumo: 'Simulação: valor inválido', resultado: 'Informe um valor em reais maior que zero.' }
   const centavos = Math.round(valor * 100)
-  const frequencia: FrequenciaConta = args.frequencia === 'mensal' ? 'mensal' : 'unica'
+  const vezes = typeof args.vezes === 'number' && Number.isInteger(args.vezes) && args.vezes > 1 ? args.vezes : undefined
+  const frequencia: FrequenciaConta = args.frequencia === 'mensal' || vezes ? 'mensal' : 'unica'
   const dia = ehDia(args.data) ? args.data : d.hoje
   if (dia < d.hoje) return { resumo: 'Simulação: data no passado', resultado: 'A data do gasto precisa ser hoje ou depois.' }
 
@@ -358,12 +363,14 @@ function simularGasto(args: Record<string, unknown>, d: DadosFerramentas): Resul
   const conta = escolhida ?? contas[0]
   if (!conta) return { resumo: 'Simulação', resultado: 'Não há conta para simular.' }
 
-  const resumo = `Simulação: ${brl(centavos)} ${frequencia === 'mensal' ? `por mês a partir de ${data(dia)}` : `em ${data(dia)}`} (${conta.nome})`
+  const quando =
+    frequencia === 'unica' ? `em ${data(dia)}` : `${vezes ? `em ${vezes} parcelas` : 'por mês'} a partir de ${data(dia)}`
+  const resumo = `Simulação: ${brl(centavos)} ${quando} (${conta.nome})`
   const atual = analisarRisco((d.porCaixa.get(conta.id) ?? []).flatMap((p) => p.dias), d.hoje)
   if (!atual) return { resumo, resultado: 'Sem dias calculados para simular nessa conta.' }
   const ctx = { caixa: conta, lancamentos: lancamentosDoCaixa(d.lancamentos, conta.id), metas: metasDoCaixa(d.metas, conta.id), hoje: d.hoje }
-  const com = riscoCom(ctx, [...ctx.lancamentos, contaSimulada(centavos, frequencia, dia, conta.id)])
-  const maior = maiorContaSemPiorar(ctx, frequencia, dia, atual)
+  const com = riscoCom(ctx, [...ctx.lancamentos, contaSimulada(centavos, frequencia, dia, conta.id, vezes)])
+  const maior = maiorContaSemPiorar(ctx, frequencia, dia, atual, vezes)
   if (!com) return { resumo, resultado: 'Sem dias calculados para simular nessa conta.' }
 
   const conclusao = com.primeiroNegativo
@@ -377,7 +384,7 @@ function simularGasto(args: Record<string, unknown>, d: DadosFerramentas): Resul
       `${resumo}.`,
       `Conclusão: ${conclusao}`,
       `Risco hoje: ${descreverRisco(atual)}. Com o gasto: ${descreverRisco(com)}.`,
-      `Maior valor ${frequencia === 'mensal' ? 'por mês ' : ''}que cabe sem piorar o risco: ${brl(maior)}.`,
+      `Maior valor ${vezes ? 'de cada parcela ' : frequencia === 'mensal' ? 'por mês ' : ''}que cabe sem piorar o risco: ${brl(maior)}.`,
     ].join('\n'),
   }
 }

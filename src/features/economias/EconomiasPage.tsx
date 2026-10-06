@@ -8,7 +8,7 @@ import { useEscolherCaixa, useVisao } from '@/features/caixas/hooks/useVisao'
 import { useProjecoesDosCaixas } from '@/features/projecao/hooks/useProjecoesDosCaixas'
 import { paraProjetar } from '@/features/projecao/utils/projecao'
 import { useProjecao } from '@/features/projecao/hooks/useProjecao'
-import { CardRisco } from '@/features/risco/components/CardRisco'
+import { CardSimulador } from '@/features/risco/components/CardSimulador'
 import { capacidadePorNivelDaVisao } from '@/features/risco/utils/risco-por-conta'
 import type { ContextoRisco } from '@/features/risco/utils/simulacao'
 import { useRisco } from '@/features/risco/hooks/useRisco'
@@ -17,6 +17,7 @@ import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
+import { Secao } from '@/shared/components/Secao'
 import { paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, CARD } from '@/shared/lib/estilos'
@@ -24,21 +25,23 @@ import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { useFinancas } from '@/store/context/financas-context'
 import { resumirMeta } from './utils/aportes'
+import { alternarSecao, secaoFechada, type SecaoEconomias } from './utils/busca'
 import { capacidadeDePoupanca, periodoDaCapacidade } from './utils/capacidade'
 import { gastosGrandes } from './utils/gastos-grandes'
 import { metaPrincipal } from './utils/marcos'
 import { montarSugestoes } from './utils/sugestoes'
 import { gastoEssencial, MESES_DE_RESERVA_PADRAO, metaDeReserva, NOME_RESERVA } from './utils/reserva'
-import { CardCapacidade } from './components/CardCapacidade'
 import { CardGastosGrandes } from './components/CardGastosGrandes'
+import { CardGuardar } from './components/CardGuardar'
 import { CardMeta } from './components/CardMeta'
 import { CardSobras } from './components/CardSobras'
 import { DialogAportes } from './components/DialogAportes'
+import { DialogExtratoMeta } from './components/DialogExtratoMeta'
 import { DialogResgate } from './components/DialogResgate'
-import { CardReserva } from './components/CardReserva'
 import { CardSugestoes } from './components/CardSugestoes'
 import { DialogMeta } from './components/DialogMeta'
-import type { SugestaoMeta } from './components/FormularioMeta'
+import { ResumoEconomias } from './components/ResumoEconomias'
+import type { SugestaoMeta } from './hooks/useFormularioMeta'
 import { temAlvo, type MetaEconomia } from './model/meta'
 
 /** A meta continua guardada ao fechar, para o conteúdo não mudar durante a animação de saída. */
@@ -87,13 +90,14 @@ function ConteudoEconomias() {
   const { estado, dispatch } = useFinancas()
   const { metas, lancamentos, projecoes } = useVisao()
   const { ano, meses } = useProjecao()
-  const { reserva: mesesDeReserva = MESES_DE_RESERVA_PADRAO } = useSearch({ from: '/economias' })
+  const { reserva: mesesDeReserva = MESES_DE_RESERVA_PADRAO, alternadas } = useSearch({ from: '/economias' })
   const navigate = useNavigate({ from: '/economias' })
   const [hoje] = useState(() => paraDataISO(new Date()))
   const [edicao, setEdicao] = useState<Selecao>(FECHADO)
   const [ajuste, setAjuste] = useState<Selecao>(FECHADO)
   const [uso, setUso] = useState<Selecao>(FECHADO)
   const [exclusao, setExclusao] = useState<Selecao>(FECHADO)
+  const [extrato, setExtrato] = useState<Selecao>(FECHADO)
 
   const resumos = useMemo(
     () => new Map(metas.map((m) => [m.id, resumirMeta(m, hoje)])),
@@ -141,31 +145,28 @@ function ConteudoEconomias() {
   const alvo = metas.every(temAlvo) ? metas.reduce((t, m) => t + (m.valorAlvoCentavos ?? 0), 0) : null
   const quantidade = metas.length
   const nova = () => setEdicao({ aberto: true })
+  const descobertos = grandes.itens.filter((g) => g.saldoNoDiaCentavos < 0).length
+  const secao = (s: SecaoEconomias) => ({
+    aberta: !secaoFechada(s, alternadas),
+    onAlternar: () =>
+      navigate({
+        search: (b) => ({ ...b, alternadas: alternarSecao(s, b.alternadas) }),
+        replace: true,
+        resetScroll: false,
+      }),
+  })
 
   return (
     <div className="flex flex-col gap-4">
       <CabecalhoPagina
         forma={FORMA_PAGINA.economias}
         titulo="Economias"
-        descricao={
-          quantidade > 0 ? (
-            <>
-              {quantidade} {quantidade === 1 ? 'meta' : 'metas'} ·{' '}
-              <span className="font-semibold text-foreground tabular-nums">{formatarBRL(guardado)}</span> guardados
-              {alvo !== null && <> de {formatarBRL(alvo)}</>}
-            </>
-          ) : (
-            'Separe dinheiro todo mês para um objetivo e acompanhe quanto já guardou'
-          )
-        }
+        descricao="Quanto guardar, para quê e se o caixa aguenta"
         ajuda={
-          quantidade > 0 && (
-            <Ajuda titulo="Como as metas funcionam">
-              <p>
-                No dia combinado, o dinheiro guardado sai do saldo e aparece em amarelo na coluna Economia da planilha.
-              </p>
-            </Ajuda>
-          )
+          <Ajuda titulo="Como as metas funcionam">
+            <p>No dia combinado, o dinheiro guardado sai do saldo e aparece em amarelo na coluna Economia da planilha.</p>
+            <p>Clique numa meta para ver o extrato dela: quanto já tem, o plano e os últimos movimentos.</p>
+          </Ajuda>
         }
         acoes={
           <Button className={BOTAO} onClick={nova}>
@@ -175,46 +176,107 @@ function ConteudoEconomias() {
         }
       />
 
-      {quantidade === 0 ? (
-        <Card className={CARD}>
-          <EstadoVazio
-            titulo="Nenhuma meta de economia ainda"
-            descricao="Diga quanto quer juntar e quanto guardar por mês. No dia combinado, o app tira esse valor do saldo e mostra quanto falta."
-            acao={
-              <Button className={BOTAO} onClick={nova}>
-                <Plus />
-                Nova meta
-              </Button>
+      <ResumoEconomias
+        risco={risco}
+        guardadoCentavos={guardado}
+        alvoCentavos={quantidade > 0 ? alvo : null}
+        porMesCentavos={capacidade?.economiaMediaCentavos ?? null}
+        guardarSemPiorarCentavos={guardarSemPiorar}
+      />
+
+      <Secao
+        titulo="Suas metas"
+        forma={{ forma: 'semicirculo', cor: 'amarelo' }}
+        contagem={quantidade}
+        resumo={quantidade > 0 ? 'Clique numa meta para ver o extrato dela' : 'Nenhuma meta ainda'}
+        {...secao('metas')}
+      >
+        {quantidade === 0 ? (
+          <Card className={CARD}>
+            <EstadoVazio
+              titulo="Nenhuma meta de economia ainda"
+              descricao="Diga quanto quer juntar e quanto guardar por mês. No dia combinado, o app tira esse valor do saldo e mostra quanto falta."
+              acao={
+                <Button className={BOTAO} onClick={nova}>
+                  <Plus />
+                  Nova meta
+                </Button>
+              }
+            />
+          </Card>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2 min-[90rem]:grid-cols-3">
+            {metas.map((meta) => (
+              <CardMeta
+                key={meta.id}
+                meta={meta}
+                principal={meta.id === principal?.id && metas.length > 1}
+                resumo={resumos.get(meta.id)!}
+                hoje={hoje}
+                destino={estado.caixas.find((c) => c.id === meta.destinoId)?.nome}
+                onVer={() => setExtrato({ aberto: true, meta })}
+                onEditar={() => setEdicao({ aberto: true, meta })}
+                onAjustar={() => setAjuste({ aberto: true, meta })}
+                onUsar={() => setUso({ aberto: true, meta })}
+                onRetomar={() => {
+                  const { encerradaEm: _fim, ...emAndamento } = meta
+                  dispatch({ tipo: 'meta/salvar', meta: emAndamento })
+                }}
+                onExcluir={() => setExclusao({ aberto: true, meta })}
+              />
+            ))}
+          </div>
+        )}
+      </Secao>
+
+      <Secao
+        titulo="Guardar mais"
+        forma={{ forma: 'quarto', cor: 'amarelo' }}
+        resumo={
+          <>
+            {guardarSemPiorar !== null && guardarSemPiorar > 0 ? (
+              <>
+                <span className="font-semibold text-foreground tabular-nums">{formatarBRL(guardarSemPiorar)}</span> a mais
+                por mês cabem sem piorar o risco
+              </>
+            ) : (
+              'Quanto cabe por mês e a reserva de emergência'
+            )}
+            {sugestoes.length > 0 && ` · ${sugestoes.length} ${sugestoes.length === 1 ? 'sugestão' : 'sugestões'}`}
+          </>
+        }
+        {...secao('guardar')}
+      >
+        {capacidade && risco && porNivel && (
+          <CardGuardar
+            capacidade={capacidade}
+            risco={risco}
+            porNivel={porNivel}
+            gasto={essencial}
+            meses={mesesDeReserva}
+            onMeses={(m) =>
+              navigate({
+                search: (s) => ({ ...s, reserva: m === MESES_DE_RESERVA_PADRAO ? undefined : m }),
+                replace: true,
+                resetScroll: false,
+              })
+            }
+            existente={reserva && { meta: reserva, resumo: resumos.get(reserva.id)! }}
+            onCriarReserva={(alvoReserva) =>
+              setEdicao({
+                aberto: true,
+                sugestao: {
+                  nome: NOME_RESERVA,
+                  valorAlvoCentavos: alvoReserva,
+                  aporteMensalCentavos: Math.min(guardarSemPiorar ?? 0, alvoReserva),
+                },
+              })
+            }
+            onAtualizarAlvo={(meta, alvoReserva) =>
+              setEdicao({ aberto: true, meta, sugestao: { valorAlvoCentavos: alvoReserva } })
             }
           />
-        </Card>
-      ) : (
-        <div className="grid items-start gap-4 lg:grid-cols-2 min-[90rem]:grid-cols-3">
-          {metas.map((meta) => (
-            <CardMeta
-              key={meta.id}
-              meta={meta}
-              principal={meta.id === principal?.id && metas.length > 1}
-              resumo={resumos.get(meta.id)!}
-              hoje={hoje}
-              destino={estado.caixas.find((c) => c.id === meta.destinoId)?.nome}
-              onEditar={() => setEdicao({ aberto: true, meta })}
-              onAjustar={() => setAjuste({ aberto: true, meta })}
-              onUsar={() => setUso({ aberto: true, meta })}
-              onRetomar={() => {
-                const { encerradaEm: _fim, ...emAndamento } = meta
-                dispatch({ tipo: 'meta/salvar', meta: emAndamento })
-              }}
-              onExcluir={() => setExclusao({ aberto: true, meta })}
-            />
-          ))}
-        </div>
-      )}
-
-      {risco && contextoRisco && <CardRisco risco={risco} contexto={contextoRisco} />}
-
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        {capacidade && risco && porNivel && <CardCapacidade capacidade={capacidade} risco={risco} porNivel={porNivel} />}
+        )}
         <CardSugestoes
           sugestoes={sugestoes}
           risco={risco}
@@ -222,40 +284,61 @@ function ConteudoEconomias() {
           onAplicar={(meta) => dispatch({ tipo: 'meta/salvar', meta })}
           onNovaMeta={nova}
         />
-        <CardReserva
-          gasto={essencial}
-          meses={mesesDeReserva}
-          onMeses={(m) =>
-            navigate({
-              search: (s) => ({ ...s, reserva: m === MESES_DE_RESERVA_PADRAO ? undefined : m }),
-              replace: true,
-              resetScroll: false,
-            })
-          }
-          existente={reserva && { meta: reserva, resumo: resumos.get(reserva.id)! }}
-          onCriar={(alvoReserva) =>
-            setEdicao({
-              aberto: true,
-              sugestao: {
-                nome: NOME_RESERVA,
-                valorAlvoCentavos: alvoReserva,
-                aporteMensalCentavos: Math.min(guardarSemPiorar ?? 0, alvoReserva),
-              },
-            })
-          }
-          onAtualizarAlvo={(meta, alvoReserva) =>
-            setEdicao({ aberto: true, meta, sugestao: { valorAlvoCentavos: alvoReserva } })
-          }
-        />
+      </Secao>
+
+      <Secao
+        titulo="Pela frente"
+        forma={{ forma: 'triangulo', cor: 'vermelho' }}
+        resumo={
+          <>
+            {grandes.itens.length === 0 ? (
+              'Nenhuma conta grande nos próximos 12 meses'
+            ) : descobertos > 0 ? (
+              <span className="font-semibold text-negativo">
+                Falta dinheiro no dia de {descobertos === 1 ? 'uma conta grande' : `${descobertos} contas grandes`}
+              </span>
+            ) : (
+              <>
+                {grandes.itens.length === 1 ? '1 conta grande, e o saldo cobre' : `${grandes.itens.length} contas grandes, e o saldo cobre todas`}
+              </>
+            )}
+            {contextoRisco && ' · simule uma conta nova'}
+          </>
+        }
+        {...secao('frente')}
+      >
         <CardGastosGrandes
           gastos={grandes}
           fim={periodoDaCapacidade(hoje).fim}
           referenciaCentavos={risco?.referenciaCentavos ?? 0}
         />
-      </div>
+        {risco && contextoRisco && <CardSimulador risco={risco} contexto={contextoRisco} />}
+      </Secao>
 
-      <CardSobras ano={ano} meses={meses} />
+      <Secao
+        titulo="Histórico do ano"
+        forma={{ forma: 'semicirculo', cor: 'tinta' }}
+        resumo={`Quanto sobrou em cada mês de ${ano}`}
+        {...secao('sobras')}
+      >
+        <CardSobras ano={ano} meses={meses} />
+      </Secao>
 
+      <DialogExtratoMeta
+        aberto={extrato.aberto}
+        meta={metas.find((m) => m.id === extrato.meta?.id) ?? extrato.meta}
+        resumo={extrato.meta && resumos.get(extrato.meta.id)}
+        hoje={hoje}
+        onOpenChange={(aberto) => setExtrato((e) => ({ ...e, aberto }))}
+        onEditar={(meta) => {
+          setExtrato((e) => ({ ...e, aberto: false }))
+          setEdicao({ aberto: true, meta })
+        }}
+        onVerMeses={(meta) => {
+          setExtrato((e) => ({ ...e, aberto: false }))
+          setAjuste({ aberto: true, meta })
+        }}
+      />
       <DialogMeta
         aberto={edicao.aberto}
         meta={edicao.meta}

@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from '@/shared/ui/icones'
+import { Pencil, Plus, Sparkles, Trash2 } from '@/shared/ui/icones'
 import type { TipoMovimento } from '@/features/lancamentos/model/lancamento'
 import { CabecalhoCard } from '@/shared/components/CabecalhoCard'
 import { EstadoVazio } from '@/shared/components/EstadoVazio'
@@ -9,7 +9,7 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import type { Categoria } from '../model/categoria'
+import { CATEGORIAS_SUGERIDAS, type Categoria } from '../model/categoria'
 
 interface CardCategoriasProps {
   tipo: TipoMovimento
@@ -19,13 +19,15 @@ interface CardCategoriasProps {
   /** Total projetado no ano por categoria. */
   totais: Map<string, number>
   onNova: () => void
+  /** Cria as categorias sugeridas do tipo (oferecido enquanto ele não tem nenhuma). */
+  onUsarSugeridas: () => void
   onEditar: (c: Categoria) => void
   onExcluir: (c: Categoria) => void
 }
 
 const TITULO: Record<TipoMovimento, string> = { entrada: 'Entradas', saida: 'Saídas' }
 
-export function CardCategorias({ tipo, categorias, usos, totais, onNova, onEditar, onExcluir }: CardCategoriasProps) {
+export function CardCategorias({ tipo, categorias, usos, totais, onNova, onUsarSugeridas, onEditar, onExcluir }: CardCategoriasProps) {
   const corValor = tipo === 'entrada' ? 'text-entrada' : 'text-saida'
   const totalDoTipo = categorias.reduce((t, c) => t + (totais.get(c.id) ?? 0), 0)
 
@@ -42,11 +44,18 @@ export function CardCategorias({ tipo, categorias, usos, totais, onNova, onEdita
       {categorias.length === 0 ? (
         <EstadoVazio
           titulo={`Nenhuma categoria de ${tipo === 'entrada' ? 'entrada' : 'saída'}`}
+          descricao={`Comece com ${CATEGORIAS_SUGERIDAS[tipo].map((c) => c.nome).join(', ')} ou crie as suas.`}
           acao={
-            <Button variant="outline" className={BOTAO} onClick={onNova}>
-              <Plus />
-              Nova categoria
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button className={BOTAO} onClick={onUsarSugeridas}>
+                <Sparkles />
+                Usar sugeridas
+              </Button>
+              <Button variant="outline" className={BOTAO} onClick={onNova}>
+                <Plus />
+                Nova categoria
+              </Button>
+            </div>
           }
         />
       ) : (

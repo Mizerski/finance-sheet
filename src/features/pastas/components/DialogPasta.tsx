@@ -16,7 +16,7 @@ interface DialogPastaProps {
 export function DialogPasta({ aberto, onOpenChange, pasta, onSalvar }: DialogPastaProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
+      <DialogContent className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
           <DialogTitle className={TITULO_DIALOG}>
             {pasta ? 'Editar pasta' : 'Nova pasta'}

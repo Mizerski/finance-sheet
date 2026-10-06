@@ -24,6 +24,14 @@ export const GRUPO = 'flex h-10 items-stretch border-2 border-contorno bg-card s
 /** Botão de ícone dentro de um `GRUPO`: quadrado, sem contorno próprio. */
 export const BOTAO_GRUPO = 'h-full w-9 rounded-none border-0 hover:bg-amarelo hover:text-tinta'
 
+/** Controle em bloco do cabeçalho (abas do menu, "Mais"): contorno preto, caixa alta e afunda ao clicar. */
+export const BLOCO_CABECALHO =
+  'flex h-9 shrink-0 items-center gap-2 border-2 border-contorno px-3 text-xs font-semibold tracking-[0.06em] uppercase transition-[color,background-color,box-shadow,translate] duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-safe:active:translate-x-[2px] motion-safe:active:translate-y-[2px]'
+
+/** Bloco solto em papel, com sombra e hover amarelo; aberto (popover), fica afundado em amarelo. */
+export const BLOCO_SOLTO =
+  'bg-card shadow-bloco-sm hover:bg-amarelo hover:text-tinta active:shadow-none data-[state=open]:bg-amarelo data-[state=open]:text-tinta data-[state=open]:shadow-none motion-safe:data-[state=open]:translate-x-[2px] motion-safe:data-[state=open]:translate-y-[2px]'
+
 /** Botão com texto: bloco reto, rótulo em caixa alta (formato e sombra vêm do `Button`). */
 export const BOTAO = 'h-10 px-4 text-xs font-semibold tracking-[0.08em] uppercase'
 

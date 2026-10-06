@@ -14,7 +14,7 @@ export interface InfoNivel {
   curto: string
   /** Parte de um mês de gastos que o saldo precisa ter, no mínimo, para ficar no nível. */
   fracao: number
-  /** O que o nível quer dizer, em linguagem simples. */
+  /** O que o nível quer dizer, em dias de gastos (mais fácil de imaginar que uma fração do mês). */
   significado: string
 }
 
@@ -23,15 +23,15 @@ export interface InfoNivel {
  * Abaixo de 5% (ou negativo), qualquer imprevisto deixa a conta no vermelho.
  */
 export const NIVEL: Record<NivelRisco, InfoNivel> = {
-  1: { nome: 'Tranquilo', curto: 'Tranquilo', fracao: 0.5, significado: 'sobra mais da metade de um mês de gastos' },
-  2: { nome: 'Estável', curto: 'Estável', fracao: 0.25, significado: 'sobra de ¼ até metade de um mês de gastos' },
-  3: { nome: 'Atenção', curto: 'Atenção', fracao: 0.1, significado: 'sobra de 10% até ¼ de um mês de gastos' },
-  4: { nome: 'Risco alto', curto: 'Alto', fracao: 0.05, significado: 'sobra de 5% até 10% de um mês de gastos' },
+  1: { nome: 'Tranquilo', curto: 'Tranquilo', fracao: 0.5, significado: 'o que sobra dá para mais de 15 dias de gastos' },
+  2: { nome: 'Estável', curto: 'Estável', fracao: 0.25, significado: 'dá para uma a duas semanas de gastos' },
+  3: { nome: 'Atenção', curto: 'Atenção', fracao: 0.1, significado: 'dá para 3 a 7 dias de gastos' },
+  4: { nome: 'Risco alto', curto: 'Alto', fracao: 0.05, significado: 'dá para só 2 ou 3 dias de gastos' },
   5: {
     nome: 'Risco muito alto',
     curto: 'Muito alto',
     fracao: 0,
-    significado: 'sobra menos de 5% de um mês de gastos, ou falta dinheiro',
+    significado: 'dá para menos de 2 dias de gastos, ou falta dinheiro',
   },
 }
 
@@ -149,7 +149,27 @@ export function capacidadePorNivel(
   return { 1: valor(1), 2: valor(2), 3: valor(3), 4: valor(4), 5: valor(5) }
 }
 
+/**
+ * Para quantos dias de gastos o saldo dá, contando o mês com 30 dias (inteiro para baixo); null sem gastos.
+ * É o mesmo que o percentual do mês, dito de um jeito que dá para imaginar ("uns 6 dias" em vez de "21%").
+ */
+export function diasDeGastos(saldoCentavos: number, referenciaCentavos: number): number | null {
+  return referenciaCentavos > 0 ? Math.floor((Math.max(saldoCentavos, 0) / referenciaCentavos) * 30) : null
+}
+
+/** "menos de 1 dia", "uns 6 dias", "mais de um mês". */
+export function textoDias(dias: number): string {
+  if (dias < 1) return 'menos de 1 dia'
+  if (dias >= 30) return 'mais de um mês'
+  return dias === 1 ? '1 dia' : `uns ${dias} dias`
+}
+
 /** Quanto do gasto de um mês o saldo representa, em % inteiro para baixo (15 = 15%); null sem gastos. */
 export function percentualDoMes(saldoCentavos: number, referenciaCentavos: number): number | null {
   return referenciaCentavos > 0 ? Math.floor((Math.max(saldoCentavos, 0) / referenciaCentavos) * 100) : null
+}
+
+/** O maior saldo do dia mais apertado entre os meses, para a escala das barras do mês a mês. */
+export function maiorDosMeses(...listas: RiscoDoMes[][]): number {
+  return Math.max(0, ...listas.flat().map((m) => m.menorSaldo.valorCentavos))
 }

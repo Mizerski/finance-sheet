@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CalendarCheck, Pencil, PiggyBank, Trash2 } from '@/shared/ui/icones'
+import { CalendarCheck, Pencil, PiggyBank, Receipt, Trash2 } from '@/shared/ui/icones'
 import { formatarData, formatarMesAno, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CaixaDestaque } from '@/shared/components/CaixaDestaque'
@@ -21,6 +21,8 @@ interface CardMetaProps {
   hoje: DataISO
   /** Nome da conta que recebe os aportes, quando o dinheiro vai para outra conta. */
   destino?: string
+  /** Clique em qualquer parte do card (fora dos botões): abre o extrato da meta. */
+  onVer: () => void
   onEditar: () => void
   onAjustar: () => void
   /** Tirar dinheiro da meta para usar. */
@@ -30,12 +32,14 @@ interface CardMetaProps {
   onExcluir: () => void
 }
 
+/** O card todo abre o extrato (como a linha de um lançamento); botões e links dentro dele seguem com a própria ação. */
 export function CardMeta({
   meta,
   principal,
   resumo,
   hoje,
   destino,
+  onVer,
   onEditar,
   onAjustar,
   onUsar,
@@ -48,7 +52,13 @@ export function CardMeta({
   const alvo = meta.valorAlvoCentavos
 
   return (
-    <Card className={cn(CARD, 'overflow-hidden')}>
+    <Card
+      onClick={(e) => !(e.target as HTMLElement).closest('button, a') && onVer()}
+      className={cn(
+        CARD,
+        'cursor-pointer overflow-hidden transition duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-bloco-lg motion-reduce:hover:translate-0',
+      )}
+    >
       <header className="flex items-stretch border-b-2 border-contorno">
         <span aria-hidden className="flex w-12 shrink-0 items-center justify-center border-r-2 border-contorno bg-amarelo text-tinta sm:w-14">
           <Forma forma="semicirculo" cor="tinta" className="size-7" />
@@ -56,7 +66,16 @@ export function CardMeta({
         <div className="flex min-w-0 flex-1 items-start justify-between gap-3 py-3 pr-2 pl-4">
           <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex min-w-0 items-center gap-2">
-              <h2 className={cn('truncate', TITULO_CARD)}>{meta.nome}</h2>
+              <h2 className={cn('min-w-0', TITULO_CARD)}>
+                <button
+                  type="button"
+                  onClick={onVer}
+                  title="Ver o extrato"
+                  className="block max-w-full truncate text-left uppercase underline-offset-4 outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                >
+                  {meta.nome}
+                </button>
+              </h2>
               {principal && (
                 <Badge className="shrink-0 border-contorno bg-amarelo text-tinta">Principal</Badge>
               )}
@@ -149,7 +168,7 @@ export function CardMeta({
         )}
       </dl>
 
-      <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
+      <div className="flex flex-1 flex-col gap-4 px-4 py-4 sm:px-5">
         <CaixaDestaque
           fundo={atrasada ? 'bg-saida-suave' : 'bg-economia-suave'}
           faixa={atrasada ? 'border-l-vermelho' : 'border-l-amarelo'}
@@ -178,7 +197,11 @@ export function CardMeta({
           )}
         </CaixaDestaque>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-auto flex flex-wrap gap-2">
+          <Button variant="outline" className={BOTAO} onClick={onVer}>
+            <Receipt />
+            Ver extrato
+          </Button>
           <Button variant="outline" className={BOTAO} onClick={onAjustar}>
             <CalendarCheck />
             Quanto guardei em cada mês

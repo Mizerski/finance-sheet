@@ -1,7 +1,7 @@
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import type { ResumoMes } from '@/features/projecao/utils/projecao'
 import { nomeDoMes } from '@/shared/lib/datas'
-import { formatarBRL } from '@/shared/lib/dinheiro'
+import { formatarBRL, formatarBRLSemSimbolo } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO, TABELA } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Ajuda } from '@/shared/components/Ajuda'
@@ -106,6 +106,7 @@ export function CardSobras({ ano, meses }: { ano: number; meses: ResumoMes[] }) 
   )
 }
 
+/** No celular, sem o "R$" (as cinco colunas não cabiam com os totais do ano). */
 function Valor({ centavos, cor, sobra, ultima }: { centavos: number | null; cor?: string; sobra?: boolean; ultima?: boolean }) {
   return (
     <TableCell
@@ -117,7 +118,16 @@ function Valor({ centavos, cor, sobra, ultima }: { centavos: number | null; cor?
         ultima && 'pr-4 sm:pr-5',
       )}
     >
-      {centavos === null ? '—' : centavos === 0 && !sobra ? '' : formatarBRL(centavos)}
+      {centavos === null ? (
+        '—'
+      ) : centavos === 0 && !sobra ? (
+        ''
+      ) : (
+        <>
+          <span className="sm:hidden">{formatarBRLSemSimbolo(centavos)}</span>
+          <span className="hidden sm:inline">{formatarBRL(centavos)}</span>
+        </>
+      )}
     </TableCell>
   )
 }

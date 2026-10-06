@@ -3,16 +3,15 @@ import { Plus } from '@/shared/ui/icones'
 import { caixasAtivos, type Caixa } from '@/features/caixas/model/caixa'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
 import { useVisao } from '@/features/caixas/hooks/useVisao'
-import type { Categoria } from '@/features/categorias/model/categoria'
+import { categoriasSugeridas, type Categoria } from '@/features/categorias/model/categoria'
 import { DialogCategoria } from '@/features/categorias/components/DialogCategoria'
-import { DialogPasta } from '@/features/pastas/components/DialogPasta'
 import { DialogTag } from '@/features/tags/components/DialogTag'
 import { EfeitoNoCaixa } from '@/features/risco/components/EfeitoNoCaixa'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { PontoCor } from '@/shared/components/PontoCor'
 import { SeletorData } from '@/shared/components/SeletorData'
-import { formatarData, paraDataISO, somarDias, type DataISO } from '@/shared/lib/datas'
+import { paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { BOTAO, CAMPO, CAMPO_SELECT, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
@@ -22,25 +21,33 @@ import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { useFinancas } from '@/store/context/financas-context'
 import {
-  paraLancamento,
   rascunhoDe,
   rascunhoVazio,
+  comInicio,
+  trocarRecorrencia,
+  trocarTipo,
   validarLancamento,
   type RascunhoLancamento,
 } from '../utils/formulario'
 import { COR_ATIVA_TIPO } from '../constants/cores'
-import type { Lancamento, TipoLancamento } from '../model/lancamento'
+import type { Lancamento, TipoLancamento, TipoMovimento } from '../model/lancamento'
 import { ROTULO_NATUREZA, ROTULO_TIPO } from '../constants/textos'
-import { CampoVezes } from './CampoVezes'
+import { NENHUMA, NOVA } from '../constants/selecao'
+import { CampoPasta } from './CampoPasta'
+import { SugestaoConhecido } from './SugestaoConhecido'
+import { CampoDuracao } from './CampoDuracao'
+import { CampoVigencia } from './CampoVigencia'
+import { useVigencia } from '../hooks/useVigencia'
 import { ListaExcecoes } from './ListaExcecoes'
 import { SeletorDiasSemana } from './SeletorDiasSemana'
-import { dividirEm, mudaOcorrencias, recorrenteEmAndamento, validarVigencia } from '../utils/vigencia'
 
 interface FormularioLancamentoProps {
   /** Ausente = novo lançamento. */
   lancamento?: Lancamento
   /** Data sugerida para um lançamento novo. Sem ela, vale hoje. */
   dataInicial?: DataISO
+  /** O que já foi respondido nos passos do modo simples, ao abrir todos os campos de uma vez. */
+  rascunhoInicial?: RascunhoLancamento
   onConcluir: () => void
 }
 
@@ -57,40 +64,25 @@ const OPCOES_RECORRENCIA = [
   { valor: 'mensal' as const, rotulo: 'Mensal' },
   { valor: 'diaria' as const, rotulo: 'Diária' },
 ]
-/** O Select do Radix não aceita valor vazio, então "sem tag" e "sem pasta" usam um valor sentinela. */
-const NENHUMA = '__nenhuma__'
-/** Item dos seletores de categoria, tag e pasta que abre o cadastro em vez de escolher. */
-const NOVA = '__nova__'
-
 const OPCOES_DIAS = [
   { valor: 'todos' as const, rotulo: 'Todos os dias' },
   { valor: 'uteis' as const, rotulo: 'Dias úteis' },
-]
-
-type Vigencia = 'daqui' | 'sempre'
-
-const OPCOES_VIGENCIA = [
-  { valor: 'daqui' as const, rotulo: 'Daqui para frente' },
-  { valor: 'sempre' as const, rotulo: 'Desde o início' },
 ]
 
 /**
  * Num recorrente que já aconteceu, pergunta se a mudança vale para os meses que passaram (menos quando o início ou o
  * fim mudou). Num lançamento novo, a recorrência começa na data escolhida.
  */
-export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: FormularioLancamentoProps) {
+export function FormularioLancamento({ lancamento, dataInicial, rascunhoInicial, onConcluir }: FormularioLancamentoProps) {
   const { estado, dispatch } = useFinancas()
   const { caixaPadrao } = useVisao()
   const [hoje] = useState(() => paraDataISO(new Date()))
-  const [rascunho, setRascunho] = useState<RascunhoLancamento>(() =>
-    lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(dataInicial ?? hoje, caixaPadrao?.id ?? ''),
+  const [rascunho, setRascunho] = useState<RascunhoLancamento>(
+    () => rascunhoInicial ?? (lancamento ? rascunhoDe(lancamento, hoje) : rascunhoVazio(dataInicial ?? hoje, caixaPadrao?.id ?? '')),
   )
   const [tentouSalvar, setTentouSalvar] = useState(false)
-  const [vigencia, setVigencia] = useState<Vigencia>('daqui')
-  const [aPartirDe, setAPartirDe] = useState<DataISO>(hoje)
   const [criandoCategoria, setCriandoCategoria] = useState(false)
   const [criandoTag, setCriandoTag] = useState(false)
-  const [criandoPasta, setCriandoPasta] = useState(false)
 
   const saida = rascunho.tipo === 'saida'
   const transferencia = rascunho.tipo === 'transferencia'
@@ -100,42 +92,18 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
   const idsValidos = new Set(categoriasDoTipo.map((c) => c.id))
   const erros = tentouSalvar ? validarLancamento(rascunho, idsValidos) : {}
 
-  const editado = lancamento && paraLancamento(rascunho, lancamento.id)
-  const perguntarVigencia =
-    !!lancamento &&
-    !!editado &&
-    recorrenteEmAndamento(lancamento, hoje) &&
-    rascunho.inicio === lancamento.inicio &&
-    rascunho.fim === lancamento.fim &&
-    mudaOcorrencias(lancamento, editado)
-  /** Original que termina na véspera de `aPartirDe`, quando a mudança vale daqui para frente. */
-  const dividirDe = perguntarVigencia && vigencia === 'daqui' ? lancamento : undefined
-  const erroVigencia = tentouSalvar && dividirDe ? validarVigencia(dividirDe, aPartirDe) : undefined
+  const vigencia = useVigencia(lancamento, rascunho, hoje)
 
   const errosAgora = validarLancamento(rascunho, idsValidos)
   const faltaNaConta = Object.keys(errosAgora).some((campo) => campo !== 'descricao' && campo !== 'categoriaId')
-  const recorrente =
-    rascunho.recorrencia !== 'unica' && !errosAgora.diasDaSemana && !errosAgora.diaDoMes
-      ? paraLancamento(rascunho, lancamento?.id ?? 'simulado')
-      : null
-  const simulados = faltaNaConta
-    ? null
-    : dividirDe && editado
-      ? validarVigencia(dividirDe, aPartirDe)
-        ? null
-        : dividirEm(dividirDe, editado, aPartirDe, 'simulado')
-      : [editado ?? paraLancamento(rascunho, 'simulado')]
+  const simulados = faltaNaConta ? null : vigencia.salvos('simulado')
 
   function alterar<K extends keyof RascunhoLancamento>(campo: K, valor: RascunhoLancamento[K]) {
     setRascunho((r) => ({ ...r, [campo]: valor }))
   }
 
   function alterarRecorrencia(recorrencia: RascunhoLancamento['recorrencia']) {
-    setRascunho((r) => ({
-      ...r,
-      recorrencia,
-      ...(recorrencia !== 'unica' && !lancamento && !r.inicio && { inicio: r.data ?? hoje }),
-    }))
+    setRascunho((r) => trocarRecorrencia(r, recorrencia, !lancamento, hoje))
   }
 
   /** Ignora o valor vazio que o select do Radix avisa logo depois de criar uma categoria. */
@@ -145,11 +113,11 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
     else alterar('categoriaId', valor)
   }
 
-  /** Tag e pasta: "Sem" limpa, "Nova" abre o cadastro; a criada já fica escolhida. Vazio: ver `escolherCategoria`. */
-  function escolherOpcional(campo: 'tagId' | 'pastaId', valor: string) {
+  /** Tag: "Sem tag" limpa, "Nova" abre o cadastro; a criada já fica escolhida. Vazio: ver `escolherCategoria`. */
+  function escolherTag(valor: string) {
     if (!valor) return
-    if (valor === NOVA) (campo === 'tagId' ? setCriandoTag : setCriandoPasta)(true)
-    else alterar(campo, valor === NENHUMA ? '' : valor)
+    if (valor === NOVA) setCriandoTag(true)
+    else alterar('tagId', valor === NENHUMA ? '' : valor)
   }
 
   /** A categoria criada no meio do lançamento já fica escolhida (se for do mesmo tipo). */
@@ -159,13 +127,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
   function alterarTipo(tipo: TipoLancamento) {
     const categoria = estado.categorias.find((c) => c.id === rascunho.categoriaId)
-    setRascunho((r) => {
-      const novo = { ...r, tipo, categoriaId: categoria?.tipo === tipo ? r.categoriaId : '' }
-      if (tipo !== 'transferencia') return novo
-      const origem = contas.some((c) => c.id === r.caixaId) ? r.caixaId : (contas[0]?.id ?? r.caixaId)
-      const destino = r.caixaDestinoId && r.caixaDestinoId !== origem ? r.caixaDestinoId : contas.find((c) => c.id !== origem)?.id
-      return { ...novo, caixaId: origem, caixaDestinoId: destino ?? '' }
-    })
+    setRascunho((r) => trocarTipo(r, tipo, categoria?.tipo, contas.map((c) => c.id)))
   }
 
   /** Escolher como origem a conta que era o destino troca as duas de lugar. */
@@ -175,17 +137,11 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
 
   function salvar(e: FormEvent) {
     e.preventDefault()
-    if (
-      Object.keys(validarLancamento(rascunho, idsValidos)).length > 0 ||
-      (dividirDe && validarVigencia(dividirDe, aPartirDe))
-    ) {
+    const salvos = vigencia.salvos(crypto.randomUUID())
+    if (Object.keys(validarLancamento(rascunho, idsValidos)).length > 0 || !salvos) {
       setTentouSalvar(true)
       return
     }
-    const salvos =
-      dividirDe && editado
-        ? dividirEm(dividirDe, editado, aPartirDe, crypto.randomUUID())
-        : [editado ?? paraLancamento(rascunho, crypto.randomUUID())]
     for (const l of salvos) dispatch({ tipo: 'lancamento/salvar', lancamento: l })
     onConcluir()
   }
@@ -234,6 +190,8 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
         <FieldError>{erros.descricao}</FieldError>
       </Field>
 
+      {!lancamento && <SugestaoConhecido rascunho={rascunho} onUsar={setRascunho} />}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Field data-invalid={!!erros.valorCentavos || undefined}>
           <FieldLabel htmlFor="lanc-valor">Valor</FieldLabel>
@@ -274,12 +232,28 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
             {categoriasDoTipo.length === 0 ? (
               <FieldDescription>
                 Nenhuma categoria de {ROTULO_TIPO[rascunho.tipo].toLowerCase()}.{' '}
+                {rascunho.tipo !== 'transferencia' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        for (const categoria of categoriasSugeridas(rascunho.tipo as TipoMovimento, estado.categorias)) {
+                          dispatch({ tipo: 'categoria/salvar', categoria })
+                        }
+                      }}
+                      className="underline underline-offset-4 hover:text-primary"
+                    >
+                      Usar as sugeridas
+                    </button>{' '}
+                    ou{' '}
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={() => setCriandoCategoria(true)}
                   className="underline underline-offset-4 hover:text-primary"
                 >
-                  Criar categoria
+                  criar uma
                 </button>
               </FieldDescription>
             ) : (
@@ -313,7 +287,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
               <FieldLabel htmlFor="lanc-tag">
                 Tag <span className="font-normal text-muted-foreground">(opcional)</span>
               </FieldLabel>
-              <Select value={rascunho.tagId || NENHUMA} onValueChange={(v) => escolherOpcional('tagId', v)}>
+              <Select value={rascunho.tagId || NENHUMA} onValueChange={escolherTag}>
                 <SelectTrigger id="lanc-tag" className={CAMPO_SELECT}>
                   <SelectValue />
                 </SelectTrigger>
@@ -353,45 +327,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
         </div>
       )}
 
-      <Field>
-        <FieldLabel htmlFor="lanc-pasta">
-          Pasta <span className="font-normal text-muted-foreground">(opcional)</span>
-        </FieldLabel>
-        <Select value={rascunho.pastaId || NENHUMA} onValueChange={(v) => escolherOpcional('pastaId', v)}>
-          <SelectTrigger id="lanc-pasta" className={CAMPO_SELECT}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value={NENHUMA}>
-              Sem pasta
-            </SelectItem>
-            {estado.pastas.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                <PontoCor cor={p.cor} />
-                {p.nome}
-              </SelectItem>
-            ))}
-            <SelectSeparator />
-            <SelectItem value={NOVA} className="font-semibold">
-              <Plus />
-              Nova pasta
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        {estado.pastas.length === 0 && (
-          <FieldDescription>
-            Pastas agrupam a lista de lançamentos.{' '}
-            <button
-              type="button"
-              onClick={() => setCriandoPasta(true)}
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Criar pasta
-            </button>
-          </FieldDescription>
-        )}
-        <DialogPasta aberto={criandoPasta} onOpenChange={setCriandoPasta} onSalvar={(p) => alterar('pastaId', p.id)} />
-      </Field>
+      <CampoPasta id="lanc-pasta" valor={rascunho.pastaId} onChange={(id) => alterar('pastaId', id)} />
 
       <Field>
         <FieldLabel htmlFor="lanc-recorrencia">Recorrência</FieldLabel>
@@ -434,7 +370,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
         </Field>
       )}
 
-      {rascunho.recorrencia === 'mensal' && (
+      {rascunho.recorrencia === 'mensal' && !rascunho.inicio && (
         <Field data-invalid={!!erros.diaDoMes || undefined}>
           <FieldLabel htmlFor="lanc-dia">Dia do mês</FieldLabel>
           <Input
@@ -451,7 +387,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
           {erros.diaDoMes ? (
             <FieldError>{erros.diaDoMes}</FieldError>
           ) : (
-            <FieldDescription>Repete todo mês a partir do início. Se o mês não tiver esse dia, usa o último.</FieldDescription>
+            <FieldDescription>Se o mês não tiver esse dia, usa o último.</FieldDescription>
           )}
         </Field>
       )}
@@ -471,42 +407,13 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
       )}
 
       {rascunho.recorrencia !== 'unica' && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field>
-            <FieldLabel htmlFor="lanc-inicio">
-              Início <span className="font-normal text-muted-foreground">(opcional)</span>
-            </FieldLabel>
-            <SeletorData
-              id="lanc-inicio"
-              valor={rascunho.inicio}
-              onChange={(v) => alterar('inicio', v)}
-              placeholder="Desde sempre"
-              opcional
-            />
-          </Field>
-          <Field data-invalid={!!erros.fim || undefined}>
-            <FieldLabel htmlFor="lanc-fim">
-              Fim <span className="font-normal text-muted-foreground">(opcional)</span>
-            </FieldLabel>
-            <SeletorData
-              id="lanc-fim"
-              valor={rascunho.fim}
-              onChange={(v) => alterar('fim', v)}
-              placeholder="Sem fim"
-              mesInicial={rascunho.inicio}
-              opcional
-              invalido={!!erros.fim}
-            />
-            <FieldError>{erros.fim}</FieldError>
-          </Field>
-        </div>
-      )}
-
-      {rascunho.recorrencia !== 'unica' && (
-        <CampoVezes
-          lancamento={recorrente}
+        <CampoDuracao
+          id="lanc"
+          rascunho={rascunho}
+          erros={erros}
           hoje={hoje}
-          onAlterar={(fim) => alterar('fim', fim)}
+          alterar={alterar}
+          onInicio={(inicio) => setRascunho((r) => comInicio(r, inicio))}
         />
       )}
 
@@ -519,37 +426,7 @@ export function FormularioLancamento({ lancamento, dataInicial, onConcluir }: Fo
         />
       )}
 
-      {perguntarVigencia && (
-        <Field data-invalid={!!erroVigencia || undefined} className="border-2 border-l-8 border-contorno border-l-amarelo p-4">
-          <FieldLabel htmlFor="lanc-vigencia">Este lançamento já aconteceu. A mudança vale</FieldLabel>
-          <ControleSegmentado
-            id="lanc-vigencia"
-            rotulo="A mudança vale"
-            valor={vigencia}
-            opcoes={OPCOES_VIGENCIA}
-            onChange={setVigencia}
-          />
-          {vigencia === 'daqui' ? (
-            <>
-              <SeletorData
-                id="lanc-a-partir-de"
-                valor={aPartirDe}
-                onChange={(v) => v && setAPartirDe(v)}
-                invalido={!!erroVigencia}
-              />
-              {erroVigencia ? (
-                <FieldError>{erroVigencia}</FieldError>
-              ) : (
-                <FieldDescription>
-                  Até {formatarData(somarDias(aPartirDe, -1))} continua como antes; o lançamento vira dois na lista.
-                </FieldDescription>
-              )}
-            </>
-          ) : (
-            <FieldDescription>Os meses que já passaram também mudam, e o saldo deles é recalculado.</FieldDescription>
-          )}
-        </Field>
-      )}
+      <CampoVigencia id="lanc-vigencia" v={vigencia} mostrarErro={tentouSalvar} />
 
       <EfeitoNoCaixa simulados={simulados} substitui={lancamento?.id} tipo={rascunho.tipo} caixaId={rascunho.caixaId} />
 

@@ -280,7 +280,7 @@ function ItemTransferencia({
       >
         <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate font-semibold">
-            <span className="sr-only">Editar </span>
+            <span className="sr-only">Ver o extrato de </span>
             {m.descricao}
           </span>
           <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -390,7 +390,7 @@ function ItemOcorrencia({
       >
         <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate font-semibold">
-            <span className="sr-only">Editar </span>
+            <span className="sr-only">Ver o extrato de </span>
             {ocorrencia.descricao}
           </span>
           <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">

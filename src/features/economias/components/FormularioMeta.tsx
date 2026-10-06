@@ -1,11 +1,10 @@
-import { useState, type FormEvent } from 'react'
-import { caixasAtivos, ehContaCorrente, ehInvestimento, type Caixa } from '@/features/caixas/model/caixa'
+import { type FormEvent, useState } from 'react'
+import { ehContaCorrente, type Caixa } from '@/features/caixas/model/caixa'
 import { CampoCaixa } from '@/features/caixas/components/CampoCaixa'
-import { useVisao } from '@/features/caixas/hooks/useVisao'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { SeletorData } from '@/shared/components/SeletorData'
-import { formatarMesAno, paraDataISO, type DataISO } from '@/shared/lib/datas'
+import { formatarMesAno } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, CAMPO, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -13,115 +12,37 @@ import { Button } from '@/shared/ui/button'
 import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
-import { useFinancas } from '@/store/context/financas-context'
-import { aporteParaOPrazo, resumirMeta } from '../utils/aportes'
-import type { MetaEconomia } from '../model/meta'
-import { contaDeInvestimentoDaMeta, saldoProprioDaConta } from '../utils/na-conta'
-import { useAvaliacaoMeta } from '../hooks/useAvaliacaoMeta'
+import type { FormularioMetaEstado } from '../hooks/useFormularioMeta'
 import { DiagnosticoMeta } from './DiagnosticoMeta'
 
-/** Valores que o formulário já abre preenchidos (ex.: a reserva de emergência sugerida). */
-export type SugestaoMeta = Partial<Pick<MetaEconomia, 'nome' | 'valorAlvoCentavos' | 'aporteMensalCentavos'>>
-
 interface FormularioMetaProps {
-  /** Ausente = nova meta. */
-  meta?: MetaEconomia
-  /** Sobrepõe os valores da meta (ou os padrões, numa meta nova). */
-  sugestao?: SugestaoMeta
+  /** Estado de `useFormularioMeta`, guardado pelo dialog (o mesmo dos passos do modo simples). */
+  f: FormularioMetaEstado
+  /** Editando uma meta que já existe (muda o texto do botão). */
+  editando: boolean
   onConcluir: () => void
 }
 
-type Erros = Partial<Record<'nome' | 'destino' | 'jaGuardado' | 'aporte' | 'dia' | 'inicio' | 'prazo', string>>
-
-type Onde = 'conta' | 'outra'
 const OPCOES_ONDE = [
   { valor: 'conta' as const, rotulo: 'Separado na conta' },
   { valor: 'outra' as const, rotulo: 'Em outra conta' },
 ]
 const ehConta = (c: Caixa) => c.tipo === 'conta'
 
-/**
- * Com uma conta só, o dinheiro fica separado nela. Com uma conta de investimento como destino, o saldo dela conta
- * como guardado.
- */
-export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaProps) {
-  const { estado, dispatch } = useFinancas()
-  const { contaPadrao } = useVisao()
-  const [hoje] = useState(() => paraDataISO(new Date()))
-  const [caixaId, setCaixaId] = useState(meta?.caixaId ?? contaPadrao?.id ?? '')
-  const [onde, setOnde] = useState<Onde>(meta?.destinoId ? 'outra' : 'conta')
-  const [destinoId, setDestinoId] = useState(meta?.destinoId ?? '')
-  const variasContas = caixasAtivos(estado.caixas).filter(ehConta).length >= 2 || !!meta?.destinoId
-  const comDestino = onde === 'outra' && !!destinoId && destinoId !== caixaId
-  const investimento = comDestino ? contaDeInvestimentoDaMeta({ destinoId }, estado.caixas) : undefined
-  const naConta = investimento ? saldoProprioDaConta(investimento, estado.lancamentos, hoje) : null
-  /** Investimento que já é o destino de outra meta: cada conta de investimento fica com uma meta só. */
-  const ocupado = (c: Caixa) => ehInvestimento(c) && estado.metas.some((m) => m.destinoId === c.id && m.id !== meta?.id)
-  const [nome, setNome] = useState(sugestao?.nome ?? meta?.nome ?? '')
-  const [alvo, setAlvo] = useState(sugestao?.valorAlvoCentavos ?? meta?.valorAlvoCentavos ?? 0)
-  const [aporte, setAporte] = useState(sugestao?.aporteMensalCentavos ?? meta?.aporteMensalCentavos ?? 0)
-  const [jaGuardado, setJaGuardado] = useState(meta?.jaGuardadoCentavos ?? 0)
-  const [dia, setDia] = useState(String(meta?.diaDoMes ?? Number(hoje.slice(8, 10))))
-  const [inicio, setInicio] = useState<DataISO | undefined>(meta?.inicio ?? hoje)
-  const [prazo, setPrazo] = useState<DataISO | undefined>(meta?.prazo)
+/** Todos os campos da meta de uma vez. A lógica fica em `useFormularioMeta`, a mesma dos passos. */
+export function FormularioMeta({ f, editando, onConcluir }: FormularioMetaProps) {
   const [tentouSalvar, setTentouSalvar] = useState(false)
-
-  const diaDoMes = Number(dia)
-  const diaValido = Number.isInteger(diaDoMes) && diaDoMes >= 1 && diaDoMes <= 31
-
-  const rascunho: MetaEconomia | null =
-    diaValido && inicio
-      ? {
-          id: meta?.id ?? '',
-          caixaId,
-          ...(comDestino && { destinoId }),
-          nome: '',
-          ...(alvo > 0 && { valorAlvoCentavos: alvo }),
-          aporteMensalCentavos: aporte,
-          ...(naConta !== null ? { naContaCentavos: naConta } : jaGuardado > 0 && { jaGuardadoCentavos: jaGuardado }),
-          diaDoMes,
-          inicio,
-          ...(prazo && { prazo }),
-          ajustes: meta?.ajustes ?? {},
-          ...(meta?.resgates && { resgates: meta.resgates }),
-          ...(meta?.encerradaEm && { encerradaEm: meta.encerradaEm }),
-        }
-      : null
-
-  const avaliacao = useAvaliacaoMeta(rascunho, hoje)
-
-  function validar(): Erros {
-    const erros: Erros = {}
-    if (!nome.trim()) erros.nome = 'Informe um nome.'
-    if (onde === 'outra' && !comDestino) erros.destino = 'Escolha a conta que recebe o dinheiro.'
-    if (alvo > 0 && (naConta ?? jaGuardado) >= alvo) {
-      erros.jaGuardado = naConta !== null ? 'A conta já tem o valor que quer juntar.' : 'Já passa do valor que quer juntar.'
-    }
-    if (aporte <= 0) erros.aporte = 'Informe quanto guardar por mês.'
-    if (!diaValido) erros.dia = 'Use um dia de 1 a 31.'
-    if (!inicio) erros.inicio = 'Escolha a data do primeiro aporte.'
-    if (prazo && alvo <= 0) erros.prazo = 'Para ter prazo, diga quanto quer juntar.'
-    else if (prazo && inicio && prazo < inicio) erros.prazo = 'O prazo precisa ser depois do início.'
-    else if (rascunho?.prazo && aporteParaOPrazo(rascunho) === null) erros.prazo = 'Não há dia de aporte até essa data.'
-    return erros
-  }
-  const erros = tentouSalvar ? validar() : {}
-
-  function montar(): MetaEconomia | null {
-    if (Object.keys(validar()).length || !rascunho) return null
-    return { ...rascunho, id: meta?.id ?? crypto.randomUUID(), nome: nome.trim() }
-  }
-
-  const conclusao = rascunho && aporte > 0 ? resumirMeta(rascunho, hoje).conclusaoNoPlano : null
+  const erros = tentouSalvar ? f.validar() : {}
+  const { caixaId, destinoId, onde, investimento, naConta, alvo, aporte, jaGuardado, dia, inicio, prazo, nome } = f
+  const { comDestino, conclusao, rascunho, avaliacao, hoje, variasContas, ocupado } = f
+  const { setCaixaId, setDestinoId, setOnde, setNome, setAlvo, setAporte, setJaGuardado, setDia, setInicio, setPrazo } = f
 
   function salvar(e: FormEvent) {
     e.preventDefault()
-    const pronta = montar()
-    if (!pronta) {
+    if (!f.salvar()) {
       setTentouSalvar(true)
       return
     }
-    dispatch({ tipo: 'meta/salvar', meta: pronta })
     onConcluir()
   }
 
@@ -296,7 +217,7 @@ export function FormularioMeta({ meta, sugestao, onConcluir }: FormularioMetaPro
           </Button>
         </DialogClose>
         <Button type="submit" className={BOTAO}>
-          {meta ? 'Salvar alterações' : 'Criar meta'}
+          {editando ? 'Salvar alterações' : 'Criar meta'}
         </Button>
       </DialogFooter>
     </form>

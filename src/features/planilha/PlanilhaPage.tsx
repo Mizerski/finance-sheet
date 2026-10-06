@@ -9,11 +9,11 @@ import { useGuardadoSeparado } from '@/features/economias/hooks/useGuardado'
 import { DialogSaldoInicial } from '@/features/projecao/components/DialogSaldoInicial'
 import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useAno } from '@/features/projecao/hooks/useAno'
+import { DialogExtratoLancamento } from '@/features/lancamentos/components/DialogExtratoLancamento'
 import { DialogLancamento } from '@/features/lancamentos/components/DialogLancamento'
 import { DialogValorDoDia } from '@/features/lancamentos/components/DialogValorDoDia'
 import { ExcluirLancamento } from '@/features/lancamentos/components/ExcluirLancamento'
 import type { Lancamento } from '@/features/lancamentos/model/lancamento'
-import { ResumoRiscoPlanilha } from '@/features/risco/components/ResumoRiscoPlanilha'
 import { useRisco } from '@/features/risco/hooks/useRisco'
 import { Ajuda } from '@/shared/components/Ajuda'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
@@ -29,6 +29,7 @@ import { useFinancas } from '@/store/context/financas-context'
 import { DialogConferirSaldo } from './components/DialogConferirSaldo'
 import { NavegacaoMeses } from './components/NavegacaoMeses'
 import { PrimeirosPassos } from './components/PrimeirosPassos'
+import { ResumoPlanilha } from './components/ResumoPlanilha'
 import { TabelaMes } from './components/TabelaMes'
 
 /** Larguras em que cabem 2 e 3 meses lado a lado; as classes da grade repetem os mesmos breakpoints. */
@@ -67,6 +68,7 @@ export function PlanilhaPage() {
   const navigate = useNavigate({ from: '/' })
   const [edicao, setEdicao] = useState<Edicao>({ aberto: false })
   const [exclusao, setExclusao] = useState<{ aberto: boolean; lancamento?: Lancamento }>({ aberto: false })
+  const [extrato, setExtrato] = useState<{ aberto: boolean; lancamento?: Lancamento }>({ aberto: false })
   const [mudancaNoDia, setMudancaNoDia] = useState<Edicao>({ aberto: false })
   const [editandoSaldo, setEditandoSaldo] = useState(false)
   const [conferindo, setConferindo] = useState(false)
@@ -94,9 +96,10 @@ export function PlanilhaPage() {
     [estado.categorias],
   )
 
+  /** Clicar num lançamento do dia abre o extrato dele; editar fica no botão do extrato. */
   const editar = (lancamentoId: string) => {
     const lancamento = estado.lancamentos.find((l) => l.id === lancamentoId)
-    if (lancamento) setEdicao({ aberto: true, lancamento })
+    if (lancamento) setExtrato({ aberto: true, lancamento })
   }
 
   const excluir = (lancamentoId: string) => {
@@ -201,10 +204,13 @@ export function PlanilhaPage() {
         onDefinirSaldo={() => setEditandoSaldo(true)}
       />
 
-      {risco && visao.lancamentos.length > 0 && (
-        <ResumoRiscoPlanilha
-          risco={risco}
-          onMes={(mes) => irPara(Number(mes.slice(0, 4)) * 12 + Number(mes.slice(5, 7)) - 1)}
+      {visao.saldoDefinido && (
+        <ResumoPlanilha
+          projecoes={projecoes}
+          hoje={hoje}
+          separado={separado}
+          risco={visao.lancamentos.length > 0 ? risco : null}
+          fimDoAno={{ ano, centavos: projecoes[ano - intervalo.min].resumo.saldoFinalCentavos }}
         />
       )}
       {visao.ehBeneficio && visao.caixa && <CardBeneficio caixa={visao.caixa} />}
@@ -235,6 +241,20 @@ export function PlanilhaPage() {
         lancamento={edicao.lancamento}
         dataInicial={edicao.data}
         onOpenChange={(aberto) => setEdicao((e) => ({ ...e, aberto }))}
+      />
+
+      <DialogExtratoLancamento
+        aberto={extrato.aberto}
+        lancamento={extrato.lancamento}
+        onOpenChange={(aberto) => setExtrato((e) => ({ ...e, aberto }))}
+        onEditar={(lancamento) => {
+          setExtrato((e) => ({ ...e, aberto: false }))
+          setEdicao({ aberto: true, lancamento })
+        }}
+        onExcluir={(lancamento) => {
+          setExtrato((e) => ({ ...e, aberto: false }))
+          setExclusao({ aberto: true, lancamento })
+        }}
       />
 
       <ExcluirLancamento

@@ -31,7 +31,7 @@ interface DialogValorDoDiaProps {
 export function DialogValorDoDia({ aberto, onOpenChange, lancamento, data }: DialogValorDoDiaProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
+      <DialogContent className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
           <DialogTitle className={TITULO_DIALOG}>Só em {data && formatarData(data)}</DialogTitle>
           <DialogDescription>

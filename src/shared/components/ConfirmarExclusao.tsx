@@ -32,7 +32,7 @@ export function ConfirmarExclusao({
 }: ConfirmarExclusaoProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, alternativa ? 'sm:max-w-md' : 'sm:max-w-sm')}>
+      <DialogContent className={cn(CAMADA, alternativa ? 'sm:max-w-md' : 'sm:max-w-sm')}>
         <DialogHeader>
           <DialogTitle className="font-medium">{titulo}</DialogTitle>
           <DialogDescription>{descricao}</DialogDescription>

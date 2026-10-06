@@ -2,6 +2,7 @@ import type { Caixa } from '@/features/caixas/model/caixa'
 import { periodoDaCapacidade } from '@/features/economias/utils/capacidade'
 import type { MetaEconomia } from '@/features/economias/model/meta'
 import type { Lancamento } from '@/features/lancamentos/model/lancamento'
+import { fimDepoisDe } from '@/features/lancamentos/utils/parcelas'
 import { projetarAnos, type CaixaDaProjecao } from '@/features/projecao/utils/projecao'
 import { anoDe, type DataISO } from '@/shared/lib/datas'
 import { analisarRisco, type AnaliseRisco, type NivelRisco } from './risco'
@@ -22,7 +23,10 @@ export function riscoCom(ctx: ContextoRisco, lancamentos: Lancamento[]): Analise
   return analisarRisco(dias, ctx.hoje)
 }
 
-/** Conta nova do simulador: paga uma vez na data, ou todo mês nesse dia a partir dela. */
+/**
+ * Conta nova do simulador: paga uma vez na data, ou todo mês nesse dia a partir dela. Com `vezes`, a mensal para
+ * depois dessa quantidade (uma compra parcelada).
+ */
 export type FrequenciaConta = 'unica' | 'mensal'
 
 const ID_CONTA_SIMULADA = '__conta-simulada__'
@@ -32,6 +36,7 @@ export function contaSimulada(
   frequencia: FrequenciaConta,
   data: DataISO,
   caixaId: string,
+  vezes?: number,
 ): Lancamento {
   const base = {
     id: ID_CONTA_SIMULADA,
@@ -41,9 +46,14 @@ export function contaSimulada(
     valorCentavos,
     categoriaId: '',
   }
-  return frequencia === 'unica'
-    ? { ...base, natureza: 'variavel', recorrencia: { tipo: 'unica', data } }
-    : { ...base, natureza: 'fixa', recorrencia: { tipo: 'mensal', diaDoMes: Number(data.slice(8, 10)) }, inicio: data }
+  if (frequencia === 'unica') return { ...base, natureza: 'variavel', recorrencia: { tipo: 'unica', data } }
+  const mensal: Lancamento = {
+    ...base,
+    natureza: 'fixa',
+    recorrencia: { tipo: 'mensal', diaDoMes: Number(data.slice(8, 10)) },
+    inicio: data,
+  }
+  return vezes ? { ...mensal, fim: fimDepoisDe(mensal, vezes) } : mensal
 }
 
 /** A conta não piora o caixa: continua no mesmo nível (ou melhor) e o saldo não fica negativo. */
@@ -55,21 +65,22 @@ export function naoPiora(risco: AnaliseRisco | null, nivelAtual: NivelRisco): bo
 const PASSO_CENTAVOS = 1000
 
 /**
- * Maior conta (em múltiplos de R$ 10) que não piora o risco atual, por bisseção: quanto maior a conta,
- * menor o saldo em todos os dias depois dela. Uma conta maior que o maior saldo do período sempre falta.
+ * Maior conta (em múltiplos de R$ 10, o valor de cada vez) que não piora o risco atual, por bisseção: quanto maior a
+ * conta, menor o saldo em todos os dias depois dela. Uma conta maior que o maior saldo do período sempre falta.
  */
 export function maiorContaSemPiorar(
   ctx: ContextoRisco,
   frequencia: FrequenciaConta,
   data: DataISO,
   atual: AnaliseRisco,
+  vezes?: number,
 ): number {
   if (atual.menorSaldo.valorCentavos < 0) return 0
   let baixo = 0
   let alto = Math.max(Math.floor(atual.maiorSaldoCentavos / PASSO_CENTAVOS), 0)
   while (baixo < alto) {
     const meio = Math.ceil((baixo + alto) / 2)
-    const conta = contaSimulada(meio * PASSO_CENTAVOS, frequencia, data, ctx.caixa.id)
+    const conta = contaSimulada(meio * PASSO_CENTAVOS, frequencia, data, ctx.caixa.id, vezes)
     if (naoPiora(riscoCom(ctx, [...ctx.lancamentos, conta]), atual.nivel)) baixo = meio
     else alto = meio - 1
   }

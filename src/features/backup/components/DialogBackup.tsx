@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { DatabaseBackup, Download, Upload } from '@/shared/ui/icones'
+import { Download, Upload } from '@/shared/ui/icones'
 import { formatarData } from '@/shared/lib/datas'
 import { traduzirErro } from '@/shared/lib/erros'
-import { BOTAO, CAMADA } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/shared/ui/popover'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { useFinancas } from '@/store/context/financas-context'
 import { abrirBackup, caminhoDosDados, salvarBackup } from '../api/arquivos'
 import { gerarBackup, lerBackup, nomeDoBackup, type Backup } from '../utils/backup'
@@ -13,10 +13,14 @@ import { ConfirmarImportacao } from './ConfirmarImportacao'
 
 type Aviso = { tipo: 'sucesso' | 'erro'; texto: string }
 
-/** Desktop: exportar e importar os dados, que só existem neste computador. */
-export function BotaoBackup() {
+interface DialogBackupProps {
+  aberto: boolean
+  onOpenChange: (aberto: boolean) => void
+}
+
+/** Desktop: exportar e importar os dados, que só existem neste computador. Abre pelo menu "Mais". */
+export function DialogBackup({ aberto, onOpenChange }: DialogBackupProps) {
   const { estado, dispatch } = useFinancas()
-  const [aberto, setAberto] = useState(false)
   const [aviso, setAviso] = useState<Aviso | null>(null)
   const [escolhido, setEscolhido] = useState<Backup | null>(null)
   const [caminho, setCaminho] = useState<string | null>(null)
@@ -42,7 +46,7 @@ export function BotaoBackup() {
       const texto = await abrirBackup()
       if (texto === null) return
       setEscolhido(lerBackup(texto))
-      setAberto(false)
+      onOpenChange(false)
     } catch (erro) {
       setAviso({ tipo: 'erro', texto: traduzirErro(erro) })
     }
@@ -52,30 +56,19 @@ export function BotaoBackup() {
     dispatch({ tipo: 'dados/importar', dados: backup.dados })
     setEscolhido(null)
     setAviso({ tipo: 'sucesso', texto: `Backup de ${formatarData(backup.exportadoEm)} importado.` })
-    setAberto(true)
+    onOpenChange(true)
   }
 
   return (
     <>
-      <Popover open={aberto} onOpenChange={setAberto}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0 rounded-full text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Backup dos dados"
-            title="Backup dos dados"
-          >
-            <DatabaseBackup className="size-6" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end" className={cn(CAMADA, 'w-80 gap-3')}>
-          <PopoverHeader>
-            <PopoverTitle>Backup</PopoverTitle>
-            <PopoverDescription>
+      <Dialog open={aberto} onOpenChange={onOpenChange}>
+        <DialogContent className={cn(CAMADA, 'gap-4 sm:max-w-sm')}>
+          <DialogHeader>
+            <DialogTitle className={TITULO_DIALOG}>Backup</DialogTitle>
+            <DialogDescription>
               Seus dados ficam só neste computador. Exporte um backup de vez em quando e guarde em outro lugar.
-            </PopoverDescription>
-          </PopoverHeader>
+            </DialogDescription>
+          </DialogHeader>
           <div className="flex flex-col gap-2">
             <Button className={cn(BOTAO, 'w-full')} onClick={exportar}>
               <Download className="size-6" />
@@ -94,8 +87,8 @@ export function BotaoBackup() {
           {caminho && (
             <p className="border-t-2 border-contorno pt-3 text-xs break-all text-muted-foreground">Arquivo de dados: {caminho}</p>
           )}
-        </PopoverContent>
-      </Popover>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmarImportacao
         backup={escolhido}
