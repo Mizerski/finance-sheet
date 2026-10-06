@@ -5,6 +5,7 @@ import { useAssistente } from '../context/assistente-context'
 /**
  * Desktop: abre e fecha o painel do assistente (atalho A). Bloco como as abas do menu, em preto com as três
  * formas da marca (a identidade do assistente), para se destacar; aberto, fica afundado em amarelo.
+ * Só as formas no celular estreito e entre 64rem e 72rem, onde o menu de telas precisa do espaço.
  */
 export function BotaoAssistente() {
   const { aberto, setAberto, fase } = useAssistente()
@@ -29,7 +30,7 @@ export function BotaoAssistente() {
         <Forma forma="triangulo" cor="tinta" className={cn('size-2.5', !aberto && 'hidden group-hover:block')} />
         <Forma forma="quadrado" cor="vermelho" className="size-2.5" />
       </span>
-      <span className="sr-only sm:not-sr-only">Assistente</span>
+      <span className="sr-only sm:max-lg:not-sr-only min-[72rem]:not-sr-only">Assistente</span>
       {baixando && (
         <span
           aria-hidden

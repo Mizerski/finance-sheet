@@ -33,7 +33,7 @@ interface DialogConferirSaldoProps {
 export function DialogConferirSaldo({ aberto, onOpenChange }: DialogConferirSaldoProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
+      <DialogContent className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
           <DialogTitle className={TITULO_DIALOG}>Conferir saldo</DialogTitle>
           <DialogDescription>

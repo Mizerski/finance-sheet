@@ -194,10 +194,10 @@
     --sidebar-border: oklch(0.85 0.008 90);
     --sidebar-ring: oklch(0.45 0.2 264);
     /* Cursores e setas da barra de rolagem em pixel art (ponto de clique em px da imagem 1x). */
-    --cursor-seta: image-set(url("/cursores/seta.svg") 1x, url("/cursores/seta@2x.svg") 2x) 1 1, default;
-    --cursor-mao: image-set(url("/cursores/mao.svg") 1x, url("/cursores/mao@2x.svg") 2x) 9 1, pointer;
-    --cursor-texto: image-set(url("/cursores/texto.svg") 1x, url("/cursores/texto@2x.svg") 2x) 7 16, text;
-    --cursor-bloqueado: image-set(url("/cursores/bloqueado.svg") 1x, url("/cursores/bloqueado@2x.svg") 2x) 12 12, not-allowed;
+    --cursor-seta: image-set(url("/cursores/seta.svg") 1x, url("/cursores/seta@2x.svg") 2x) 0 0, default;
+    --cursor-mao: image-set(url("/cursores/mao.svg") 1x, url("/cursores/mao@2x.svg") 2x) 4 0, pointer;
+    --cursor-texto: image-set(url("/cursores/texto.svg") 1x, url("/cursores/texto@2x.svg") 2x) 3 8, text;
+    --cursor-bloqueado: image-set(url("/cursores/bloqueado.svg") 1x, url("/cursores/bloqueado@2x.svg") 2x) 6 6, not-allowed;
     --seta-cima: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%25231d1b18' d='M3 0h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM6 3h1v1h-1z'/%3E%3C/svg%3E");
     --seta-baixo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%25231d1b18' d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM1 1h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1z'/%3E%3C/svg%3E");
     --seta-esquerda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'%3E%3Cpath fill='%25231d1b18' d='M3 0h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");

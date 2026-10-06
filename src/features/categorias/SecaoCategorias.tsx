@@ -9,7 +9,7 @@ import { ConfirmarExclusao } from '@/shared/components/ConfirmarExclusao'
 import { BOTAO } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
 import { useFinancas } from '@/store/context/financas-context'
-import type { Categoria } from './model/categoria'
+import { categoriasSugeridas, type Categoria } from './model/categoria'
 import { CardCategorias } from './components/CardCategorias'
 import { DialogCategoria } from './components/DialogCategoria'
 
@@ -47,6 +47,9 @@ export function SecaoCategorias() {
     usos,
     totais,
     onNova: () => setEdicao({ aberto: true, tipoInicial: tipo }),
+    onUsarSugeridas: () => {
+      for (const categoria of categoriasSugeridas(tipo, estado.categorias)) dispatch({ tipo: 'categoria/salvar', categoria })
+    },
     onEditar: (categoria: Categoria) => setEdicao({ aberto: true, categoria }),
     onExcluir: (categoria: Categoria) => setExclusao({ aberto: true, categoria }),
   })

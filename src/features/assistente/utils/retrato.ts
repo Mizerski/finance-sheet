@@ -306,7 +306,7 @@ export function montarRetrato(e: EntradaRetrato): string {
 
   const grandes = gastosGrandes(dias, lancamentosNoTotal, hoje)
   if (grandes.itens.length) {
-    const linhas = ['## Gastos grandes à frente (únicos, próximos 12 meses)']
+    const linhas = ['## Contas grandes pela frente (únicas, próximos 12 meses)']
     for (const g of grandes.itens.slice(0, MAX_GRANDES)) {
       linhas.push(`- ${data(g.data)}: ${g.descricao}, ${brl(g.valorCentavos)} (saldo no dia: ${brl(g.saldoNoDiaCentavos)}).`)
     }

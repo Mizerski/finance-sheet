@@ -1,19 +1,18 @@
-import { formatarBRL } from '@/shared/lib/dinheiro'
-import { percentualDoMes, type AnaliseRisco } from '../utils/risco'
+import { diasDeGastos, textoDias, type AnaliseRisco } from '../utils/risco'
 import { CONSELHO, CONSELHO_NEGATIVO } from '../constants/textos'
 import { DataForte, Forte, SaldoForte } from './Destaques'
 
 /**
- * O dia mais apertado em uma frase: quanto sobra e quanto isso é de um mês de gastos.
- * `curta` deixa de fora a comparação com o mês de gastos (vai para a ajuda).
+ * O dia mais apertado em uma frase, em linguagem de todo dia: quanto sobra e para quantos dias de gastos isso dá.
+ * `curta` deixa os dias de fora (vão para a ajuda).
  */
 export function FraseDiaApertado({ risco, curta }: { risco: AnaliseRisco; curta?: boolean }) {
   const { menorSaldo, referenciaCentavos, nivel, primeiroDiaNoNivel } = risco
-  const percentual = percentualDoMes(menorSaldo.valorCentavos, referenciaCentavos)
+  const dias = diasDeGastos(menorSaldo.valorCentavos, referenciaCentavos)
   const antes = nivel >= 3 && primeiroDiaNoNivel < menorSaldo.data && (
     <>
       {' '}
-      O aperto começa em <DataForte data={primeiroDiaNoNivel} />.
+      Começa a apertar em <DataForte data={primeiroDiaNoNivel} />.
     </>
   )
 
@@ -26,12 +25,11 @@ export function FraseDiaApertado({ risco, curta }: { risco: AnaliseRisco; curta?
   }
   return (
     <>
-      No dia mais apertado, <DataForte data={menorSaldo.data} />, {nivel >= 4 ? 'sobram só' : 'sobram'}{' '}
+      O momento mais apertado é <DataForte data={menorSaldo.data} />: {nivel >= 4 ? 'sobram só' : 'sobram'}{' '}
       <SaldoForte centavos={menorSaldo.valorCentavos} /> na conta
-      {percentual !== null && !curta && (
+      {dias !== null && !curta && (
         <>
-          : <Forte>{percentual < 1 ? 'menos de 1%' : `${percentual}%`} do que você gasta num mês</Forte> (
-          <span className="tabular-nums">{formatarBRL(referenciaCentavos)}</span>)
+          , o que dá para <Forte>{textoDias(dias)}</Forte> de gastos
         </>
       )}
       .{antes}
@@ -48,14 +46,14 @@ export function FraseFalta({ risco }: { risco: AnaliseRisco }) {
   if (primeiroNegativo && primeiroNegativo < menorSaldo.data) {
     return (
       <>
-        o saldo fica negativo a partir de <DataForte data={primeiroNegativo} />, e o pior dia é{' '}
-        <DataForte data={menorSaldo.data} />, com <SaldoForte centavos={menorSaldo.valorCentavos} />
+        vai faltar dinheiro a partir de <DataForte data={primeiroNegativo} />. No pior dia,{' '}
+        <DataForte data={menorSaldo.data} />, a conta fica em <SaldoForte centavos={menorSaldo.valorCentavos} />
       </>
     )
   }
   return (
     <>
-      em <DataForte data={menorSaldo.data} /> o saldo fica em <SaldoForte centavos={menorSaldo.valorCentavos} />
+      em <DataForte data={menorSaldo.data} /> a conta fica em <SaldoForte centavos={menorSaldo.valorCentavos} />
     </>
   )
 }

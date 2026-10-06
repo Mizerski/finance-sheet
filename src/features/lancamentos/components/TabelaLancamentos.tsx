@@ -55,6 +55,8 @@ interface TabelaLancamentosProps {
   onOrdenar: (campo: CampoOrdem) => void
   onAlternarGrupo: (chave: string) => void
   onMover: (l: Lancamento, pastaId: string | undefined) => void
+  /** Clique na linha (fora dos botões): abre o extrato do lançamento. */
+  onVer: (l: Lancamento) => void
   onEditar: (l: Lancamento) => void
   onExcluir: (l: Lancamento) => void
 }
@@ -79,6 +81,7 @@ export function TabelaLancamentos({
   onOrdenar,
   onAlternarGrupo,
   onMover,
+  onVer,
   onEditar,
   onExcluir,
 }: TabelaLancamentosProps) {
@@ -123,6 +126,7 @@ export function TabelaLancamentos({
             />
           )
         }
+        onVer={() => onVer(l)}
         onEditar={() => onEditar(l)}
         onExcluir={() => onExcluir(l)}
       />
@@ -251,6 +255,7 @@ interface LinhaLancamentoProps {
   onSelecionar?: (intervalo: boolean) => void
   /** Botão de mudar de pasta, quando há pastas. */
   mover?: ReactNode
+  onVer: () => void
   onEditar: () => void
   onExcluir: () => void
 }
@@ -266,6 +271,7 @@ function LinhaLancamento({
   selecionado,
   onSelecionar,
   mover,
+  onVer,
   onEditar,
   onExcluir,
 }: LinhaLancamentoProps) {
@@ -286,10 +292,20 @@ function LinhaLancamento({
     onSelecionar?.(e.shiftKey)
   }
 
+  /** A linha toda abre o extrato; botões, checkbox e menus dentro dela continuam com a própria ação. */
+  const ver = (e: MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button, a, input, [role=checkbox], [role=menuitem]')) return
+    onVer()
+  }
+
   return (
     <TableRow
       data-state={selecionado ? 'selected' : undefined}
-      className={cn(TABELA.linha, 'data-[state=selected]:bg-selecao data-[state=selected]:hover:bg-selecao-forte')}
+      onClick={ver}
+      className={cn(
+        TABELA.linha,
+        'cursor-pointer data-[state=selected]:bg-selecao data-[state=selected]:hover:bg-selecao-forte',
+      )}
     >
       {onSelecionar && (
         <TableCell
@@ -315,7 +331,14 @@ function LinhaLancamento({
                 <span className="sr-only">{caixa.nome}:</span>
               </span>
             )}
-            {l.descricao}
+            <button
+              type="button"
+              onClick={onVer}
+              className="text-left underline-offset-4 outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              title="Ver o extrato"
+            >
+              {l.descricao}
+            </button>
           </span>
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.7rem] text-muted-foreground lg:hidden">
             {classificacao}

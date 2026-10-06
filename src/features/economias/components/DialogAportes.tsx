@@ -30,7 +30,6 @@ export function DialogAportes({ aberto, onOpenChange, meta, hoje }: DialogAporte
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
         className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-md')}
       >
         <DialogHeader>

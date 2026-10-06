@@ -57,3 +57,16 @@ export function parcelasDe(l: Lancamento, hoje: DataISO): Parcelas | null {
     ultima: datas[datas.length - 1],
   }
 }
+
+/** As próximas `n` vezes a partir de hoje (inclusive), sem os dias pulados; no único, a data dele se ainda não passou. */
+export function proximasVezes(l: Lancamento, hoje: DataISO, n = 3): DataISO[] {
+  if (l.recorrencia.tipo === 'unica') return l.recorrencia.data >= hoje ? [l.recorrencia.data] : []
+  const lista: DataISO[] = []
+  let d = deDataISO(l.inicio && l.inicio > hoje ? l.inicio : hoje)
+  for (let i = 0; i < 366 * 2 && lista.length < n; i++, d = addDays(d, 1)) {
+    const dia = diaDoCalendario(d)
+    if (l.fim && dia.data > l.fim) break
+    if (ocorreEm(l, dia) && valorNoDia(l, dia.data) > 0) lista.push(dia.data)
+  }
+  return lista
+}

@@ -1,43 +1,38 @@
-import { Bell, BellOff, BellRing } from '@/shared/ui/icones'
+import { BellRing } from '@/shared/ui/icones'
 import { ControleSegmentado } from '@/shared/components/ControleSegmentado'
 import { formatarData } from '@/shared/lib/datas'
-import { BOTAO, CAMADA, CAMPO } from '@/shared/lib/estilos'
+import { BOTAO, CAMADA, CAMPO, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Field, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
-import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/shared/ui/popover'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { useIniciarComSistema } from '../hooks/useIniciarComSistema'
-import { useLembrete } from '../hooks/useLembrete'
+import type { useLembrete } from '../hooks/useLembrete'
+
+interface DialogLembreteProps {
+  aberto: boolean
+  onOpenChange: (aberto: boolean) => void
+  /** O lembrete roda enquanto o hook está montado: quem chama fica sempre na tela (o menu "Mais"). */
+  lembrete: ReturnType<typeof useLembrete>
+}
 
 /** Desktop: liga, desliga e escolhe o horário do lembrete diário de registrar os gastos. */
-export function BotaoLembrete() {
-  const { prefs, alterar, testar, erro } = useLembrete()
+export function DialogLembrete({ aberto, onOpenChange, lembrete }: DialogLembreteProps) {
+  const { prefs, alterar, testar, erro } = lembrete
   const inicio = useIniciarComSistema()
   const ativo = prefs?.ativo ?? false
-  const Icone = ativo ? Bell : BellOff
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 rounded-full text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="Lembrete diário"
-          title="Lembrete diário"
-        >
-          <Icone className="size-6" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className={cn(CAMADA, 'w-80 gap-3')}>
-        <PopoverHeader>
-          <PopoverTitle>Lembrete diário</PopoverTitle>
-          <PopoverDescription>
+    <Dialog open={aberto} onOpenChange={onOpenChange}>
+      <DialogContent className={cn(CAMADA, 'max-h-[calc(100svh-2rem)] gap-4 overflow-y-auto sm:max-w-sm')}>
+        <DialogHeader>
+          <DialogTitle className={TITULO_DIALOG}>Lembrete diário</DialogTitle>
+          <DialogDescription>
             Uma notificação por dia para registrar os gastos, só se você ainda não salvou nenhum lançamento. Funciona
             com o app aberto ou na bandeja do sistema.
-          </PopoverDescription>
-        </PopoverHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         {prefs && (
           <div className="flex flex-col gap-3">
@@ -107,7 +102,7 @@ export function BotaoLembrete() {
             {prefs.ultimoAviso && <>Último lembrete: {formatarData(prefs.ultimoAviso)}.</>}
           </p>
         )}
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   )
 }

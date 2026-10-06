@@ -1,5 +1,6 @@
 import { deDataISO, type DataISO } from '@/shared/lib/datas'
 import type { Lancamento, Natureza, Recorrencia, TipoLancamento } from '../model/lancamento'
+import { fimDepoisDe, MAX_VEZES, parcelasDe } from './parcelas'
 
 /**
  * Estado do formulário. Guarda os campos de todos os tipos de recorrência,
@@ -26,12 +27,24 @@ export interface RascunhoLancamento {
   diaDoMes: string
   apenasDiasUteis: boolean
   inicio: DataISO | undefined
+  /** Só vale com `duracao` 'data'. */
   fim: DataISO | undefined
+  /** Até quando o recorrente acontece: sem fim, um número de vezes (parcelas) ou até uma data. */
+  duracao: Duracao
+  /** Quantas vezes, como digitado; com `duracao` 'vezes', o fim sai daqui (`fimDepoisDe`). */
+  vezes: string
+  /** Com `duracao` 'vezes': o valor digitado é o total, e cada vez fica com o total dividido. */
+  valorEhTotal: boolean
   /** Dias com outro valor (0 = pulado), mudados no dia da planilha; só valem no recorrente. */
   excecoes: Record<DataISO, number>
 }
 
+export type Duracao = 'sem' | 'vezes' | 'data'
+
 export type ErrosLancamento = Partial<Record<keyof RascunhoLancamento, string>>
+
+/** Muda um campo do rascunho (o mesmo `alterar` no formulário completo e nos passos). */
+export type AlterarRascunho = <K extends keyof RascunhoLancamento>(campo: K, valor: RascunhoLancamento[K]) => void
 
 /** Rascunho de um lançamento novo na `data` (hoje, ou o dia clicado na planilha), no caixa padrão. */
 export function rascunhoVazio(data: DataISO, caixaId: string): RascunhoLancamento {
@@ -52,6 +65,9 @@ export function rascunhoVazio(data: DataISO, caixaId: string): RascunhoLancament
     apenasDiasUteis: false,
     inicio: undefined,
     fim: undefined,
+    duracao: 'sem',
+    vezes: '',
+    valorEhTotal: false,
     excecoes: {},
   }
 }
@@ -75,8 +91,58 @@ export function rascunhoDe(l: Lancamento, hoje: DataISO): RascunhoLancamento {
     ...(r.tipo === 'diaria' && { apenasDiasUteis: r.apenasDiasUteis }),
     inicio: l.inicio,
     fim: l.fim,
+    ...duracaoDe(l, hoje),
     excecoes: l.excecoes ?? {},
   }
+}
+
+/** Um recorrente com fim aparece como número de vezes (parcelas); se forem vezes demais, como data. */
+function duracaoDe(l: Lancamento, hoje: DataISO): Pick<RascunhoLancamento, 'duracao' | 'vezes'> {
+  if (!l.fim || l.recorrencia.tipo === 'unica') return { duracao: 'sem', vezes: '' }
+  const parcelas = parcelasDe(l, hoje)
+  return parcelas ? { duracao: 'vezes', vezes: String(parcelas.total) } : { duracao: 'data', vezes: '' }
+}
+
+/** O número de vezes digitado, se for válido (1 a `MAX_VEZES`). */
+export function lerVezes(r: RascunhoLancamento): number | null {
+  const vezes = Number(r.vezes)
+  return r.vezes.trim() && Number.isInteger(vezes) && vezes >= 1 && vezes <= MAX_VEZES ? vezes : null
+}
+
+/**
+ * Troca o tipo mantendo a categoria só se ela for do novo tipo. Na transferência, a origem precisa ser uma conta
+ * e o destino, outra conta (`contas` são os ids das contas ativas, na ordem do seletor).
+ */
+export function trocarTipo(
+  r: RascunhoLancamento,
+  tipo: TipoLancamento,
+  tipoDaCategoria: TipoLancamento | undefined,
+  contas: string[],
+): RascunhoLancamento {
+  const novo = { ...r, tipo, categoriaId: tipoDaCategoria === tipo ? r.categoriaId : '' }
+  if (tipo !== 'transferencia') return novo
+  const origem = contas.includes(r.caixaId) ? r.caixaId : (contas[0] ?? r.caixaId)
+  const destino = r.caixaDestinoId && r.caixaDestinoId !== origem ? r.caixaDestinoId : contas.find((id) => id !== origem)
+  return { ...novo, caixaId: origem, caixaDestinoId: destino ?? '' }
+}
+
+/**
+ * Ao virar recorrente, um lançamento novo começa na data que estava escolhida. No mensal, o dia do mês é o dia do
+ * começo (não há campo de dia separado).
+ */
+export function trocarRecorrencia(
+  r: RascunhoLancamento,
+  recorrencia: RascunhoLancamento['recorrencia'],
+  novo: boolean,
+  hoje: DataISO,
+): RascunhoLancamento {
+  const inicio = recorrencia !== 'unica' && novo && !r.inicio ? (r.data ?? hoje) : r.inicio
+  return comInicio({ ...r, recorrencia }, inicio)
+}
+
+/** Muda o começo; no mensal, o dia do mês acompanha o dia do começo. */
+export function comInicio(r: RascunhoLancamento, inicio: DataISO | undefined): RascunhoLancamento {
+  return { ...r, inicio, ...(r.recorrencia === 'mensal' && inicio && { diaDoMes: String(Number(inicio.slice(8, 10))) }) }
 }
 
 function lerDiaDoMes(texto: string): number | null {
@@ -100,8 +166,13 @@ export function validarLancamento(r: RascunhoLancamento, categoriasValidas: Set<
   if (r.recorrencia === 'mensal' && lerDiaDoMes(r.diaDoMes) === null) {
     erros.diaDoMes = 'Use um dia entre 1 e 31.'
   }
-  if (r.recorrencia !== 'unica' && r.inicio && r.fim && r.fim < r.inicio) {
-    erros.fim = 'O fim não pode ser antes do início.'
+  if (r.recorrencia !== 'unica' && r.duracao === 'data' && !r.fim) erros.fim = 'Escolha até quando.'
+  if (r.recorrencia !== 'unica' && r.duracao === 'data' && r.inicio && r.fim && r.fim < r.inicio) {
+    erros.fim = 'O fim não pode ser antes do começo.'
+  }
+  if (r.recorrencia !== 'unica' && r.duracao === 'vezes') {
+    if (!r.inicio) erros.inicio = 'Escolha quando começa, para contar as vezes.'
+    if (lerVezes(r) === null) erros.vezes = `Use um número de 1 a ${MAX_VEZES}.`
   }
   return erros
 }
@@ -117,25 +188,29 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
           ? { tipo: 'mensal', diaDoMes: lerDiaDoMes(r.diaDoMes)! }
           : { tipo: 'diaria', apenasDiasUteis: r.apenasDiasUteis }
 
-  const limites = r.recorrencia === 'unica' ? {} : { inicio: r.inicio, fim: r.fim }
   const excecoes = r.recorrencia !== 'unica' && Object.keys(r.excecoes).length > 0 ? { excecoes: r.excecoes } : {}
   const transferencia = r.tipo === 'transferencia'
+  const vezes = r.recorrencia !== 'unica' && r.duracao === 'vezes' ? lerVezes(r) : null
+  const valorCentavos = vezes && r.valorEhTotal ? Math.round(r.valorCentavos / vezes) : r.valorCentavos
 
-  return {
+  const base: Lancamento = {
     id,
     caixaId: r.caixaId,
     ...(transferencia && { caixaDestinoId: r.caixaDestinoId }),
     descricao: r.descricao.trim(),
     tipo: r.tipo,
-    valorCentavos: r.valorCentavos,
+    valorCentavos,
     categoriaId: transferencia ? '' : r.categoriaId,
     ...(r.tipo === 'saida' && r.tagId && { tagId: r.tagId }),
     ...(r.pastaId && { pastaId: r.pastaId }),
     natureza: transferencia ? naturezaDaTransferencia(r.recorrencia) : r.natureza,
     recorrencia,
-    ...limites,
     ...excecoes,
   }
+  if (r.recorrencia === 'unica') return base
+  const comInicio = { ...base, inicio: r.inicio }
+  const fim = r.duracao === 'data' ? r.fim : vezes ? fimDepoisDe(comInicio, vezes) : undefined
+  return { ...comInicio, fim }
 }
 
 /** A transferência que se repete é um compromisso (fixa); a única, variável. */

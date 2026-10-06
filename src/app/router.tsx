@@ -77,7 +77,7 @@ const categoriasRoute = createRoute({
   },
 })
 
-/** `?reserva=`: meses da reserva de emergência (3, 6 ou 12). */
+/** `?reserva=`: meses da reserva de emergência (3, 6 ou 12); `?alternadas=`: seções abertas ou fechadas ao contrário do padrão. */
 const economiasRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/economias',

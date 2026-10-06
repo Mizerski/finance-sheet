@@ -34,7 +34,7 @@ const saldoInicial = (dados: DadosFinancas) =>
 export function ConfirmarImportacao({ backup, atual, onCancelar, onConfirmar }: ConfirmarImportacaoProps) {
   return (
     <Dialog open={backup !== null} onOpenChange={(aberto) => !aberto && onCancelar()}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-sm')}>
+      <DialogContent className={cn(CAMADA, 'gap-5 sm:max-w-sm')}>
         <DialogHeader>
           <DialogTitle className={TITULO_DIALOG}>Importar backup?</DialogTitle>
           <DialogDescription>

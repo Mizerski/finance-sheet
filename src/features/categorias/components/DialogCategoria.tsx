@@ -18,7 +18,7 @@ interface DialogCategoriaProps {
 export function DialogCategoria({ aberto, onOpenChange, categoria, tipoInicial, onSalvar }: DialogCategoriaProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
+      <DialogContent className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
         <DialogHeader>
           <DialogTitle className={TITULO_DIALOG}>
             {categoria ? 'Editar categoria' : 'Nova categoria'}

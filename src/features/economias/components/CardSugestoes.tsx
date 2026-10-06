@@ -25,7 +25,10 @@ interface CardSugestoesProps {
   onNovaMeta: () => void
 }
 
-/** Momentos bons para guardar mais: começo de mês, aumento de entrada e dinheiro extra. */
+/**
+ * Momentos bons para guardar mais: começo de mês, aumento de entrada e dinheiro extra. Em tela larga, em duas colunas
+ * (a última ocupa a linha toda se sobrar sozinha), para as frases não ficarem compridas demais.
+ */
 export function CardSugestoes({ sugestoes, risco, guardarSemPiorarCentavos, onAplicar, onNovaMeta }: CardSugestoesProps) {
   if (sugestoes.length === 0) return null
 
@@ -56,11 +59,11 @@ export function CardSugestoes({ sugestoes, risco, guardarSemPiorarCentavos, onAp
           </Ajuda>
         }
       />
-      <ul className="flex flex-col">
+      <ul className="-mb-0.5 grid lg:grid-cols-2">
         {sugestoes.map((s) => (
           <li
             key={s.tipo === 'novo-mes' ? 'novo-mes' : s.tipo === 'aumento' ? `aumento-${s.aumento.mes}` : `extra-${s.entrada.lancamentoId}`}
-            className="flex flex-col gap-2.5 border-b-2 border-contorno px-4 py-4 last:border-b-0 sm:px-5"
+            className="flex min-w-0 flex-col gap-2.5 border-b-2 border-contorno px-4 py-4 sm:px-5 lg:odd:border-r-2 lg:last:odd:col-span-2 lg:last:odd:border-r-0"
           >
             {s.tipo === 'novo-mes' ? (
               <NovoMes sugestao={s} guardarSemPiorarCentavos={guardarSemPiorarCentavos} risco={risco} />

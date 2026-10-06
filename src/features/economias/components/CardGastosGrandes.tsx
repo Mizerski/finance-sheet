@@ -22,7 +22,10 @@ interface CardGastosGrandesProps {
   referenciaCentavos: number
 }
 
-/** Gastos únicos grandes que vêm aí e se o saldo projetado os cobre no dia, na cor do risco. */
+/**
+ * Contas únicas grandes que vêm aí (IPVA, seguro, matrícula) e se o saldo cobre cada uma no dia, na cor do risco.
+ * A conclusão vem antes da tabela, com o porquê do card: elas já saem do saldo, então não pedem meta.
+ */
 export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGastosGrandesProps) {
   const { itens, totalCentavos, minimoCentavos } = gastos
   const descobertos = itens.filter((g) => g.saldoNoDiaCentavos < 0).length
@@ -30,13 +33,13 @@ export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGasto
   return (
     <Card className={cn(CARD, 'overflow-hidden')}>
       <CabecalhoCard
-        titulo="Gastos grandes à frente"
+        titulo="Contas grandes pela frente"
         faixa="bg-vermelho"
         forma={{ forma: 'triangulo', cor: 'papel' }}
         contagem={itens.length}
-        descricao={<>Contas únicas até {formatarMesAno(fim, 'curto')}</>}
+        descricao={<>O que não é de todo mês, até {formatarMesAno(fim, 'curto')}</>}
         ajuda={
-          <Ajuda titulo="Gastos grandes à frente">
+          <Ajuda titulo="Contas grandes pela frente">
             <p>
               Contas que não se repetem todo mês, a partir de <DinheiroForte centavos={minimoCentavos} /> (¼ do que você
               gasta num mês). A cor do saldo mostra o risco do caixa no dia.
@@ -50,13 +53,34 @@ export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGasto
         }
       />
 
+      {itens.length > 0 && (
+        <div className="px-4 py-4 text-sm sm:px-5">
+          {descobertos > 0 ? (
+            <CaixaDestaque fundo="bg-negativo-suave" faixa="border-l-vermelho">
+              <p>
+                <Forte className="text-negativo">
+                  Em {descobertos === 1 ? 'um desses dias' : `${descobertos} desses dias`} falta dinheiro.
+                </Forte>{' '}
+                Antecipe uma entrada ou corte gastos antes.
+              </p>
+            </CaixaDestaque>
+          ) : (
+            <p>
+              <Forte>{itens.length === 1 ? 'O saldo cobre essa conta.' : 'O saldo cobre todas.'}</Forte>{' '}
+              {itens.length === 1 ? 'Ela já sai' : 'Elas já saem'} do saldo no dia certo, então não precisa juntar
+              dinheiro numa meta para {itens.length === 1 ? 'ela' : 'elas'}.
+            </p>
+          )}
+        </div>
+      )}
+
       {itens.length === 0 ? (
         <p className="px-4 py-4 text-sm text-muted-foreground sm:px-5">
           Nenhum gasto único grande nos próximos 12 meses. Cadastre IPVA, seguro, matrícula e outros gastos que não se
           repetem todo mês para vê-los aqui.
         </p>
       ) : (
-        <Table className={cn(TABELA.tabela, 'text-[0.7rem] tracking-tight sm:tracking-normal')}>
+        <Table className={cn(TABELA.tabela, 'border-t-2 border-contorno text-[0.7rem] tracking-tight sm:tracking-normal')}>
           <TableHeader>
             <TableRow className={TABELA.linhaCabecalho}>
               <TableHead className={cn(TABELA.cabecalho, CELULA, TABELA.primeira)}>Data</TableHead>
@@ -103,23 +127,6 @@ export function CardGastosGrandes({ gastos, fim, referenciaCentavos }: CardGasto
         </Table>
       )}
 
-      {itens.length > 0 &&
-        (descobertos > 0 ? (
-          <div className="border-t-2 border-contorno px-4 py-4 sm:px-5">
-            <CaixaDestaque fundo="bg-negativo-suave" faixa="border-l-vermelho">
-              <p>
-                <Forte className="text-negativo">
-                  Em {descobertos === 1 ? 'um desses dias' : `${descobertos} desses dias`} falta dinheiro.
-                </Forte>{' '}
-                Antecipe uma entrada ou corte gastos antes.
-              </p>
-            </CaixaDestaque>
-          </div>
-        ) : (
-          <p className="border-t-2 border-contorno px-4 py-3 text-sm sm:px-5">
-            <Forte>O saldo cobre todos.</Forte>
-          </p>
-        ))}
     </Card>
   )
 }
