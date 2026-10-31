@@ -1,52 +1,17 @@
 import { useState, type FormEvent } from 'react'
 import { EfeitoNoCaixa } from '@/features/risco/components/EfeitoNoCaixa'
 import { CampoDinheiro } from '@/shared/components/CampoDinheiro'
-import { formatarData, type DataISO } from '@/shared/lib/datas'
-import { formatarBRL } from '@/shared/lib/dinheiro'
-import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG } from '@/shared/lib/estilos'
-import { cn } from '@/shared/lib/utils'
+import type { DataISO } from '@/shared/lib/datas'
+import { BOTAO, RODAPE_DIALOG } from '@/shared/lib/estilos'
 import { Button } from '@/shared/ui/button'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog'
+import { DialogClose, DialogFooter } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/field'
 import { useFinancas } from '@/store/context/financas-context'
 import { comValorNoDia, semExcecaoNoDia } from '../utils/excecoes'
 import { valorNoDia, type Lancamento } from '../model/lancamento'
 
-interface DialogValorDoDiaProps {
-  aberto: boolean
-  onOpenChange: (aberto: boolean) => void
-  lancamento?: Lancamento
-  data?: DataISO
-}
-
 /** Muda o valor de um recorrente só num dia, ou o pula nesse dia, sem mexer nas outras ocorrências. */
-export function DialogValorDoDia({ aberto, onOpenChange, lancamento, data }: DialogValorDoDiaProps) {
-  return (
-    <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(CAMADA, 'gap-5 sm:max-w-md')}>
-        <DialogHeader>
-          <DialogTitle className={TITULO_DIALOG}>Só em {data && formatarData(data)}</DialogTitle>
-          <DialogDescription>
-            {lancamento?.descricao} · nos outros dias continua {lancamento && formatarBRL(lancamento.valorCentavos)}.
-          </DialogDescription>
-        </DialogHeader>
-        {lancamento && data && (
-          <FormularioValorDoDia lancamento={lancamento} data={data} onConcluir={() => onOpenChange(false)} />
-        )}
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function FormularioValorDoDia({ lancamento, data, onConcluir }: { lancamento: Lancamento; data: DataISO; onConcluir: () => void }) {
+export function FormularioValorDoDia({ lancamento, data, onConcluir }: { lancamento: Lancamento; data: DataISO; onConcluir: () => void }) {
   const { dispatch } = useFinancas()
   const atual = valorNoDia(lancamento, data)
   const [centavos, setCentavos] = useState(atual)

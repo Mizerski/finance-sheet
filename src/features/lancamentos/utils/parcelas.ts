@@ -46,7 +46,7 @@ export function parcelasDe(l: Lancamento, hoje: DataISO): Parcelas | null {
   if (l.recorrencia.tipo === 'unica' || !l.inicio || !l.fim) return null
   const datas = [...datasDoRecorrente(l, MAX_VEZES + 1)]
   if (datas.length === 0 || datas.length > MAX_VEZES) return null
-  const pagas = datas.filter((d) => d <= hoje).length
+  const pagas = datas.filter((d) => (l.movidas?.[d] ?? d) <= hoje).length
   const soma = (lista: DataISO[]) => lista.reduce((total, d) => total + valorNoDia(l, d), 0)
   return {
     total: datas.length,
@@ -58,7 +58,10 @@ export function parcelasDe(l: Lancamento, hoje: DataISO): Parcelas | null {
   }
 }
 
-/** As próximas `n` vezes a partir de hoje (inclusive), sem os dias pulados; no único, a data dele se ainda não passou. */
+/**
+ * As próximas `n` vezes a partir de hoje (inclusive), sem os dias pulados; no único, a data dele se ainda não passou.
+ * Cada vez é a data original; a que mudou de dia e já aconteceu fica de fora.
+ */
 export function proximasVezes(l: Lancamento, hoje: DataISO, n = 3): DataISO[] {
   if (l.recorrencia.tipo === 'unica') return l.recorrencia.data >= hoje ? [l.recorrencia.data] : []
   const lista: DataISO[] = []
@@ -66,7 +69,7 @@ export function proximasVezes(l: Lancamento, hoje: DataISO, n = 3): DataISO[] {
   for (let i = 0; i < 366 * 2 && lista.length < n; i++, d = addDays(d, 1)) {
     const dia = diaDoCalendario(d)
     if (l.fim && dia.data > l.fim) break
-    if (ocorreEm(l, dia) && valorNoDia(l, dia.data) > 0) lista.push(dia.data)
+    if (ocorreEm(l, dia) && valorNoDia(l, dia.data) > 0 && (l.movidas?.[dia.data] ?? dia.data) >= hoje) lista.push(dia.data)
   }
   return lista
 }

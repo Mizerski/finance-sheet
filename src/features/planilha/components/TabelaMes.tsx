@@ -1,9 +1,11 @@
+import type { PointerEvent } from 'react'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import { QuadradoRisco } from '@/features/risco/components/SeloRisco'
 import { NIVEL, type NivelRisco } from '@/features/risco/utils/risco'
 import type { DiaProjetado, ResumoMes } from '@/features/projecao/utils/projecao'
 import type { DataISO } from '@/shared/lib/datas'
 import { nomeDoMes } from '@/shared/lib/datas'
+import type { ItemDoDia } from './DetalheDia'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { CARD, ROTULO, TITULO_CARD, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -17,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/ui/table'
+import { papelNoArraste, type EstadoArraste } from '../hooks/useArrastarDia'
 import { somarColunas } from '../utils/colunas'
 import { CELULA, CELULA_DIA, COR_COLUNA } from '../constants/cores'
 import { CelulaSaldo, CelulaValor } from './CelulaValor'
@@ -31,8 +34,8 @@ interface TabelaMesProps {
   /** Abre a edição de um lançamento a partir do popover do dia. */
   onEditar: (lancamentoId: string) => void
   onExcluir: (lancamentoId: string) => void
-  /** Muda um recorrente só no dia clicado. */
-  onMudarDia: (lancamentoId: string, data: DataISO) => void
+  /** Leva para outro dia o que estava no dia clicado (ou muda o valor de um recorrente só nele). */
+  onMudarDia: (data: DataISO, item?: ItemDoDia) => void
   /** Abre um lançamento novo na data do dia clicado. */
   onAdicionar: (data: DataISO) => void
   /** Mostra a coluna Economia (quando há metas de economia). */
@@ -41,6 +44,10 @@ interface TabelaMesProps {
   divida?: boolean
   /** Nível de risco do caixa no dia; null sem risco (benefício, sem projeção à frente). */
   nivelDoDia: ((dia: DiaProjetado) => NivelRisco | null) | null
+  /** Dia sendo segurado ou arrastado (de qualquer mês visível), para pintar origem e destino. */
+  arraste: EstadoArraste | null
+  /** Pressionar uma linha de dia: segurando, pega o dia para levar a outro. */
+  onSegurar: (e: PointerEvent, dia: DiaProjetado) => void
 }
 
 interface Coluna {
@@ -85,6 +92,8 @@ export function TabelaMes({
   comEconomia,
   nivelDoDia,
   divida,
+  arraste,
+  onSegurar,
 }: TabelaMesProps) {
   const saldoInicial = resumo.saldoInicialCentavos
   const colunas = comEconomia ? COLUNAS_COM_ECONOMIA : COLUNAS
@@ -170,6 +179,8 @@ export function TabelaMes({
               comEconomia={comEconomia}
               nivel={niveis[i]}
               divida={divida}
+              arraste={papelNoArraste(arraste, dia.data)}
+              onSegurar={onSegurar}
             />
           ))}
           {Array.from({ length: LINHAS_POR_MES - dias.length }, (_, i) => (

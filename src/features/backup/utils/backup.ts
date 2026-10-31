@@ -1,6 +1,7 @@
 import type { Caixa } from '@/features/caixas/model/caixa'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { MetaEconomia } from '@/features/economias/model/meta'
+import { LIMITE_ATIVIDADES, type Atividade } from '@/features/historico/model/atividade'
 import type { Lancamento } from '@/features/lancamentos/model/lancamento'
 import type { Pasta } from '@/features/pastas/model/pasta'
 import type { Tag } from '@/features/tags/model/tag'
@@ -20,11 +21,12 @@ export function nomeDoBackup(hoje: Date): string {
   return `${APP}-backup-${paraDataISO(hoje)}.json`
 }
 
+/** O histórico de atividade vai junto: num computador novo, a pessoa continua sabendo o que fez. */
 export function gerarBackup(
-  { caixas, categorias, lancamentos, metas, tags, pastas }: DadosFinancas,
+  { caixas, categorias, lancamentos, metas, tags, pastas, atividades }: DadosFinancas,
   agora: Date,
 ): string {
-  const dados: DadosFinancas = { caixas, categorias, lancamentos, metas, tags, pastas }
+  const dados: DadosFinancas = { caixas, categorias, lancamentos, metas, tags, pastas, atividades }
   return JSON.stringify({ app: APP, versao: VERSAO_DADOS, exportadoEm: paraDataISO(agora), dados }, null, 2)
 }
 
@@ -128,7 +130,8 @@ function ehLancamento(l: unknown): l is Omit<Lancamento, 'caixaId'> {
     (l.inicio === undefined || ehData(l.inicio)) &&
     (l.fim === undefined || ehData(l.fim)) &&
     (l.excecoes === undefined ||
-      (ehObjeto(l.excecoes) && Object.entries(l.excecoes).every(([data, v]) => ehData(data) && ehCentavos(v) && v >= 0)))
+      (ehObjeto(l.excecoes) && Object.entries(l.excecoes).every(([data, v]) => ehData(data) && ehCentavos(v) && v >= 0))) &&
+    (l.movidas === undefined || (ehObjeto(l.movidas) && Object.entries(l.movidas).every(([de, para]) => ehData(de) && ehData(para))))
   )
 }
 
@@ -155,6 +158,37 @@ function ehMeta(m: unknown): m is Omit<MetaEconomia, 'caixaId'> {
 
 function ehResgate(r: unknown): boolean {
   return ehObjeto(r) && ehTexto(r.id) && ehData(r.data) && ehCentavos(r.valorCentavos) && r.valorCentavos > 0
+}
+
+const TIPOS_ATIVIDADE = new Set(['lancamento', 'meta', 'caixa', 'organizacao', 'dados'])
+const TONS_ATIVIDADE = new Set(['entrada', 'saida', 'economia'])
+
+/** Atividade do histórico (a partir da versão 13). */
+function ehAtividade(a: unknown): a is Atividade {
+  return (
+    ehObjeto(a) &&
+    ehTexto(a.id) &&
+    ehTexto(a.em) &&
+    !Number.isNaN(Date.parse(a.em)) &&
+    ehTexto(a.tipo) &&
+    TIPOS_ATIVIDADE.has(a.tipo) &&
+    ehTexto(a.texto) &&
+    a.texto.trim().length > 0 &&
+    (a.tom === undefined || (ehTexto(a.tom) && TONS_ATIVIDADE.has(a.tom))) &&
+    (a.caixaId === undefined || ehTexto(a.caixaId))
+  )
+}
+
+/**
+ * O histórico do backup, só com as atividades válidas e as últimas `LIMITE_ATIVIDADES`.
+ * Uma atividade estranha sai sem impedir a importação: o histórico é só para lembrar, não mexe nas contas.
+ */
+function atividadesDoBackup(d: unknown): Atividade[] {
+  if (!ehObjeto(d) || !Array.isArray(d.atividades)) return []
+  return d.atividades
+    .filter(ehAtividade)
+    .map(({ id, em, tipo, texto, tom, caixaId }) => ({ id, em, tipo, texto, ...(tom && { tom }), ...(caixaId && { caixaId }) }))
+    .slice(-LIMITE_ATIVIDADES)
 }
 
 /** Dados da versão 1 (sem metas), da 2 (sem tags e pastas), de 3 a 5 (sem caixas) ou da atual. */
@@ -214,7 +248,20 @@ export function lerBackup(texto: string): Backup {
     exportadoEm: arquivo.exportadoEm,
     dados: {
       caixas: atual.caixas.map(
-        ({ id, nome, cor, tipo, saldoInicialCentavos, dataSaldoInicial, saldoDefinido, entraNoTotal, ordem, arquivado }) => ({
+        ({
+          id,
+          nome,
+          cor,
+          tipo,
+          saldoInicialCentavos,
+          dataSaldoInicial,
+          saldoDefinido,
+          entraNoTotal,
+          ordem,
+          arquivado,
+          cartao,
+          investimento,
+        }) => ({
           id,
           nome,
           cor,
@@ -225,6 +272,15 @@ export function lerBackup(texto: string): Backup {
           entraNoTotal,
           ordem,
           ...(arquivado && { arquivado: true }),
+          ...(cartao && {
+            cartao: {
+              diaFechamento: cartao.diaFechamento,
+              diaVencimento: cartao.diaVencimento,
+              contaPagadoraId: cartao.contaPagadoraId,
+              ...(cartao.limiteCentavos !== undefined && { limiteCentavos: cartao.limiteCentavos }),
+            },
+          }),
+          ...(investimento && { investimento: true }),
         }),
       ),
       categorias: atual.categorias.map(({ id, nome, cor, tipo }) => ({ id, nome, cor, tipo })),
@@ -262,6 +318,7 @@ export function lerBackup(texto: string): Backup {
       ),
       tags: atual.tags.map(({ id, nome, cor, evitavel }) => ({ id, nome, cor, evitavel })),
       pastas: atual.pastas.map(({ id, nome, cor }) => ({ id, nome, cor })),
+      atividades: atividadesDoBackup(d),
     },
   }
 }

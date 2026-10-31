@@ -44,6 +44,11 @@ export interface Lancamento {
    * Ausente ou vazio = todas as ocorrências com `valorCentavos`.
    */
   excecoes?: Record<DataISO, number>
+  /**
+   * Só em recorrentes: vezes que aconteceram em outro dia ("paguei antes"), da data original para a nova.
+   * O valor continua o do dia original (com a exceção, se houver). Ausente ou vazio = cada vez no seu dia.
+   */
+  movidas?: Record<DataISO, DataISO>
 }
 
 export type Transferencia = Lancamento & { tipo: 'transferencia'; caixaDestinoId: string }

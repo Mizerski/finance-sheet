@@ -60,7 +60,7 @@ const lancamentosRoute = createRoute({
   component: LancamentosPage,
 })
 
-/** `?aba=`: tags, pastas ou caixas; sem ela, categorias. */
+/** `?aba=`: tags, pastas, caixas ou historico (com `?tipo=` para filtrar); sem ela, categorias. */
 const organizacaoRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/organizacao',

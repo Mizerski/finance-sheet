@@ -3,13 +3,13 @@ import { ArrowLeftRight, CalendarDays, Pencil, PiggyBank, Plus, Trash2, Undo2 } 
 import { useVisao } from '@/features/caixas/hooks/useVisao'
 import { CATEGORIA_DESCONHECIDA, type Categoria } from '@/features/categorias/model/categoria'
 import type { Aporte } from '@/features/economias/utils/aportes'
-import { semExcecaoNoDia } from '@/features/lancamentos/utils/excecoes'
-import type { Lancamento } from '@/features/lancamentos/model/lancamento'
+import { semExcecaoNoDia, semMudancaDeDia } from '@/features/lancamentos/utils/excecoes'
+import { valorNoDia, type Lancamento } from '@/features/lancamentos/model/lancamento'
 import { ocorreEm, type DiaProjetado, type MovimentoTransferencia, type Ocorrencia } from '@/features/projecao/utils/projecao'
 import { SeloRisco } from '@/features/risco/components/SeloRisco'
 import { NIVEL, type NivelRisco } from '@/features/risco/utils/risco'
 import { PontoCor } from '@/shared/components/PontoCor'
-import { deDataISO, diaDoCalendario, formatarData, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/datas'
+import { deDataISO, diaDoCalendario, formatarData, formatarDiaMes, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -18,6 +18,12 @@ import { Button } from '@/shared/ui/button'
 import { PopoverDescription, PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
 import { useFinancas } from '@/store/context/financas-context'
 
+/** Item do dia em que a pessoa clicou no calendário; `de` é a data original, se ele veio de outro dia. */
+export interface ItemDoDia {
+  lancamentoId: string
+  de?: DataISO
+}
+
 interface DetalheDiaProps {
   dia: DiaProjetado
   categorias: Map<string, Categoria>
@@ -25,8 +31,8 @@ interface DetalheDiaProps {
   onEditar: (lancamentoId: string) => void
   /** Pede a confirmação para excluir o lançamento que gerou a ocorrência. */
   onExcluir: (lancamentoId: string) => void
-  /** Recorrente: muda o valor só neste dia (ou pula o dia). */
-  onMudarDia: (lancamentoId: string) => void
+  /** Leva lançamentos deste dia para outro (com o item clicado já marcado) ou muda o valor de um recorrente só nele. */
+  onMudarDia: (item?: ItemDoDia) => void
   /** Abre um lançamento novo já com a data deste dia. */
   onAdicionar: () => void
   /** Risco do caixa no dia; null sem risco (benefício, dia fora do cálculo). */
@@ -35,19 +41,17 @@ interface DetalheDiaProps {
 
 /**
  * Conteúdo do popover: lançamentos de um dia da planilha.
- * Recorrentes pulados no dia aparecem riscados, para poder voltar.
+ * Recorrentes pulados no dia ou levados para outro aparecem riscados, para poder voltar.
  */
 export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, onAdicionar, nivel = null }: DetalheDiaProps) {
   const { lancamentos } = useVisao()
   const porId = new Map(lancamentos.map((l) => [l.id, l]))
   const calendario = diaDoCalendario(deDataISO(dia.data))
   const pulados = lancamentos.filter((l) => l.excecoes?.[dia.data] === 0 && ocorreEm(l, calendario))
-  const quantidade = dia.ocorrencias.length + dia.transferencias.length + dia.aportes.length + pulados.length
-  /** Só o recorrente muda num dia; o único se edita inteiro. */
-  const mudarDia = (id: string) => {
-    const l = porId.get(id)
-    return l && l.recorrencia.tipo !== 'unica' ? () => onMudarDia(id) : undefined
-  }
+  const levados = lancamentos.filter((l) => l.movidas?.[dia.data] && ocorreEm(l, calendario))
+  const quantidade =
+    dia.ocorrencias.length + dia.transferencias.length + dia.aportes.length + pulados.length + levados.length
+  const lancados = dia.ocorrencias.length + dia.transferencias.filter((m) => !m.fatura && !m.metaId).length
 
   return (
     <>
@@ -73,13 +77,13 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
         >
           {dia.ocorrencias.map((o) => (
             <ItemOcorrencia
-              key={o.lancamentoId}
+              key={`${o.lancamentoId}-${o.movidaDe ?? ''}`}
               ocorrencia={o}
               categoria={categorias.get(o.categoriaId) ?? CATEGORIA_DESCONHECIDA}
-              normal={normalDoDia(porId.get(o.lancamentoId), dia.data)}
+              normal={normalDoDia(porId.get(o.lancamentoId), o.movidaDe ?? dia.data)}
               onEditar={() => onEditar(o.lancamentoId)}
               onExcluir={() => onExcluir(o.lancamentoId)}
-              onMudarDia={mudarDia(o.lancamentoId)}
+              onMudarDia={() => onMudarDia({ lancamentoId: o.lancamentoId, de: o.movidaDe })}
             />
           ))}
           {dia.transferencias.map((m) =>
@@ -89,12 +93,12 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
               <ItemMetaDeOutraConta key={`${m.metaId}-${m.sentido}`} movimento={m} />
             ) : (
               <ItemTransferencia
-                key={m.lancamentoId}
+                key={`${m.lancamentoId}-${m.sentido}-${m.movidaDe ?? ''}`}
                 movimento={m}
-                normal={normalDoDia(porId.get(m.lancamentoId), dia.data)}
+                normal={normalDoDia(porId.get(m.lancamentoId), m.movidaDe ?? dia.data)}
                 onEditar={() => onEditar(m.lancamentoId)}
                 onExcluir={() => onExcluir(m.lancamentoId)}
-                onMudarDia={mudarDia(m.lancamentoId)}
+                onMudarDia={() => onMudarDia({ lancamentoId: m.lancamentoId, de: m.movidaDe })}
               />
             ),
           )}
@@ -103,6 +107,9 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
           ))}
           {pulados.map((l) => (
             <ItemPulado key={l.id} lancamento={l} data={dia.data} />
+          ))}
+          {levados.map((l) => (
+            <ItemLevado key={l.id} lancamento={l} data={dia.data} />
           ))}
         </ul>
       )}
@@ -127,10 +134,23 @@ export function DetalheDia({ dia, categorias, onEditar, onExcluir, onMudarDia, o
       )}
 
       {dia.noCalculo && (
-        <Button variant="outline" className={cn(BOTAO, 'mt-1 w-full shrink-0')} onClick={onAdicionar}>
-          <Plus aria-hidden className="size-6" />
-          Adicionar lançamento
-        </Button>
+        <div className="mt-1 flex shrink-0 gap-2">
+          <Button variant="outline" className={cn(BOTAO, 'flex-1 px-2')} onClick={onAdicionar}>
+            <Plus aria-hidden className="size-6" />
+            {lancados > 0 ? 'Adicionar' : 'Adicionar lançamento'}
+          </Button>
+          {lancados > 0 && (
+            <Button
+              variant="outline"
+              className={cn(BOTAO, 'flex-1 px-2')}
+              onClick={() => onMudarDia()}
+              title="Pagou ou recebeu em outro dia? Leve para o dia certo."
+            >
+              <CalendarDays aria-hidden className="size-6" />
+              Mudar de dia
+            </Button>
+          )}
+        </div>
       )}
     </>
   )
@@ -156,7 +176,7 @@ function ValorDoItem({ texto, normal, className }: { texto: string; normal?: num
   )
 }
 
-/** Botões da direita do item: mudar só neste dia (recorrente) e excluir. */
+/** Botões da direita do item: mudar de dia (ou o valor só neste dia) e excluir. */
 function AcoesItem({
   descricao,
   tituloExcluir,
@@ -165,23 +185,21 @@ function AcoesItem({
 }: {
   descricao: string
   tituloExcluir: string
-  onMudarDia?: () => void
+  onMudarDia: () => void
   onExcluir: () => void
 }) {
   return (
     <span className="mx-0.5 mt-0.5 flex shrink-0">
-      {onMudarDia && (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="rounded-full text-muted-foreground"
-          onClick={onMudarDia}
-          aria-label={`Mudar só neste dia: ${descricao}`}
-          title="Mudar só neste dia"
-        >
-          <CalendarDays className="size-3" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="rounded-full text-muted-foreground"
+        onClick={onMudarDia}
+        aria-label={`Mudar de dia ou o valor só neste dia: ${descricao}`}
+        title="Mudar de dia (ou o valor só neste dia)"
+      >
+        <CalendarDays className="size-3" />
+      </Button>
       <Button
         variant="ghost"
         size="icon-sm"
@@ -215,6 +233,33 @@ function ItemPulado({ lancamento: l, data }: { lancamento: Lancamento; data: Dat
         onClick={() => dispatch({ tipo: 'lancamento/salvar', lancamento: semExcecaoNoDia(l, data) })}
         aria-label={`Voltar ${l.descricao} neste dia`}
         title="Voltar neste dia"
+      >
+        <Undo2 className="size-3" />
+      </Button>
+    </li>
+  )
+}
+
+/** Recorrente levado deste dia para outro: valor riscado, o dia em que aconteceu e o botão de trazer de volta. */
+function ItemLevado({ lancamento: l, data }: { lancamento: Lancamento; data: DataISO }) {
+  const { dispatch } = useFinancas()
+  const para = l.movidas?.[data]
+  return (
+    <li className="flex items-start text-muted-foreground">
+      <span className="flex min-w-0 flex-1 items-start justify-between gap-3 py-1.5 pl-2">
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate font-semibold">{l.descricao}</span>
+          <span className="text-xs">Foi em {para && formatarDiaMes(para)}</span>
+        </span>
+        <span className="shrink-0 tabular-nums line-through">{formatarBRL(valorNoDia(l, data))}</span>
+      </span>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="mx-0.5 mt-0.5 shrink-0 rounded-full text-muted-foreground"
+        onClick={() => dispatch({ tipo: 'lancamento/salvar', lancamento: semMudancaDeDia(l, data) })}
+        aria-label={`Trazer ${l.descricao} de volta para este dia`}
+        title="Trazer de volta para este dia"
       >
         <Undo2 className="size-3" />
       </Button>
@@ -265,7 +310,7 @@ function ItemTransferencia({
   normal?: number
   onEditar: () => void
   onExcluir: () => void
-  onMudarDia?: () => void
+  onMudarDia: () => void
 }) {
   const { estado } = useFinancas()
   const outro = estado.caixas.find((c) => c.id === m.outroCaixaId)?.nome ?? 'outra conta'
@@ -286,6 +331,7 @@ function ItemTransferencia({
           <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
             <ArrowLeftRight aria-hidden className="size-3 text-foreground" />
             {entrada ? `Transferência de ${outro}` : `Transferência para ${outro}`}
+            {m.movidaDe && <span>· era dia {formatarDiaMes(m.movidaDe)}</span>}
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
@@ -377,7 +423,7 @@ function ItemOcorrencia({
   normal?: number
   onEditar: () => void
   onExcluir: () => void
-  onMudarDia?: () => void
+  onMudarDia: () => void
 }) {
   const entrada = ocorrencia.tipo === 'entrada'
 
@@ -401,6 +447,7 @@ function ItemOcorrencia({
                 {ocorrencia.natureza === 'fixa' ? 'fixa' : 'variável'}
               </Badge>
             )}
+            {ocorrencia.movidaDe && <span>· era dia {formatarDiaMes(ocorrencia.movidaDe)}</span>}
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5">

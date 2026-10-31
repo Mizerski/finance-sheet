@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { DiaProjetado } from '@/features/projecao/utils/projecao'
 import type { NivelRisco } from '@/features/risco/utils/risco'
@@ -6,10 +6,11 @@ import { formatarData, nomeDoDiaDaSemana, type DataISO } from '@/shared/lib/data
 import { cn } from '@/shared/lib/utils'
 import { Popover, PopoverAnchor, PopoverContent } from '@/shared/ui/popover'
 import { TableCell, TableRow } from '@/shared/ui/table'
+import { TEMPO_SEGURAR, type PapelNoArraste } from '../hooks/useArrastarDia'
 import { colunasDoDia } from '../utils/colunas'
 import { CELULA_DIA, COR_COLUNA } from '../constants/cores'
 import { CelulaSaldo, CelulaValor } from './CelulaValor'
-import { DetalheDia } from './DetalheDia'
+import { DetalheDia, type ItemDoDia } from './DetalheDia'
 
 interface LinhaDiaProps {
   dia: DiaProjetado
@@ -17,13 +18,17 @@ interface LinhaDiaProps {
   categorias: Map<string, Categoria>
   onEditar: (lancamentoId: string) => void
   onExcluir: (lancamentoId: string) => void
-  onMudarDia: (lancamentoId: string, data: DataISO) => void
+  onMudarDia: (data: DataISO, item?: ItemDoDia) => void
   onAdicionar: (data: DataISO) => void
   comEconomia: boolean
   /** Cartão de crédito: saldo negativo é dívida, sem a cor de alerta. */
   divida?: boolean
   /** Nível de risco do dia, para pintar o saldo; null sem risco. */
   nivel: NivelRisco | null
+  /** Papel da linha enquanto um dia é segurado ou arrastado. */
+  arraste?: PapelNoArraste
+  /** Pressionar a linha: segurando por `TEMPO_SEGURAR`, pega o dia para arrastar. */
+  onSegurar: (e: PointerEvent, dia: DiaProjetado) => void
 }
 
 /**
@@ -34,7 +39,13 @@ const VEU = {
   hover: '[&>td]:group-hover:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-foreground)_6%,transparent)]',
   aberto: '[&>td]:shadow-[inset_0_0_0_999px_color-mix(in_oklch,var(--color-foreground)_9%,transparent)]',
   hoje: 'font-semibold [&>td]:shadow-[inset_0_2px_0_0_var(--color-contorno),inset_0_-2px_0_0_var(--color-contorno)]',
+  origem: '[&>td]:shadow-[inset_0_0_0_999px_var(--color-selecao)] text-muted-foreground',
+  destino:
+    '[&>td]:shadow-[inset_0_2px_0_0_var(--color-contorno),inset_0_-2px_0_0_var(--color-contorno),inset_0_0_0_999px_var(--color-selecao-forte)]',
 }
+
+/** Até aqui, segurar parece um clique comum: a linha só começa a encher depois. */
+const ATRASO_ENCHER = 150
 
 /** Espaço que um dia cheio pede abaixo da linha; com menos que isso, o popover abre para cima se lá couber mais. */
 const ALTURA_CONFORTAVEL = 420
@@ -51,6 +62,8 @@ export function LinhaDia({
   comEconomia,
   nivel,
   divida,
+  arraste,
+  onSegurar,
 }: LinhaDiaProps) {
   const [aberto, setAberto] = useState(false)
   const [lado, setLado] = useState<'top' | 'bottom'>('bottom')
@@ -72,16 +85,22 @@ export function LinhaDia({
       <PopoverAnchor asChild>
         <TableRow
           ref={linhaRef}
+          data-dia={dia.data}
+          data-no-calculo={dia.noCalculo || undefined}
           onClick={alternar}
+          onPointerDown={(e) => onSegurar(e, dia)}
           className={cn(
-            'group cursor-pointer border-b-border/70 hover:bg-transparent has-aria-expanded:bg-transparent',
+            'group relative cursor-pointer border-b-border/70 select-none hover:bg-transparent has-aria-expanded:bg-transparent [-webkit-touch-callout:none]',
             VEU.hover,
             aberto && VEU.aberto,
             !dia.noCalculo && 'text-muted-foreground',
             ehHoje && VEU.hoje,
+            arraste === 'origem' && VEU.origem,
+            arraste === 'destino' && VEU.destino,
           )}
         >
           <TableCell className={cn(CELULA_DIA, 'bg-card')}>
+            {arraste === 'segurando' && <Enchendo />}
             <button
               type="button"
               aria-haspopup="dialog"
@@ -135,9 +154,9 @@ export function LinhaDia({
             setAberto(false)
             onExcluir(id)
           }}
-          onMudarDia={(id) => {
+          onMudarDia={(item) => {
             setAberto(false)
-            onMudarDia(id, dia.data)
+            onMudarDia(dia.data, item)
           }}
           onAdicionar={() => {
             setAberto(false)
@@ -147,4 +166,22 @@ export function LinhaDia({
       </PopoverContent>
     </Popover>
   )
+}
+
+/** A linha enche de amarelo da esquerda para a direita enquanto é segurada; sem movimento, só aparece aos poucos. */
+function Enchendo() {
+  const ref = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const animacao = el.animate(
+      semMovimento ? [{ opacity: 0 }, { opacity: 1 }] : [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+      { duration: TEMPO_SEGURAR - ATRASO_ENCHER, delay: ATRASO_ENCHER, easing: 'linear', fill: 'both' },
+    )
+    return () => animacao.cancel()
+  }, [])
+
+  return <span ref={ref} aria-hidden className="pointer-events-none absolute inset-0 origin-left bg-selecao-forte" />
 }

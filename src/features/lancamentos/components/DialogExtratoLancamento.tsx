@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CupomExtrato, LinhaExtrato, ParteExtrato, TopoExtrato } from '@/shared/components/Extrato'
 import { PontoCor } from '@/shared/components/PontoCor'
-import { deDataISO, formatarData, nomeDoDiaDaSemana, paraDataISO } from '@/shared/lib/datas'
+import { deDataISO, formatarData, formatarDiaMes, nomeDoDiaDaSemana, paraDataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, CAMADA, RODAPE_DIALOG, TITULO_DIALOG } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
@@ -54,6 +54,7 @@ function Extrato({ l, onEditar, onExcluir }: { l: Lancamento; onEditar: () => vo
   const parcelas = parcelasDe(l, hoje)
   const proximas = proximasVezes(l, hoje)
   const mudancas = Object.keys(l.excecoes ?? {}).length
+  const movidas = Object.keys(l.movidas ?? {}).length
   const transferencia = l.tipo === 'transferencia'
 
   return (
@@ -115,6 +116,11 @@ function Extrato({ l, onEditar, onExcluir }: { l: Lancamento; onEditar: () => vo
               <span className="tabular-nums">{mudancas}</span>
             </LinhaExtrato>
           )}
+          {movidas > 0 && (
+            <LinhaExtrato rotulo="Vezes em outro dia">
+              <span className="tabular-nums">{movidas}</span>
+            </LinhaExtrato>
+          )}
         </ParteExtrato>
 
         {parcelas && (
@@ -140,8 +146,11 @@ function Extrato({ l, onEditar, onExcluir }: { l: Lancamento; onEditar: () => vo
                 key={data}
                 rotulo={
                   <span className="tabular-nums">
-                    {formatarData(data)}{' '}
-                    <span className="text-muted-foreground/80">{nomeDoDiaDaSemana(deDataISO(data).getDay())}</span>
+                    {formatarData(l.movidas?.[data] ?? data)}{' '}
+                    <span className="text-muted-foreground/80">
+                      {nomeDoDiaDaSemana(deDataISO(l.movidas?.[data] ?? data).getDay())}
+                      {l.movidas?.[data] && ` · era ${formatarDiaMes(data)}`}
+                    </span>
                   </span>
                 }
               >

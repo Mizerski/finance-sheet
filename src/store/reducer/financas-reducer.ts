@@ -1,6 +1,7 @@
 import type { Caixa } from '@/features/caixas/model/caixa'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { MetaEconomia } from '@/features/economias/model/meta'
+import { comAtividade, juntarAtividades, type Atividade } from '@/features/historico/model/atividade'
 import type { Lancamento } from '@/features/lancamentos/model/lancamento'
 import type { Pasta } from '@/features/pastas/model/pasta'
 import type { Tag } from '@/features/tags/model/tag'
@@ -41,6 +42,8 @@ export type AcaoFinancas =
   | { tipo: 'pasta/salvar'; pasta: Pasta }
   | { tipo: 'pasta/excluir'; id: string }
   | { tipo: 'saldos/alternarVisibilidade' }
+  /** Anota no histórico o que a pessoa fez; o `FinancasProvider` despacha depois de cada ação que muda dados. */
+  | { tipo: 'atividade/registrar'; atividade: Atividade }
 
 /** Substitui o item com o mesmo id ou adiciona no fim. */
 function salvar<T extends { id: string }>(lista: T[], item: T): T[] {
@@ -51,13 +54,15 @@ function salvar<T extends { id: string }>(lista: T[], item: T): T[] {
 
 /**
  * Excluir categoria, tag ou pasta deixa os lançamentos sem ela, como o `on delete set null` do banco.
+ * Importar um backup junta o histórico dele ao de agora (o que a pessoa fez continua valendo).
  * Em `lancamento/salvarVarios`, os que não mudaram mantêm a referência, para a projeção de cada caixa só recalcular se a lista dele mudou.
  */
 export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): EstadoFinancas {
   switch (acao.tipo) {
     case 'dados/carregar':
-    case 'dados/importar':
       return { ...estado, ...acao.dados }
+    case 'dados/importar':
+      return { ...estado, ...acao.dados, atividades: juntarAtividades(estado.atividades, acao.dados.atividades) }
     case 'caixa/salvar':
       return { ...estado, caixas: salvar(estado.caixas, acao.caixa) }
     case 'caixa/excluir':
@@ -119,6 +124,8 @@ export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): Est
       }
     case 'saldos/alternarVisibilidade':
       return { ...estado, saldosOcultos: !estado.saldosOcultos }
+    case 'atividade/registrar':
+      return { ...estado, atividades: comAtividade(estado.atividades, acao.atividade) }
   }
 }
 
@@ -131,6 +138,7 @@ export function estadoVazio(): EstadoFinancas {
     metas: [],
     tags: [],
     pastas: [],
+    atividades: [],
     saldosOcultos: false,
   }
 }

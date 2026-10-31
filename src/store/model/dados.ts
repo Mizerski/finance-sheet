@@ -1,6 +1,7 @@
 import { contaPrincipal, type Caixa } from '@/features/caixas/model/caixa'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { MetaEconomia } from '@/features/economias/model/meta'
+import type { Atividade } from '@/features/historico/model/atividade'
 import type { Lancamento } from '@/features/lancamentos/model/lancamento'
 import type { Configuracao } from '@/features/projecao/model/configuracao'
 import type { Pasta } from '@/features/pastas/model/pasta'
@@ -10,7 +11,7 @@ import type { Tag } from '@/features/tags/model/tag'
  * Versão do formato de `DadosFinancas` no arquivo local e no backup.
  * Aumente e converta os dados antigos se o formato mudar; o histórico fica em `store/doc/versoes-dos-dados.md`.
  */
-export const VERSAO_DADOS = 11
+export const VERSAO_DADOS = 13
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {
@@ -24,6 +25,8 @@ export interface DadosFinancas {
   tags: Tag[]
   /** Pastas da tela de lançamentos (a partir da versão 3 dos dados). */
   pastas: Pasta[]
+  /** O que a pessoa fez no app, da mais antiga para a mais nova, no máximo as últimas 500 (a partir da versão 13). */
+  atividades: Atividade[]
 }
 
 /** Dados das versões 3 a 5: um único saldo inicial, sem caixas. */
@@ -44,21 +47,25 @@ export type DadosFinancasV2 = Omit<DadosFinancasV5, 'tags' | 'pastas'>
 /** Dados da versão 1, antes das metas de economia. */
 export type DadosFinancasV1 = Omit<DadosFinancasV2, 'metas'>
 
-export type DadosFinancasSalvos = DadosFinancas | DadosFinancasV5 | DadosFinancasV2 | DadosFinancasV1
+/** Até a versão 12, sem o histórico de atividade. */
+export type DadosFinancasV12 = Omit<DadosFinancas, 'atividades'> & { atividades?: Atividade[] }
+
+export type DadosFinancasSalvos = DadosFinancasV12 | DadosFinancasV5 | DadosFinancasV2 | DadosFinancasV1
 
 /**
  * Converte dados salvos em versões anteriores para o formato atual.
  * Até a versão 5, o saldo inicial vira a "Conta principal", dona de todos os lançamentos e metas.
- * Sem nenhum caixa (arquivo novo), cria a Conta principal com o saldo padrão.
+ * Sem nenhum caixa (arquivo novo), cria a Conta principal com o saldo padrão. Antes da versão 13, o histórico começa vazio.
  */
 export function atualizarDados(dados: DadosFinancasSalvos, novoId: () => string = () => crypto.randomUUID()): DadosFinancas {
   const tags = 'tags' in dados && Array.isArray(dados.tags) ? dados.tags : []
   const pastas = 'pastas' in dados && Array.isArray(dados.pastas) ? dados.pastas : []
+  const atividades = 'atividades' in dados && Array.isArray(dados.atividades) ? dados.atividades : []
 
   if ('caixas' in dados && Array.isArray(dados.caixas)) {
     const caixas = dados.caixas.length ? dados.caixas : [contaPrincipal(novoId())]
     const lancamentos = dados.lancamentos.map((l) => (l.caixaDestinoId && l.tipo !== 'transferencia' ? semDestino(l) : l))
-    return { ...dados, caixas, lancamentos, tags, pastas }
+    return { ...dados, caixas, lancamentos, tags, pastas, atividades }
   }
 
   const v5 = dados as DadosFinancasV5 | DadosFinancasV2 | DadosFinancasV1
@@ -71,6 +78,7 @@ export function atualizarDados(dados: DadosFinancasSalvos, novoId: () => string 
     metas: metas.map((m) => ({ ...m, caixaId: principal.id })),
     tags,
     pastas,
+    atividades,
   }
 }
 

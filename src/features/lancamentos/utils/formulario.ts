@@ -37,6 +37,8 @@ export interface RascunhoLancamento {
   valorEhTotal: boolean
   /** Dias com outro valor (0 = pulado), mudados no dia da planilha; só valem no recorrente. */
   excecoes: Record<DataISO, number>
+  /** Vezes que aconteceram em outro dia (data original → nova), mudadas na planilha; só valem no recorrente. */
+  movidas: Record<DataISO, DataISO>
 }
 
 export type Duracao = 'sem' | 'vezes' | 'data'
@@ -69,6 +71,7 @@ export function rascunhoVazio(data: DataISO, caixaId: string): RascunhoLancament
     vezes: '',
     valorEhTotal: false,
     excecoes: {},
+    movidas: {},
   }
 }
 
@@ -93,6 +96,7 @@ export function rascunhoDe(l: Lancamento, hoje: DataISO): RascunhoLancamento {
     fim: l.fim,
     ...duracaoDe(l, hoje),
     excecoes: l.excecoes ?? {},
+    movidas: l.movidas ?? {},
   }
 }
 
@@ -189,6 +193,7 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
           : { tipo: 'diaria', apenasDiasUteis: r.apenasDiasUteis }
 
   const excecoes = r.recorrencia !== 'unica' && Object.keys(r.excecoes).length > 0 ? { excecoes: r.excecoes } : {}
+  const movidas = r.recorrencia !== 'unica' && Object.keys(r.movidas).length > 0 ? { movidas: r.movidas } : {}
   const transferencia = r.tipo === 'transferencia'
   const vezes = r.recorrencia !== 'unica' && r.duracao === 'vezes' ? lerVezes(r) : null
   const valorCentavos = vezes && r.valorEhTotal ? Math.round(r.valorCentavos / vezes) : r.valorCentavos
@@ -206,6 +211,7 @@ export function paraLancamento(r: RascunhoLancamento, id: string): Lancamento {
     natureza: transferencia ? naturezaDaTransferencia(r.recorrencia) : r.natureza,
     recorrencia,
     ...excecoes,
+    ...movidas,
   }
   if (r.recorrencia === 'unica') return base
   const comInicio = { ...base, inicio: r.inicio }
