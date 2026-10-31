@@ -6,13 +6,14 @@ import { estadoVazio, financasReducer, type EstadoFinancas } from '../reducer/fi
 export const ARQUIVO_DADOS = 'financas.json'
 
 function soDados(estado: EstadoFinancas): DadosFinancas {
-  const { caixas, categorias, lancamentos, metas, tags, pastas } = estado
-  return { caixas, categorias, lancamentos, metas, tags, pastas }
+  const { caixas, categorias, lancamentos, metas, tags, pastas, atividades } = estado
+  return { caixas, categorias, lancamentos, metas, tags, pastas, atividades }
 }
 
 /**
  * Desktop: tudo no `financas.json` da pasta de dados do app, convertido ao carregar se for de versão anterior.
  * Cada ação é aplicada numa cópia do que está salvo, para duas ações seguidas não se perderem.
+ * O histórico de atividade vai no mesmo arquivo (`atividade/registrar` grava tudo de novo, com o limite de 500).
  */
 export function criarArmazenamentoLocal(): Armazenamento {
   let arquivo: Promise<Store> | undefined

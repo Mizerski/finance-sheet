@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react'
 import { metasComContas } from '@/features/economias/utils/na-conta'
+import { repeteAUltima } from '@/features/historico/model/atividade'
+import { descreverAcao } from '@/features/historico/utils/descrever'
 import { paraDataISO } from '@/shared/lib/datas'
 import { traduzirErro } from '@/shared/lib/erros'
 import { AvisoErro } from '@/shared/components/AvisoErro'
@@ -15,6 +17,7 @@ type Carga = { situacao: 'carregando' } | { situacao: 'erro'; mensagem: string }
 /**
  * Estado do app em memória. Cada ação aparece na tela na hora e é gravada em seguida, numa fila;
  * se a gravação falhar, os dados são recarregados. As metas recebem `naContaCentavos` aqui.
+ * Toda ação que muda dados também anota uma atividade no histórico (`descreverAcao`); se só essa anotação falhar, nada muda.
  */
 export function FinancasProvider({ armazenamento, children }: { armazenamento: Armazenamento; children: ReactNode }) {
   const [estado, aplicar] = useReducer(financasReducer, undefined, estadoVazio)
@@ -43,19 +46,40 @@ export function FinancasProvider({ armazenamento, children }: { armazenamento: A
     }
   }, [armazenamento, tentativa])
 
-  const dispatch = useCallback(
-    (acao: AcaoFinancas) => {
-      const gravar = armazenamento.gravacao(acao, estadoAtual.current)
+  /**
+   * Aplica na tela e põe a gravação na fila. `estadoAtual` já avança aqui, para a próxima ação despachada no mesmo
+   * clique (ex.: o lançamento e a atividade dele) comparar com o estado certo. `opcional`: a falha é ignorada.
+   */
+  const enfileirar = useCallback(
+    (acao: AcaoFinancas, opcional = false) => {
+      const antes = estadoAtual.current
+      const gravar = armazenamento.gravacao(acao, antes)
+      estadoAtual.current = financasReducer(antes, acao)
       aplicar(acao)
       if (!gravar) return
-      fila.current = fila.current.then(gravar).catch(async (erro) => {
-        setErroAoSalvar(traduzirErro(erro))
-        try {
-          aplicar({ tipo: 'dados/carregar', dados: await armazenamento.carregar() })
-        } catch {}
-      })
+      fila.current = fila.current.then(gravar).catch(
+        opcional
+          ? () => {}
+          : async (erro) => {
+              setErroAoSalvar(traduzirErro(erro))
+              try {
+                aplicar({ tipo: 'dados/carregar', dados: await armazenamento.carregar() })
+              } catch {}
+            },
+      )
     },
     [armazenamento],
+  )
+
+  const dispatch = useCallback(
+    (acao: AcaoFinancas) => {
+      const descricao = descreverAcao(estadoAtual.current, acao)
+      enfileirar(acao)
+      const agora = new Date()
+      if (!descricao || repeteAUltima(estadoAtual.current.atividades, descricao, agora)) return
+      enfileirar({ tipo: 'atividade/registrar', atividade: { ...descricao, id: crypto.randomUUID(), em: agora.toISOString() } }, true)
+    },
+    [enfileirar],
   )
 
   const [hoje] = useState(() => paraDataISO(new Date()))

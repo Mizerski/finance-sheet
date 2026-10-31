@@ -420,8 +420,12 @@ export function FormularioLancamento({ lancamento, dataInicial, rascunhoInicial,
       {rascunho.recorrencia !== 'unica' && (
         <ListaExcecoes
           excecoes={rascunho.excecoes}
+          movidas={rascunho.movidas}
           onRemover={(data) =>
             setRascunho((r) => ({ ...r, excecoes: Object.fromEntries(Object.entries(r.excecoes).filter(([d]) => d !== data)) }))
+          }
+          onRemoverMovida={(data) =>
+            setRascunho((r) => ({ ...r, movidas: Object.fromEntries(Object.entries(r.movidas).filter(([d]) => d !== data)) }))
           }
         />
       )}

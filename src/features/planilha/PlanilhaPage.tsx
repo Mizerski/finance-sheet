@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate, useRouterState, useSearch } from '@tanstack/react-router'
 import { Landmark } from '@/shared/ui/icones'
 import { CardBeneficio } from '@/features/caixas/components/CardBeneficio'
@@ -11,26 +11,32 @@ import { SeletorAno } from '@/features/projecao/components/SeletorAno'
 import { useAno } from '@/features/projecao/hooks/useAno'
 import { DialogExtratoLancamento } from '@/features/lancamentos/components/DialogExtratoLancamento'
 import { DialogLancamento } from '@/features/lancamentos/components/DialogLancamento'
-import { DialogValorDoDia } from '@/features/lancamentos/components/DialogValorDoDia'
+import { DialogMudarDia, type MudancaNoDia } from '@/features/lancamentos/components/DialogMudarDia'
 import { ExcluirLancamento } from '@/features/lancamentos/components/ExcluirLancamento'
-import type { Lancamento } from '@/features/lancamentos/model/lancamento'
+import { ehTransferencia, type Lancamento } from '@/features/lancamentos/model/lancamento'
+import { moverDoDia } from '@/features/lancamentos/utils/excecoes'
+import { lancamentosNoDia } from '@/features/projecao/utils/projecao'
 import { useRisco } from '@/features/risco/hooks/useRisco'
 import { Ajuda } from '@/shared/components/Ajuda'
+import { AvisoDesfazer, type Aviso } from '@/shared/components/AvisoDesfazer'
 import { CabecalhoPagina } from '@/shared/components/CabecalhoPagina'
 import { FORMA_PAGINA } from '@/shared/lib/formas'
 import { useAtalhos } from '@/shared/hooks/useAtalhos'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
-import { formatarData, paraDataISO, type DataISO } from '@/shared/lib/datas'
+import { formatarData, formatarDiaMes, paraDataISO, type DataISO } from '@/shared/lib/datas'
 import { formatarBRL } from '@/shared/lib/dinheiro'
 import { BOTAO, VALOR_SALDO } from '@/shared/lib/estilos'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { useFinancas } from '@/store/context/financas-context'
+import type { ItemDoDia } from './components/DetalheDia'
 import { DialogConferirSaldo } from './components/DialogConferirSaldo'
+import { EtiquetaArraste } from './components/EtiquetaArraste'
 import { NavegacaoMeses } from './components/NavegacaoMeses'
 import { PrimeirosPassos } from './components/PrimeirosPassos'
 import { ResumoPlanilha } from './components/ResumoPlanilha'
 import { TabelaMes } from './components/TabelaMes'
+import { useArrastarDia, type ResumoArraste } from './hooks/useArrastarDia'
 
 /** Larguras em que cabem 2 e 3 meses lado a lado; as classes da grade repetem os mesmos breakpoints. */
 const LAYOUT = {
@@ -54,12 +60,20 @@ interface Edicao {
   data?: DataISO
 }
 
+const contarLancamentos = (n: number) => `${n} ${n === 1 ? 'lançamento' : 'lançamentos'}`
+
+/** Efeito de um lançamento no saldo da visão: transferência só conta o lado que cai nos caixas dela. */
+function efeitoNoSaldo(l: Lancamento, caixas: Set<string>): number {
+  if (!ehTransferencia(l)) return l.tipo === 'entrada' ? l.valorCentavos : -l.valorCentavos
+  return (caixas.has(l.caixaDestinoId) ? l.valorCentavos : 0) - (caixas.has(l.caixaId) ? l.valorCentavos : 0)
+}
+
 /**
  * Os meses são contados desde o ano zero, para a janela atravessar a virada do ano; na URL, `mes` é o primeiro mês
  * visível e `ano`, o ano dele. As setas só valem com a planilha na tela.
  */
 export function PlanilhaPage() {
-  const { estado } = useFinancas()
+  const { estado, dispatch } = useFinancas()
   const visao = useVisao()
   const { projecoes } = visao
   const { ano, anoAtual, intervalo } = useAno()
@@ -69,9 +83,11 @@ export function PlanilhaPage() {
   const [edicao, setEdicao] = useState<Edicao>({ aberto: false })
   const [exclusao, setExclusao] = useState<{ aberto: boolean; lancamento?: Lancamento }>({ aberto: false })
   const [extrato, setExtrato] = useState<{ aberto: boolean; lancamento?: Lancamento }>({ aberto: false })
-  const [mudancaNoDia, setMudancaNoDia] = useState<Edicao>({ aberto: false })
+  const [mudancaNoDia, setMudancaNoDia] = useState<MudancaNoDia>({ aberto: false })
   const [editandoSaldo, setEditandoSaldo] = useState(false)
   const [conferindo, setConferindo] = useState(false)
+  const [aviso, setAviso] = useState<Aviso | null>(null)
+  const fecharAviso = useCallback(() => setAviso(null), [])
 
   const comEconomia = visao.metas.length > 0
   const layout = comEconomia ? LAYOUT_COM_ECONOMIA : LAYOUT
@@ -107,12 +123,35 @@ export function PlanilhaPage() {
     if (lancamento) setExclusao({ aberto: true, lancamento })
   }
 
-  const mudarDia = (lancamentoId: string, data: DataISO) => {
-    const lancamento = estado.lancamentos.find((l) => l.id === lancamentoId)
-    if (lancamento) setMudancaNoDia({ aberto: true, lancamento, data })
-  }
+  const mudarDia = (data: DataISO, item?: ItemDoDia) => setMudancaNoDia({ aberto: true, data, ...item })
 
   const adicionar = (data: DataISO) => setEdicao({ aberto: true, data })
+
+  /** O que o dia levaria ao ser arrastado: os lançamentos dele (nunca fatura nem metas), com o efeito no saldo. */
+  const resumirDia = (data: DataISO): ResumoArraste | null => {
+    const doDia = lancamentosNoDia(visao.lancamentos, data)
+    if (doDia.length === 0) return null
+    const caixas = new Set(visao.caixasDaVisao.map((c) => c.id))
+    return { quantos: doDia.length, centavos: doDia.reduce((total, l) => total + efeitoNoSaldo(l, caixas), 0) }
+  }
+
+  /** Leva tudo o que acontece em `de` para `para` numa só gravação, com "Desfazer". */
+  const levarDia = (de: DataISO, para: DataISO) => {
+    const vezes = lancamentosNoDia(visao.lancamentos, de).map((l) => ({ lancamentoId: l.id, de: l.movidaDe ?? de }))
+    const { alterados, anteriores } = moverDoDia(estado.lancamentos, vezes, para)
+    if (alterados.length === 0) return
+    dispatch({ tipo: 'lancamento/salvarVarios', lancamentos: alterados })
+    setAviso({
+      id: Date.now(),
+      mensagem: `${contarLancamentos(vezes.length)} ${vezes.length === 1 ? 'levado' : 'levados'} de ${formatarDiaMes(de)} para ${formatarDiaMes(para)}.`,
+      onDesfazer: () => {
+        dispatch({ tipo: 'lancamento/salvarVarios', lancamentos: anteriores })
+        setAviso({ id: Date.now(), mensagem: 'Pronto, voltou como estava.' })
+      },
+    })
+  }
+
+  const { arraste, iniciar: segurarDia, area: areaDasTabelas } = useArrastarDia({ resumir: resumirDia, aoSoltar: levarDia })
 
   const irPara = (absoluto: number) => {
     const novoAno = Math.floor(absoluto / 12)
@@ -162,6 +201,10 @@ export function PlanilhaPage() {
           <Ajuda titulo="Como usar a planilha">
             <p>
               <strong className="font-semibold">Clique em um dia</strong> para ver ou adicionar lançamentos.
+            </p>
+            <p>
+              <strong className="font-semibold">Segure um dia e arraste</strong> até outro para levar tudo o que está
+              nele para lá (nos que se repetem, só aquela vez).
             </p>
             <p>
               No teclado, <kbd className="font-semibold">←</kbd> e <kbd className="font-semibold">→</kbd> trocam de mês
@@ -216,7 +259,7 @@ export function PlanilhaPage() {
       {visao.ehBeneficio && visao.caixa && <CardBeneficio caixa={visao.caixa} />}
       {visao.ehCartao && visao.caixa && <CardCartao caixa={visao.caixa} />}
 
-      <div className={cn('grid items-start gap-4', layout.grade)}>
+      <div ref={areaDasTabelas} className={cn('grid items-start gap-4', layout.grade)}>
         {visiveis.map(({ projecao, resumo }) => (
           <TabelaMes
             key={`${projecao.ano}-${resumo.mes}`}
@@ -232,6 +275,8 @@ export function PlanilhaPage() {
             comEconomia={comEconomia}
             divida={visao.ehCartao}
             nivelDoDia={risco?.nivelDoDia ?? null}
+            arraste={arraste}
+            onSegurar={segurarDia}
           />
         ))}
       </div>
@@ -263,12 +308,14 @@ export function PlanilhaPage() {
         onOpenChange={(aberto) => setExclusao((e) => ({ ...e, aberto }))}
       />
 
-      <DialogValorDoDia
-        aberto={mudancaNoDia.aberto}
-        lancamento={mudancaNoDia.lancamento}
-        data={mudancaNoDia.data}
+      <DialogMudarDia
+        mudanca={mudancaNoDia}
+        hoje={hoje}
         onOpenChange={(aberto) => setMudancaNoDia((m) => ({ ...m, aberto }))}
       />
+
+      {arraste?.fase === 'arrastando' && <EtiquetaArraste arraste={arraste} />}
+      <AvisoDesfazer aviso={aviso} onFechar={fecharAviso} />
 
       <DialogSaldoInicial aberto={editandoSaldo} onOpenChange={setEditandoSaldo} />
 

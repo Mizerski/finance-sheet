@@ -14,7 +14,7 @@ import {
 } from '@/features/lancamentos/model/lancamento'
 import { SEM_PASTA, type Pasta } from '@/features/pastas/model/pasta'
 import { SEM_TAG, type Tag } from '@/features/tags/model/tag'
-import { anoDe, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
+import { anoDe, deDataISO, diaDoCalendario, diasDoAno, ehDiaUtil, type DataISO, type DiaCalendario } from '@/shared/lib/datas'
 import type { Periodo } from '@/shared/lib/periodo'
 import type { Configuracao } from '../model/configuracao'
 
@@ -27,6 +27,8 @@ export interface Ocorrencia {
   tagId?: string
   pastaId?: string
   valorCentavos: number
+  /** Recorrente que aconteceu neste dia em vez do dia dele (`movidas`): a data original. */
+  movidaDe?: DataISO
 }
 
 /**
@@ -53,6 +55,8 @@ export interface MovimentoTransferencia {
    * pagadora no vencimento. `lancamentoId` é `fatura:<cartão>:<fechamento>`, o mesmo dos dois lados.
    */
   fatura?: { cartaoId: string; fechamento: DataISO }
+  /** Recorrente que aconteceu neste dia em vez do dia dele (`movidas`): a data original. */
+  movidaDe?: DataISO
 }
 
 /** O que a projeção precisa de um caixa: saldo inicial, id, ciclo do cartão e as faturas que a conta paga. */
@@ -181,7 +185,10 @@ export function ocorreEm(lancamento: Lancamento, dia: DiaCalendario): boolean {
   }
 }
 
-function paraOcorrencia(l: Lancamento & { tipo: TipoMovimento }): Ocorrencia {
+/** Lançamento como acontece num dia: com o valor do dia e, se veio de outro dia, a data original. */
+export type LancamentoDoDia = Lancamento & { movidaDe?: DataISO }
+
+function paraOcorrencia(l: LancamentoDoDia & { tipo: TipoMovimento }): Ocorrencia {
   return {
     lancamentoId: l.id,
     descricao: l.descricao,
@@ -191,6 +198,7 @@ function paraOcorrencia(l: Lancamento & { tipo: TipoMovimento }): Ocorrencia {
     ...(l.tagId && { tagId: l.tagId }),
     ...(l.pastaId && { pastaId: l.pastaId }),
     valorCentavos: l.valorCentavos,
+    ...(l.movidaDe && { movidaDe: l.movidaDe }),
   }
 }
 
@@ -199,7 +207,7 @@ function somar<T extends { valorCentavos: number }>(itens: T[], filtro: (item: T
 }
 
 /** O lado da transferência que acontece no caixa: saída na origem, entrada no destino. */
-function ladoNoCaixa(l: Transferencia, caixaId: string): MovimentoTransferencia[] {
+function ladoNoCaixa(l: Transferencia & LancamentoDoDia, caixaId: string): MovimentoTransferencia[] {
   const saida = l.caixaId === caixaId
   if (!saida && l.caixaDestinoId !== caixaId) return []
   return [
@@ -211,6 +219,7 @@ function ladoNoCaixa(l: Transferencia, caixaId: string): MovimentoTransferencia[
       outroCaixaId: saida ? l.caixaDestinoId : l.caixaId,
       ...(l.pastaId && { pastaId: l.pastaId }),
       valorCentavos: l.valorCentavos,
+      ...(l.movidaDe && { movidaDe: l.movidaDe }),
     },
   ]
 }
@@ -231,6 +240,8 @@ const sai = (m: MovimentoTransferencia) => m.sentido === 'saida'
 interface IndiceLancamentos {
   unicas: Map<DataISO, Lancamento[]>
   recorrentes: Lancamento[]
+  /** Vezes de recorrentes que mudaram de dia, pela data nova (`de` é a data original). */
+  movidas: Map<DataISO, { l: Lancamento; de: DataISO }[]>
   /** Posição no cadastro, para as ocorrências do dia saírem na mesma ordem. */
   posicao: Map<string, number>
 }
@@ -238,21 +249,37 @@ interface IndiceLancamentos {
 function indexar(lancamentos: Lancamento[]): IndiceLancamentos {
   const unicas = new Map<DataISO, Lancamento[]>()
   const recorrentes: Lancamento[] = []
+  const movidas = new Map<DataISO, { l: Lancamento; de: DataISO }[]>()
   for (const l of lancamentos) {
     if (l.recorrencia.tipo !== 'unica') recorrentes.push(l)
     else unicas.set(l.recorrencia.data, [...(unicas.get(l.recorrencia.data) ?? []), l])
+    for (const [de, para] of Object.entries(l.movidas ?? {})) {
+      if (de !== para && ocorreEm(l, diaDoCalendario(deDataISO(de)))) movidas.set(para, [...(movidas.get(para) ?? []), { l, de }])
+    }
   }
-  return { unicas, recorrentes, posicao: new Map(lancamentos.map((l, i) => [l.id, i])) }
+  return { unicas, recorrentes, movidas, posicao: new Map(lancamentos.map((l, i) => [l.id, i])) }
 }
 
-/** O que acontece no dia, já com o valor do dia (exceções); os pulados nesse dia ficam de fora. */
-function lancamentosDoDia(indice: IndiceLancamentos, dia: DiaCalendario): Lancamento[] {
+/**
+ * O que acontece no dia, já com o valor do dia (exceções): os pulados e os que mudaram de dia ficam de fora, e os
+ * que vieram de outro dia entram com o valor do dia original.
+ */
+function lancamentosDoDia(indice: IndiceLancamentos, dia: DiaCalendario): LancamentoDoDia[] {
   const candidatos = [...(indice.unicas.get(dia.data) ?? []), ...indice.recorrentes]
-  return candidatos
-    .filter((l) => ocorreEm(l, dia))
-    .sort((a, b) => indice.posicao.get(a.id)! - indice.posicao.get(b.id)!)
-    .map((l) => (l.excecoes?.[dia.data] === undefined ? l : { ...l, valorCentavos: valorNoDia(l, dia.data) }))
+  const noDia = candidatos.filter((l) => ocorreEm(l, dia) && !l.movidas?.[dia.data]).map((l) => ({ l, de: dia.data }))
+  return [...noDia, ...(indice.movidas.get(dia.data) ?? [])]
+    .sort((a, b) => indice.posicao.get(a.l.id)! - indice.posicao.get(b.l.id)!)
+    .map(({ l, de }) => {
+      const valor = valorNoDia(l, de)
+      const comValor = valor === l.valorCentavos ? l : { ...l, valorCentavos: valor }
+      return de === dia.data ? comValor : { ...comValor, movidaDe: de }
+    })
     .filter((l) => l.valorCentavos > 0)
+}
+
+/** O que acontece em `data` entre `lancamentos`, como na projeção (com exceções e mudanças de dia). */
+export function lancamentosNoDia(lancamentos: Lancamento[], data: DataISO): LancamentoDoDia[] {
+  return lancamentosDoDia(indexar(lancamentos), diaDoCalendario(deDataISO(data)))
 }
 
 /** Projeta um ano dia a dia a partir de `saldoAbertura`. No cartão, o que se deve no fechamento vira a fatura. */

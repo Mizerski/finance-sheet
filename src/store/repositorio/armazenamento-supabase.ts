@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { contaPrincipal, type Caixa, type TipoCaixa } from '@/features/caixas/model/caixa'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { MetaEconomia, Resgate } from '@/features/economias/model/meta'
+import { LIMITE_ATIVIDADES, type Atividade, type TipoAtividade, type TomAtividade } from '@/features/historico/model/atividade'
 import type { Lancamento, Natureza, Recorrencia, TipoLancamento, TipoMovimento } from '@/features/lancamentos/model/lancamento'
 import type { Pasta } from '@/features/pastas/model/pasta'
 import type { Tag } from '@/features/tags/model/tag'
@@ -49,6 +50,7 @@ interface LinhaLancamento {
   inicio: string | null
   fim: string | null
   excecoes: Record<string, number> | null
+  movidas: Record<string, string> | null
 }
 
 interface LinhaMeta {
@@ -67,9 +69,18 @@ interface LinhaMeta {
   encerrada_em: string | null
 }
 
+interface LinhaAtividade {
+  id: string
+  em: string
+  tipo: TipoAtividade
+  texto: string
+  tom: TomAtividade | null
+  caixa_id: string | null
+}
+
 const COLUNAS_CAIXA =
   'id, nome, cor, tipo, saldo_inicial_centavos, data_saldo_inicial, saldo_definido, entra_no_total, ordem, arquivado, dia_fechamento, dia_vencimento, conta_pagadora_id, limite_centavos, investimento'
-const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim, excecoes'
+const COLUNAS_LANCAMENTO = 'id, caixa_id, caixa_destino_id, descricao, tipo, valor_centavos, categoria_id, tag_id, pasta_id, natureza, recorrencia, inicio, fim, excecoes, movidas'
 const COLUNAS_META =
   'id, caixa_id, destino_id, nome, valor_alvo_centavos, aporte_mensal_centavos, ja_guardado_centavos, dia_do_mes, inicio, prazo, ajustes, resgates, encerrada_em'
 
@@ -163,6 +174,7 @@ function deLinhaLancamento(l: LinhaLancamento): Lancamento {
     ...(l.inicio && { inicio: l.inicio }),
     ...(l.fim && { fim: l.fim }),
     ...(l.excecoes && Object.keys(l.excecoes).length && { excecoes: l.excecoes }),
+    ...(l.movidas && Object.keys(l.movidas).length && { movidas: l.movidas }),
   }
 }
 
@@ -189,6 +201,7 @@ function paraLinhaLancamento(l: Lancamento, ids: IdsValidos): LinhaLancamento {
     inicio: l.inicio ?? null,
     fim: l.fim ?? null,
     excecoes: l.excecoes ?? {},
+    movidas: l.movidas ?? {},
   }
 }
 
@@ -228,15 +241,46 @@ function paraLinhaMeta(m: MetaEconomia): LinhaMeta {
   }
 }
 
+function deLinhaAtividade(a: LinhaAtividade): Atividade {
+  return {
+    id: a.id,
+    em: new Date(a.em).toISOString(),
+    tipo: a.tipo,
+    texto: a.texto,
+    ...(a.tom && { tom: a.tom }),
+    ...(a.caixa_id && { caixaId: a.caixa_id }),
+  }
+}
+
+function paraLinhaAtividade(a: Atividade): LinhaAtividade {
+  return { id: a.id, em: a.em, tipo: a.tipo, texto: a.texto, tom: a.tom ?? null, caixa_id: a.caixaId ?? null }
+}
+
+/**
+ * As últimas `LIMITE_ATIVIDADES` atividades, da mais antiga para a mais nova.
+ * O histórico não é essencial: se a tabela ainda não existir ou a consulta falhar, o app abre com ele vazio.
+ */
+async function carregarAtividades(supabase: SupabaseClient): Promise<Atividade[]> {
+  const { data, error } = await supabase
+    .from('atividades')
+    .select('id, em, tipo, texto, tom, caixa_id')
+    .order('em', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(LIMITE_ATIVIDADES)
+  if (error) return []
+  return (data as LinhaAtividade[]).map(deLinhaAtividade).reverse()
+}
+
 /** Carrega tudo o que é do usuário logado (o RLS filtra por ele). */
 async function carregarDados(supabase: SupabaseClient, usuarioId: string): Promise<DadosFinancas> {
-  const [caixas, categorias, tags, pastas, lancamentos, metas] = await Promise.all([
+  const [caixas, categorias, tags, pastas, lancamentos, metas, atividades] = await Promise.all([
     selecionarTodas<LinhaCaixa>(supabase, 'caixas', COLUNAS_CAIXA),
     selecionarTodas<LinhaCategoria>(supabase, 'categorias', 'id, nome, cor, tipo'),
     selecionarTodas<Tag>(supabase, 'tags', 'id, nome, cor, evitavel'),
     selecionarTodas<Pasta>(supabase, 'pastas', 'id, nome, cor'),
     selecionarTodas<LinhaLancamento>(supabase, 'lancamentos', COLUNAS_LANCAMENTO),
     selecionarTodas<LinhaMeta>(supabase, 'metas_economia', COLUNAS_META),
+    carregarAtividades(supabase),
   ])
 
   return {
@@ -246,6 +290,7 @@ async function carregarDados(supabase: SupabaseClient, usuarioId: string): Promi
     metas: metas.map(deLinhaMeta),
     tags: tags.map(({ id, nome, cor, evitavel }) => ({ id, nome, cor, evitavel })),
     pastas: pastas.map(({ id, nome, cor }) => ({ id, nome, cor })),
+    atividades,
   }
 }
 
@@ -325,6 +370,8 @@ function persistir(
     }
     case 'pasta/excluir':
       return rodar(() => supabase.from('pastas').delete().eq('id', acao.id))
+    case 'atividade/registrar':
+      return rodar(() => supabase.from('atividades').insert(paraLinhaAtividade(acao.atividade)))
     case 'dados/importar':
       return async () => {
         throw new Error('Importar backup só está disponível no app desktop.')

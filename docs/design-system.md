@@ -165,6 +165,7 @@ Sem categoria: `#a39a8e`.
 | Fatura do cartão (`CardCartao`) | preto com quadrado vermelho; se passou do limite, vermelho com triângulo papel |
 | Entradas vs saídas · gastos no ano · saldo | azul com quadrado vermelho · azul com quarto amarelo · preto com quarto vermelho |
 | Assistente (painel lateral, só desktop) | preto com as três formas da marca (círculo azul, triângulo amarelo, quadrado vermelho) |
+| Histórico (aba de Organização) | preto com círculo vermelho |
 
 - A marca (`Marca`) é quadrado vermelho, círculo azul e triângulo amarelo, com o nome em duas linhas.
 - `Composicao` é a grade 4×4 de cartaz das telas avulsas (login, carregamento). `EstadoVazio` mostra três formas soltas.
@@ -213,6 +214,9 @@ Sem categoria: `#a39a8e`.
 | Painel lateral (assistente) | preso à direita, altura toda, `border-l-2 border-contorno shadow-bloco-lg`, faixa das três primárias no topo; não modal (o app e os atalhos continuam funcionando), Esc fecha. Mensagens da pessoa em bloco preto à direita; as do assistente em bloco de papel com contorno e `shadow-bloco-sm` à esquerda; erro em `CaixaDestaque` vermelha |
 | Checkbox (`src/shared/ui/checkbox.tsx`) | quadrado de 18px com contorno preto de 2px, hover amarelo; marcado ou parcial, bloco preto com ✓ ou – |
 | Barra de seleção (lote) | presa embaixo (`fixed inset-x-4 bottom-4`), `shadow-bloco-lg`; a contagem em bloco amarelo à esquerda, ações em botões `outline`, aviso do que mudou com "Desfazer" na linha de cima. A página ganha folga embaixo para a barra não cobrir a última linha |
+| Aviso com Desfazer (`AvisoDesfazer`) | preso embaixo (`inset-x-4`, acima da barra de telas do celular; a partir de `sm`, 30rem à direita), `bg-card` com contorno e `shadow-bloco-lg`; ✓, a frase, "Desfazer" (outline, `h-8`, ícone de desfazer) e ×; some em 8 s, espera com mouse ou foco. Mesmo visual do aviso da barra de seleção |
+| Arrastar um dia (Planilha) | segurando, a linha enche de `bg-selecao-forte` da esquerda para a direita (com movimento reduzido, só aparece aos poucos); pego, a origem fica com o véu `selecao` e o destino com `selecao-forte` e moldura de contorno em cima e embaixo; a etiqueta que segue o ponteiro é um bloco com contorno e `shadow-bloco-lg`, contagem em bloco amarelo (`text-tinta`), valor na cor de entrada/saída e o destino em `ROTULO` |
+| Lista do histórico | card com grupos por dia: rótulo do dia ("Hoje", "Ontem", "sábado, 31/10/2026") em `ROTULO` sobre `bg-muted` com régua preta embaixo; cada linha com a hora (`text-xs`, `tabular-nums`, secundário), uma forma de 10px pelo assunto (lançamento círculo azul, meta meia-lua amarela, caixa quadrado vermelho, organização triângulo, backup quarto) e a frase em `text-sm`; o dinheiro da frase em semibold na cor do assunto. Filtro num select no cabeçalho do card; "Ver mais" (outline) embaixo, 50 por vez |
 | Botão Assistente (só desktop) | bloco como as abas do menu, em `bg-tinta text-papel` com as três formas da marca e "Assistente" em caixa alta; hover amarelo; aberto, afundado em amarelo (o triângulo amarelo vira preto). Na janela estreita (abaixo de 40rem), só as formas |
 | Seletor de caixa | um botão em bloco (`shadow-bloco-sm`) com a bolinha da cor, o nome e ▾, que afunda e fica amarelo quando aberto; a lista numera os atalhos em quadradinhos (preto no escolhido) |
 | Extrato de um item (`Extrato.tsx`) | o "cupom": contorno, valor grande centralizado no topo (`VALOR_DESTAQUE`, na cor do assunto), partes separadas por régua tracejada (`border-dashed`), linhas com rótulo à esquerda e valor à direita, total em negrito; Editar no rodapé. É leitura, não formulário |
@@ -289,6 +293,7 @@ Cada card responde uma pergunta de relance (regra `progressive-disclosure` da ui
 - Breakpoints arbitrários devem usar **rem** (`min-[76rem]:`), não px.
 - Na planilha, os meses visíveis são 1 abaixo de 64rem, 2 entre 64rem e 90rem e 3 a partir de 90rem (72rem/106rem com a coluna Economia).
 - Nenhuma tela do menu fica escondida. Abaixo de 64rem as telas vão para a barra de baixo; de 64rem até a linha única, o menu ocupa a segunda linha do cabeçalho; a linha única começa em 70rem (83rem com o seletor de caixa) e, no desktop, que tem o botão Assistente, em 80rem (93rem com o seletor). No celular, a marca divide a primeira linha com Assistente e Mais, e o caixa e o "Novo lançamento" (largo) ficam na segunda. Entre 64rem e 72rem o Assistente mostra só as formas.
+- As abas de Organização (cinco) rolam de lado no celular, sem barra, com a aba aberta à vista.
 - Botões do cabeçalho: no máximo um ícone solto (o olho dos saldos); o resto tem nome escrito ou fica no Mais.
 - Colunas de texto livre (descrição) quebram palavras longas (`[overflow-wrap:anywhere]`), para a tabela caber no card mesmo com os botões da linha.
 

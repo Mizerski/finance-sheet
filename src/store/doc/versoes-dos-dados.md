@@ -16,3 +16,5 @@ Quando a versão sobe sem conversão, o número novo serve só para um app antig
 | 9 | Valor de um dia só num recorrente (`excecoes`: valor real ou 0 = pulado) | Não |
 | 10 | Cartão de crédito (`tipo: 'cartao'` com `cartao`: fechamento, vencimento, conta que paga e limite) | Não |
 | 11 | Conta de investimento (`investimento` na conta) | Não |
+| 12 | Vez de um recorrente que aconteceu em outro dia (`movidas`: data original → data nova) | Não |
+| 13 | Histórico de atividade (`atividades`: o que a pessoa fez, com a frase pronta; só as últimas 500) | Não; dados e backups antigos começam com a lista vazia |

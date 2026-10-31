@@ -31,12 +31,22 @@ export function validarVigencia(original: Lancamento, aPartirDe: DataISO): strin
  */
 export function dividirEm(original: Lancamento, editado: Lancamento, aPartirDe: DataISO, novoId: string): Lancamento[] {
   if (original.inicio && aPartirDe <= original.inicio) return [editado]
-  const antigo = comExcecoes({ ...original, fim: somarDias(aPartirDe, -1) }, (data) => data < aPartirDe)
+  const antes = (data: DataISO) => data < aPartirDe
+  const depois = (data: DataISO) => data >= aPartirDe
+  const antigo = comMovidas(comExcecoes({ ...original, fim: somarDias(aPartirDe, -1) }, antes), antes)
   const novo =
     editado.recorrencia.tipo === 'unica'
       ? { ...editado, id: novoId }
-      : comExcecoes({ ...editado, id: novoId, inicio: aPartirDe }, (data) => data >= aPartirDe)
+      : comMovidas(comExcecoes({ ...editado, id: novoId, inicio: aPartirDe }, depois), depois)
   return [antigo, novo]
+}
+
+/** Só as mudanças de dia cuja data original passa no filtro; sem nenhuma, sem o campo. */
+export function comMovidas(l: Lancamento, manter: (data: DataISO) => boolean): Lancamento {
+  const movidas = Object.fromEntries(Object.entries(l.movidas ?? {}).filter(([data]) => manter(data)))
+  const copia = { ...l }
+  delete copia.movidas
+  return Object.keys(movidas).length ? { ...copia, movidas } : copia
 }
 
 /** Só as exceções (dias com outro valor) cujas datas passam no filtro; sem nenhuma, sem o campo. */

@@ -245,5 +245,6 @@ export function dadosDemo(): DadosFinancas {
     metas,
     tags: Object.values(T),
     pastas: Object.values(P),
+    atividades: [],
   }
 }
