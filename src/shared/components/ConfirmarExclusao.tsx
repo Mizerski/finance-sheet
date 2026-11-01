@@ -20,6 +20,8 @@ interface ConfirmarExclusaoProps {
   onConfirmar: () => void
   /** Saída mais branda que excluir (ex.: encerrar e manter o histórico), mostrada como ação principal. */
   alternativa?: { rotulo: string; onClick: () => void }
+  /** Texto do botão de confirmar (padrão: "Excluir"). */
+  rotuloConfirmar?: string
 }
 
 export function ConfirmarExclusao({
@@ -29,6 +31,7 @@ export function ConfirmarExclusao({
   descricao,
   onConfirmar,
   alternativa,
+  rotuloConfirmar = 'Excluir',
 }: ConfirmarExclusaoProps) {
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
@@ -51,7 +54,7 @@ export function ConfirmarExclusao({
               onOpenChange(false)
             }}
           >
-            {alternativa ? 'Excluir de vez' : 'Excluir'}
+            {alternativa ? 'Excluir de vez' : rotuloConfirmar}
           </Button>
           {alternativa && (
             <Button

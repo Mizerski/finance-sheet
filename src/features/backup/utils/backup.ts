@@ -1,7 +1,7 @@
 import type { Caixa } from '@/features/caixas/model/caixa'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { MetaEconomia } from '@/features/economias/model/meta'
-import { LIMITE_ATIVIDADES, type Atividade } from '@/features/historico/model/atividade'
+import { LIMITE_ATIVIDADES, type Atividade, type DetalheAtividade } from '@/features/historico/model/atividade'
 import type { Lancamento } from '@/features/lancamentos/model/lancamento'
 import type { Pasta } from '@/features/pastas/model/pasta'
 import type { Tag } from '@/features/tags/model/tag'
@@ -179,6 +179,20 @@ function ehAtividade(a: unknown): a is Atividade {
   )
 }
 
+/** Linha do extrato de uma atividade: rótulo e valor em texto, com o antes opcional. */
+function ehLinhaDetalhe(l: unknown): boolean {
+  return ehObjeto(l) && ehTexto(l.rotulo) && ehTexto(l.valor) && (l.antes === undefined || ehTexto(l.antes))
+}
+
+/** Extrato de uma atividade (a partir da versão 14); um extrato estranho sai, e a atividade fica só com a frase. */
+function ehDetalhe(d: unknown): d is DetalheAtividade {
+  if (!ehObjeto(d) || !Array.isArray(d.partes)) return false
+  const topoOk =
+    d.topo === undefined || (ehObjeto(d.topo) && ehTexto(d.topo.rotulo) && Number.isInteger(d.topo.valorCentavos))
+  const nomesOk = d.nomes === undefined || (Array.isArray(d.nomes) && d.nomes.every(ehTexto))
+  return topoOk && nomesOk && d.partes.every((p) => ehObjeto(p) && Array.isArray(p.linhas) && p.linhas.every(ehLinhaDetalhe))
+}
+
 /**
  * O histórico do backup, só com as atividades válidas e as últimas `LIMITE_ATIVIDADES`.
  * Uma atividade estranha sai sem impedir a importação: o histórico é só para lembrar, não mexe nas contas.
@@ -187,7 +201,15 @@ function atividadesDoBackup(d: unknown): Atividade[] {
   if (!ehObjeto(d) || !Array.isArray(d.atividades)) return []
   return d.atividades
     .filter(ehAtividade)
-    .map(({ id, em, tipo, texto, tom, caixaId }) => ({ id, em, tipo, texto, ...(tom && { tom }), ...(caixaId && { caixaId }) }))
+    .map(({ id, em, tipo, texto, tom, caixaId, detalhe }) => ({
+      id,
+      em,
+      tipo,
+      texto,
+      ...(tom && { tom }),
+      ...(caixaId && { caixaId }),
+      ...(ehDetalhe(detalhe) && { detalhe }),
+    }))
     .slice(-LIMITE_ATIVIDADES)
 }
 

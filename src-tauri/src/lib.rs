@@ -1,4 +1,5 @@
 mod assistente;
+mod espaco;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -75,6 +76,7 @@ pub fn run() {
         .manage(assistente::Assistente::new())
         .invoke_handler(tauri::generate_handler![
             definir_bandeja,
+            espaco::espaco_dos_dados,
             assistente::assistente_estado,
             assistente::assistente_placa_de_video,
             assistente::assistente_baixar,

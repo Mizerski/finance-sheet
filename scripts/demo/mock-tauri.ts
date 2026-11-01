@@ -37,6 +37,8 @@ mockIPC((cmd, args) => {
       return true
     case 'plugin:notification|is_permission_granted':
       return true
+    case 'espaco_dos_dados':
+      return { arquivoBytes: 3_400_000, livreBytes: 182_000_000_000, totalBytes: 512_000_000_000 }
     case 'assistente_estado':
       return { motor: true, modelos: [], ligado: null }
     default:

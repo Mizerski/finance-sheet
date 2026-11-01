@@ -1,7 +1,7 @@
 import type { Caixa } from '@/features/caixas/model/caixa'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { MetaEconomia } from '@/features/economias/model/meta'
-import { comAtividade, juntarAtividades, type Atividade } from '@/features/historico/model/atividade'
+import { comAtividade, juntarAtividades, semAtividadesAntigas, type Atividade } from '@/features/historico/model/atividade'
 import type { Lancamento } from '@/features/lancamentos/model/lancamento'
 import type { Pasta } from '@/features/pastas/model/pasta'
 import type { Tag } from '@/features/tags/model/tag'
@@ -44,6 +44,8 @@ export type AcaoFinancas =
   | { tipo: 'saldos/alternarVisibilidade' }
   /** Anota no histórico o que a pessoa fez; o `FinancasProvider` despacha depois de cada ação que muda dados. */
   | { tipo: 'atividade/registrar'; atividade: Atividade }
+  /** Apaga do histórico as de antes de `antesDe` (ISO) ou, sem ele, todas. Não mexe nas contas. */
+  | { tipo: 'atividade/limpar'; antesDe?: string }
 
 /** Substitui o item com o mesmo id ou adiciona no fim. */
 function salvar<T extends { id: string }>(lista: T[], item: T): T[] {
@@ -126,6 +128,8 @@ export function financasReducer(estado: EstadoFinancas, acao: AcaoFinancas): Est
       return { ...estado, saldosOcultos: !estado.saldosOcultos }
     case 'atividade/registrar':
       return { ...estado, atividades: comAtividade(estado.atividades, acao.atividade) }
+    case 'atividade/limpar':
+      return { ...estado, atividades: semAtividadesAntigas(estado.atividades, acao.antesDe) }
   }
 }
 
