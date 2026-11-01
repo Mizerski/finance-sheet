@@ -11,6 +11,7 @@ import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { useFinancas } from '@/store/context/financas-context'
+import { CardEspacoHistorico } from './components/CardEspacoHistorico'
 import { ListaAtividades } from './components/ListaAtividades'
 import { ROTULO_FILTRO } from './constants/textos'
 import { LIMITE_ATIVIDADES } from './model/atividade'
@@ -44,6 +45,8 @@ export function SecaoHistorico() {
     <div className="flex flex-col gap-4">
       <CabecalhoOrganizacao descricao="O que você fez no app, para lembrar quando esquecer" />
 
+      <CardEspacoHistorico />
+
       <Card className={cn(CARD, 'overflow-hidden')}>
         <CabecalhoCard
           titulo="Histórico"
@@ -54,8 +57,9 @@ export function SecaoHistorico() {
           ajuda={
             <Ajuda titulo="Histórico">
               <p>
-                Cada coisa que você salva, muda ou exclui vira uma linha aqui, com o dia e a hora. Ficam guardadas as
-                últimas {LIMITE_ATIVIDADES}; as mais antigas saem sozinhas.
+                Cada coisa que você salva, muda ou exclui vira uma linha aqui, com o dia e a hora. Clique numa linha
+                para ver o extrato: o que foi lançado, o que mudou e como ficou. Ficam guardadas as últimas{' '}
+                {LIMITE_ATIVIDADES.toLocaleString('pt-BR')} (ou menos, no prazo que você escolher em “Apagar sozinho”).
               </p>
               <p>O histórico só lembra: ele não muda suas contas nem a projeção.</p>
             </Ajuda>

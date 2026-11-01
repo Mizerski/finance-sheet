@@ -11,7 +11,7 @@ import type { Tag } from '@/features/tags/model/tag'
  * Versão do formato de `DadosFinancas` no arquivo local e no backup.
  * Aumente e converta os dados antigos se o formato mudar; o histórico fica em `store/doc/versoes-dos-dados.md`.
  */
-export const VERSAO_DADOS = 13
+export const VERSAO_DADOS = 14
 
 /** O que fica salvo (Supabase na web, arquivo local no desktop). */
 export interface DadosFinancas {

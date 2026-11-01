@@ -2,7 +2,13 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { contaPrincipal, type Caixa, type TipoCaixa } from '@/features/caixas/model/caixa'
 import type { Categoria } from '@/features/categorias/model/categoria'
 import type { MetaEconomia, Resgate } from '@/features/economias/model/meta'
-import { LIMITE_ATIVIDADES, type Atividade, type TipoAtividade, type TomAtividade } from '@/features/historico/model/atividade'
+import {
+  LIMITE_ATIVIDADES,
+  type Atividade,
+  type DetalheAtividade,
+  type TipoAtividade,
+  type TomAtividade,
+} from '@/features/historico/model/atividade'
 import type { Lancamento, Natureza, Recorrencia, TipoLancamento, TipoMovimento } from '@/features/lancamentos/model/lancamento'
 import type { Pasta } from '@/features/pastas/model/pasta'
 import type { Tag } from '@/features/tags/model/tag'
@@ -76,6 +82,7 @@ interface LinhaAtividade {
   texto: string
   tom: TomAtividade | null
   caixa_id: string | null
+  detalhe: DetalheAtividade | null
 }
 
 const COLUNAS_CAIXA =
@@ -249,26 +256,46 @@ function deLinhaAtividade(a: LinhaAtividade): Atividade {
     texto: a.texto,
     ...(a.tom && { tom: a.tom }),
     ...(a.caixa_id && { caixaId: a.caixa_id }),
+    ...(a.detalhe && { detalhe: a.detalhe }),
   }
 }
 
 function paraLinhaAtividade(a: Atividade): LinhaAtividade {
-  return { id: a.id, em: a.em, tipo: a.tipo, texto: a.texto, tom: a.tom ?? null, caixa_id: a.caixaId ?? null }
+  return {
+    id: a.id,
+    em: a.em,
+    tipo: a.tipo,
+    texto: a.texto,
+    tom: a.tom ?? null,
+    caixa_id: a.caixaId ?? null,
+    detalhe: a.detalhe ?? null,
+  }
 }
 
 /**
- * As últimas `LIMITE_ATIVIDADES` atividades, da mais antiga para a mais nova.
- * O histórico não é essencial: se a tabela ainda não existir ou a consulta falhar, o app abre com ele vazio.
+ * As últimas `LIMITE_ATIVIDADES` atividades, da mais antiga para a mais nova, em páginas (o Supabase devolve no
+ * máximo 1000 linhas por consulta). O histórico não é essencial: sem a coluna `detalhe` (migração ainda não aplicada),
+ * vem sem o extrato; se a tabela ainda não existir ou a consulta falhar, o app abre com ele vazio.
  */
 async function carregarAtividades(supabase: SupabaseClient): Promise<Atividade[]> {
-  const { data, error } = await supabase
-    .from('atividades')
-    .select('id, em, tipo, texto, tom, caixa_id')
-    .order('em', { ascending: false })
-    .order('id', { ascending: false })
-    .limit(LIMITE_ATIVIDADES)
-  if (error) return []
-  return (data as LinhaAtividade[]).map(deLinhaAtividade).reverse()
+  const consultar = async (colunas: string) => {
+    const linhas: LinhaAtividade[] = []
+    for (let inicio = 0; inicio < LIMITE_ATIVIDADES; inicio += TAMANHO_PAGINA) {
+      const { data, error } = await supabase
+        .from('atividades')
+        .select(colunas)
+        .order('em', { ascending: false })
+        .order('id', { ascending: false })
+        .range(inicio, Math.min(inicio + TAMANHO_PAGINA, LIMITE_ATIVIDADES) - 1)
+      if (error) return null
+      linhas.push(...(data as unknown as LinhaAtividade[]))
+      if (data.length < TAMANHO_PAGINA) break
+    }
+    return linhas
+  }
+  const linhas =
+    (await consultar('id, em, tipo, texto, tom, caixa_id, detalhe')) ?? (await consultar('id, em, tipo, texto, tom, caixa_id'))
+  return (linhas ?? []).map(deLinhaAtividade).reverse()
 }
 
 /** Carrega tudo o que é do usuário logado (o RLS filtra por ele). */
@@ -370,8 +397,23 @@ function persistir(
     }
     case 'pasta/excluir':
       return rodar(() => supabase.from('pastas').delete().eq('id', acao.id))
-    case 'atividade/registrar':
-      return rodar(() => supabase.from('atividades').insert(paraLinhaAtividade(acao.atividade)))
+    case 'atividade/registrar': {
+      const linha = paraLinhaAtividade(acao.atividade)
+      return async () => {
+        const { error } = await supabase.from('atividades').insert(linha)
+        if (!error) return
+        const { detalhe: _, ...semDetalhe } = linha
+        await rodar(() => supabase.from('atividades').insert(semDetalhe))()
+      }
+    }
+    case 'atividade/limpar': {
+      const { antesDe } = acao
+      return rodar(() =>
+        antesDe
+          ? supabase.from('atividades').delete().lt('em', antesDe)
+          : supabase.from('atividades').delete().not('id', 'is', null),
+      )
+    }
     case 'dados/importar':
       return async () => {
         throw new Error('Importar backup só está disponível no app desktop.')

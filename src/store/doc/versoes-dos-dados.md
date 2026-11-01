@@ -18,3 +18,4 @@ Quando a versão sobe sem conversão, o número novo serve só para um app antig
 | 11 | Conta de investimento (`investimento` na conta) | Não |
 | 12 | Vez de um recorrente que aconteceu em outro dia (`movidas`: data original → data nova) | Não |
 | 13 | Histórico de atividade (`atividades`: o que a pessoa fez, com a frase pronta; só as últimas 500) | Não; dados e backups antigos começam com a lista vazia |
+| 14 | Extrato de cada atividade do histórico (`detalhe`: valor no topo e linhas em texto, com o antes do que mudou) | Não; as atividades antigas ficam só com a frase |

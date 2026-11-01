@@ -1,6 +1,7 @@
 import type { FormaDaPagina } from '@/shared/lib/formas'
 import type { TipoAtividade, TomAtividade } from '../model/atividade'
 import type { FiltroHistorico } from '../utils/filtro'
+import type { PrazoHistorico } from '../utils/limpeza'
 
 /** Forma pequena de cada assunto na lista, a mesma da tela ou do card de onde ele vem. */
 export const FORMA_ATIVIDADE: Record<TipoAtividade, FormaDaPagina> = {
@@ -33,4 +34,12 @@ export const COR_TOM: Record<TomAtividade, string> = {
   entrada: 'text-entrada',
   saida: 'text-saida',
   economia: 'text-economia',
+}
+
+/** Opções de "Apagar sozinho" (o prazo em dias; 0 = só o limite de registros). */
+export const ROTULO_PRAZO: Record<PrazoHistorico, string> = {
+  0: 'Nunca',
+  30: 'Com mais de 30 dias',
+  90: 'Com mais de 3 meses',
+  365: 'Com mais de 1 ano',
 }

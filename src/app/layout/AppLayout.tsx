@@ -5,6 +5,7 @@ import { SeletorCaixa } from '@/features/caixas/components/SeletorCaixa'
 import { useAtalhosDeCaixa } from '@/features/caixas/hooks/useAtalhosDeCaixa'
 import { useVisao } from '@/features/caixas/hooks/useVisao'
 import { BotaoNovoLancamento } from '@/features/lancamentos/components/BotaoNovoLancamento'
+import { useLimpezaDoHistorico } from '@/features/historico/hooks/useLimpezaDoHistorico'
 import { useAplicarSaldosOcultos } from '@/features/projecao/hooks/useSaldosOcultos'
 import { Forma } from '@/shared/components/Forma'
 import { Marca } from '@/shared/components/Marca'
@@ -70,6 +71,7 @@ const NOVO_CURTO = 'max-[100rem]:hidden'
 export function AppLayout() {
   useAtalhosDeCaixa()
   useAplicarSaldosOcultos()
+  useLimpezaDoHistorico()
   const { caixas } = useVisao()
   const larguras = EH_DESKTOP ? LINHA_UNICA_DESKTOP : LINHA_UNICA
   const linha = caixas.length >= 2 ? larguras.comCaixas : larguras.normal
